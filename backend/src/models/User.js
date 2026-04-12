@@ -1,0 +1,32 @@
+const mongoose = require('mongoose');
+
+const collectorProfileSchema = new mongoose.Schema({
+  vehicle_type: String,
+  vehicle_plate: String,
+  service_area: String,
+  is_available: { type: Boolean, default: false },
+  rating_avg: { type: Number, default: 0 },
+  total_collections: { type: Number, default: 0 },
+}, { _id: false });
+
+const userSchema = new mongoose.Schema({
+  uuid: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+  phone: String,
+  password_hash: { type: String, required: true },
+  role: { type: String, enum: ['user', 'collector', 'admin'], default: 'user' },
+  is_verified: { type: Boolean, default: false },
+  email_verification_token: { type: String, default: null },
+  email_verification_expires: { type: Date, default: null },
+  is_active: { type: Boolean, default: true },
+  avatar_url: String,
+  address: String,
+  collector_profile: collectorProfileSchema,
+}, {
+  timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+});
+
+module.exports = mongoose.model('User', userSchema);

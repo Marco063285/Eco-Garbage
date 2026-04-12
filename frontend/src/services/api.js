@@ -1,0 +1,98 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api',
+  timeout: 15000,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Attach token automatically
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('eco_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Handle 401 globally
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('eco_token');
+      localStorage.removeItem('eco_user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(err);
+  }
+);
+
+export default api;
+
+// ── Auth ──────────────────────────────────────────
+export const authApi = {
+  register: (data) => api.post('/auth/register', data),
+  login: (data) => api.post('/auth/login', data),
+  verifyEmail: (token) => api.get('/auth/verify-email', { params: { token } }),
+  me: () => api.get('/auth/me'),
+  updateProfile: (data) => api.put('/auth/profile', data),
+  changePassword: (data) => api.put('/auth/password', data),
+};
+
+// ── Requests ──────────────────────────────────────
+export const requestApi = {
+  list: (params) => api.get('/requests', { params }),
+  get: (uuid) => api.get(`/requests/${uuid}`),
+  create: (data) => api.post('/requests', data),
+  updateStatus: (uuid, data) => api.put(`/requests/${uuid}/status`, data),
+  assign: (uuid, data) => api.put(`/requests/${uuid}/assign`, data),
+  cancel: (uuid) => api.delete(`/requests/${uuid}`),
+};
+
+// ── Categories ────────────────────────────────────
+export const categoryApi = {
+  list: () => api.get('/categories'),
+};
+
+// ── Notifications ─────────────────────────────────
+export const notifApi = {
+  list: () => api.get('/notifications'),
+  readAll: () => api.put('/notifications/read-all'),
+};
+
+// ── Payments ──────────────────────────────────────
+export const paymentApi = {
+  list: () => api.get('/payments'),
+  pay: (data) => api.post('/payments/pay', data),
+};
+
+// ── Complaints ────────────────────────────────────
+export const complaintApi = {
+  mine: () => api.get('/complaints/mine'),
+  create: (data) => api.post('/complaints', data),
+};
+
+// ── Ratings ───────────────────────────────────────
+export const ratingApi = {
+  create: (data) => api.post('/ratings', data),
+};
+
+// ── Collector ─────────────────────────────────────
+export const collectorApi = {
+  tasks: (params) => api.get('/collector/tasks', { params }),
+  stats: () => api.get('/collector/stats'),
+  setAvailability: (data) => api.put('/collector/availability', data),
+};
+
+// ── Admin ─────────────────────────────────────────
+export const adminApi = {
+  dashboard: () => api.get('/admin/dashboard'),
+  users: (params) => api.get('/admin/users', { params }),
+  toggleUser: (id, data) => api.put(`/admin/users/${id}/status`, data),
+  complaints: () => api.get('/admin/complaints'),
+  respondComplaint: (uuid, data) => api.put(`/admin/complaints/${uuid}`, data),
+  reports: (params) => api.get('/admin/reports', { params }),
+  categories: () => api.get('/admin/categories'),
+  createCategory: (data) => api.post('/admin/categories', data),
+  updateCategory: (id, data) => api.put(`/admin/categories/${id}`, data),
+  requests: (params) => api.get('/admin/requests', { params }),
+};
