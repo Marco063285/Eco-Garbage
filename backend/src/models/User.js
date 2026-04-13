@@ -19,6 +19,8 @@ const userSchema = new mongoose.Schema({
   is_verified: { type: Boolean, default: false },
   email_verification_token: { type: String, default: null },
   email_verification_expires: { type: Date, default: null },
+  password_reset_token: { type: String, default: null },
+  password_reset_expires: { type: Date, default: null },
   is_active: { type: Boolean, default: true },
   avatar_url: String,
   address: String,

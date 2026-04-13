@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Truck, Filter } from 'lucide-react'
 import { collectorApi } from '../../services/api'
-import { PageHeader, StatusBadge, PageLoader, EmptyState } from '../../components/common'
+import { PageHeader, StatusBadge, PageLoader, EmptyState, Pagination } from '../../components/common'
 import { format } from 'date-fns'
+import getCategoryIcon from '../../utils/categoryIcons'
 import { fr } from 'date-fns/locale'
 
 const FILTERS = [
@@ -18,21 +19,27 @@ export default function CollectorTasks() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const LIMIT = 10
 
-  const fetch = (status = '') => {
+  const loadData = (status = '', p = 1) => {
     setLoading(true)
-    const params = { limit: 50 }
+    const params = { limit: LIMIT, page: p }
     if (status) params.status = status
     collectorApi.tasks(params)
-      .then(r => setTasks(r.data.data || []))
+      .then(r => {
+        setTasks(r.data.data || [])
+        setTotal(r.data.pagination?.total || 0)
+      })
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetch(filter) }, [filter])
+  useEffect(() => { setPage(1); loadData(filter, 1) }, [filter])
 
   return (
     <div className="fade-up">
-      <PageHeader title="Mes tâches" subtitle={`${tasks.length} tâche(s)`} />
+      <PageHeader title="Mes tâches" subtitle={`${total} tâche(s)`} />
 
       {/* Filter tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
@@ -53,7 +60,7 @@ export default function CollectorTasks() {
           {tasks.map(t => (
             <Link key={t.uuid} to={`/collector/tasks/${t.uuid}`}
               className="card p-4 flex items-center gap-4 hover:border-[#1A8A3C]/30 hover:-translate-y-0.5 transition-all">
-              <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">🗑️</div>
+              <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">{getCategoryIcon(t.category_icon)}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-semibold text-gray-800">{t.category_name}</p>
@@ -75,6 +82,7 @@ export default function CollectorTasks() {
           ))}
         </div>
       )}
+      <Pagination page={page} total={total} limit={LIMIT} onChange={p => { setPage(p); loadData(filter, p) }} />
     </div>
   )
 }

@@ -21,10 +21,10 @@ export default function Complaints() {
   const [form, setForm] = useState({ type: 'other', description: '' })
   const [submitting, setSubmitting] = useState(false)
 
-  const fetch = () => {
+  const loadData = () => {
     complaintApi.mine().then(r => setComplaints(r.data.data || [])).finally(() => setLoading(false))
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { loadData() }, [])
 
   const handleSubmit = async () => {
     if (!form.description.trim()) return toast.error('Description requise')
@@ -34,7 +34,7 @@ export default function Complaints() {
       toast.success('Réclamation enregistrée !')
       setModal(false)
       setForm({ type: 'other', description: '' })
-      fetch()
+      loadData()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur')
     } finally {

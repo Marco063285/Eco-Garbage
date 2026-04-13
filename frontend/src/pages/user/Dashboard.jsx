@@ -5,6 +5,7 @@ import { requestApi, paymentApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { StatCard, StatusBadge, PageLoader, EmptyState } from '../../components/common'
 import { format } from 'date-fns'
+import getCategoryIcon from '../../utils/categoryIcons'
 import { fr } from 'date-fns/locale'
 
 export default function UserDashboard() {
@@ -77,7 +78,7 @@ export default function UserDashboard() {
                 <Link key={r.uuid} to={`/dashboard/requests/${r.uuid}`}
                   className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-[#E8F5EE] transition-all group">
                   <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center flex-shrink-0 text-lg group-hover:bg-white">
-                    🗑️
+                    {getCategoryIcon(r.category_icon)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">{r.category_name}</p>

@@ -1,26 +1,36 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Leaf, Eye, EyeOff, MailCheck } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Leaf, Eye, EyeOff, MailCheck, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authApi } from '../../services/api'
 import { Spinner } from '../../components/common'
+import { isValidCmPhone, formatCmPhone, normalizeCmPhone } from '../../utils/phone'
 
 export default function RegisterPage() {
+  const navigate = useNavigate()
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '', role: 'user' })
+  const [phoneError, setPhoneError] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [registered, setRegistered] = useState(false)
+  const [autoVerified, setAutoVerified] = useState(false)
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.name || !form.email || !form.password) return toast.error('Champs obligatoires manquants')
+    if (form.phone && !isValidCmPhone(form.phone)) return toast.error('Numéro de téléphone camerounais invalide')
     if (form.password.length < 6) return toast.error('Mot de passe trop court (min 6 caractères)')
     if (form.password !== form.confirm) return toast.error('Les mots de passe ne correspondent pas')
     setLoading(true)
     try {
-      await authApi.register({ name: form.name, email: form.email, phone: form.phone, password: form.password, role: form.role })
+      const res = await authApi.register({ name: form.name, email: form.email, phone: normalizeCmPhone(form.phone), password: form.password, role: form.role })
+      if (res.data?.autoVerified) {
+        setAutoVerified(true)
+        toast.success('Compte créé ! Redirection vers la connexion...')
+        setTimeout(() => navigate('/login'), 2000)
+      }
       setRegistered(true)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de l\'inscription')
@@ -64,15 +74,24 @@ export default function RegisterPage() {
             <div className="bg-white rounded-3xl shadow-green-lg p-8 text-center">
               <div className="flex justify-center mb-4">
                 <div className="w-16 h-16 bg-[#E8F5EE] rounded-full flex items-center justify-center">
-                  <MailCheck size={32} className="text-[#1A8A3C]" />
+                  {autoVerified ? <CheckCircle size={32} className="text-[#1A8A3C]" /> : <MailCheck size={32} className="text-[#1A8A3C]" />}
                 </div>
               </div>
-              <h2 className="text-2xl font-display font-bold mb-2">Vérifiez votre email</h2>
-              <p className="text-gray-500 text-sm leading-relaxed mb-6">
-                Un lien de vérification a été envoyé à <strong className="text-gray-700">{form.email}</strong>.<br />
-                Cliquez sur le lien dans l'email pour activer votre compte.
-              </p>
-              <p className="text-xs text-gray-400 mb-4">Le lien expire dans 24 heures. Vérifiez vos spams si vous ne trouvez pas l'email.</p>
+              <h2 className="text-2xl font-display font-bold mb-2">{autoVerified ? 'Compte créé avec succès !' : 'Vérifiez votre email'}</h2>
+              {autoVerified ? (
+                <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                  Votre compte <strong className="text-gray-700">{form.email}</strong> est actif.<br />
+                  Vous allez être redirigé vers la page de connexion...
+                </p>
+              ) : (
+                <>
+                  <p className="text-gray-500 text-sm leading-relaxed mb-6">
+                    Un lien de vérification a été envoyé à <strong className="text-gray-700">{form.email}</strong>.<br />
+                    Cliquez sur le lien dans l'email pour activer votre compte.
+                  </p>
+                  <p className="text-xs text-gray-400 mb-4">Le lien expire dans 24 heures. Vérifiez vos spams si vous ne trouvez pas l'email.</p>
+                </>
+              )}
               <Link to="/login" className="btn-primary w-full justify-center py-3">
                 Aller à la connexion
               </Link>
@@ -111,7 +130,16 @@ export default function RegisterPage() {
               </div>
               <div>
                 <label className="label">Téléphone</label>
-                <input type="tel" className="input" placeholder="+237 6XX XXX XXX" value={form.phone} onChange={e => set('phone', e.target.value)} />
+                <input type="tel" className={`input ${phoneError ? 'border-red-400 focus:ring-red-200' : ''}`}
+                  placeholder="+237 6 XX XX XX XX"
+                  value={form.phone}
+                  onChange={e => {
+                    const formatted = formatCmPhone(e.target.value)
+                    set('phone', formatted)
+                    setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'Numéro invalide (ex: +237 6 XX XX XX XX)' : '')
+                  }} />
+                {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
+                <p className="text-xs text-gray-400 mt-1">Format : +237 suivi de 9 chiffres (6... ou 2...)</p>
               </div>
               <div>
                 <label className="label">Mot de passe <span className="text-red-500">*</span></label>

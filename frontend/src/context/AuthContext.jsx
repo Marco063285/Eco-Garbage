@@ -9,6 +9,12 @@ export function AuthProvider({ children }) {
   });
   const [loading, setLoading] = useState(true);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem('eco_token');
+    localStorage.removeItem('eco_user');
+    setUser(null);
+  }, []);
+
   const fetchMe = useCallback(async () => {
     const token = localStorage.getItem('eco_token');
     if (!token) { setLoading(false); return; }
@@ -21,7 +27,7 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   useEffect(() => { fetchMe(); }, [fetchMe]);
 
@@ -29,12 +35,6 @@ export function AuthProvider({ children }) {
     localStorage.setItem('eco_token', token);
     localStorage.setItem('eco_user', JSON.stringify(userData));
     setUser(userData);
-  };
-
-  const logout = () => {
-    localStorage.removeItem('eco_token');
-    localStorage.removeItem('eco_user');
-    setUser(null);
   };
 
   const updateUser = (updates) => {

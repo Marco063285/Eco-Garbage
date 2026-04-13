@@ -6,6 +6,7 @@ import { collectorApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { StatCard, StatusBadge, PageLoader, EmptyState } from '../../components/common'
 import { format } from 'date-fns'
+import getCategoryIcon from '../../utils/categoryIcons'
 import { fr } from 'date-fns/locale'
 
 export default function CollectorDashboard() {
@@ -108,7 +109,7 @@ export default function CollectorDashboard() {
               {tasks.slice(0, 5).map(t => (
                 <Link key={t.uuid} to={`/collector/tasks/${t.uuid}`}
                   className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-[#E8F5EE] transition-all group">
-                  <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-white">🗑️</div>
+                  <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-white">{getCategoryIcon(t.category_icon)}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">{t.category_name}</p>
                     <p className="text-xs text-gray-400 mt-0.5 truncate">{t.address}</p>

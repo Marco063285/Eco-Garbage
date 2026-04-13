@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { Search, UserPlus } from 'lucide-react'
+import { Search, UserPlus, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminApi, requestApi } from '../../services/api'
-import { PageHeader, StatusBadge, PageLoader, EmptyState, Modal } from '../../components/common'
+import { PageHeader, StatusBadge, PageLoader, EmptyState, Modal, Pagination } from '../../components/common'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
@@ -14,20 +14,24 @@ export default function AdminRequests() {
   const [collectors, setCollectors] = useState([])
   const [assignModal, setAssignModal] = useState(null)
   const [selectedCollector, setSelectedCollector] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const LIMIT = 15
 
-  const fetch = async () => {
+  const loadData = async (p = page) => {
     setLoading(true)
     try {
-      const params = { limit: 50 }
+      const params = { limit: LIMIT, page: p }
       if (statusFilter) params.status = statusFilter
       const { data } = await adminApi.requests(params)
       setRequests(data.data || [])
+      setTotal(data.pagination?.total || 0)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetch() }, [statusFilter])
+  useEffect(() => { setPage(1); loadData(1) }, [statusFilter])
 
   useEffect(() => {
     adminApi.users({ role: 'collector', limit: 100 }).then(r => setCollectors(r.data.data || []))
@@ -36,10 +40,30 @@ export default function AdminRequests() {
   const handleAssign = async () => {
     if (!selectedCollector) return toast.error('Sélectionnez un collecteur')
     try {
-      await requestApi.assign(assignModal.uuid, { collector_id: parseInt(selectedCollector) })
+      await requestApi.assign(assignModal.uuid, { collector_id: selectedCollector })
       toast.success('Collecteur assigné !')
       setAssignModal(null)
-      fetch()
+      loadData()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur')
+    }
+  }
+
+  const handleApprove = async (uuid) => {
+    try {
+      await requestApi.updateStatus(uuid, { status: 'approved' })
+      toast.success('Demande approuvée')
+      loadData()
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur')
+    }
+  }
+
+  const handleReject = async (uuid) => {
+    try {
+      await requestApi.updateStatus(uuid, { status: 'cancelled' })
+      toast.success('Demande rejetée')
+      loadData()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur')
     }
@@ -52,7 +76,7 @@ export default function AdminRequests() {
 
   return (
     <div className="fade-up">
-      <PageHeader title="Toutes les collectes" subtitle={`${requests.length} demande(s)`} />
+      <PageHeader title="Toutes les collectes" subtitle={`${total} demande(s)`} />
 
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[200px]">
@@ -94,8 +118,20 @@ export default function AdminRequests() {
                       {format(new Date(r.created_at), 'dd MMM', { locale: fr })}
                     </td>
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{r.collector_name || '—'}</td>
-                    <td className="px-4 py-3">
-                      {['pending','approved'].includes(r.status) && (
+                    <td className="px-4 py-3 flex items-center gap-2">
+                      {r.status === 'pending' && (
+                        <>
+                          <button onClick={() => handleApprove(r.uuid)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-green-50 text-green-700 rounded-lg text-xs font-semibold hover:bg-green-100 transition-all">
+                            <CheckCircle size={13} /> Approuver
+                          </button>
+                          <button onClick={() => handleReject(r.uuid)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition-all">
+                            <XCircle size={13} /> Rejeter
+                          </button>
+                        </>
+                      )}
+                      {r.status === 'approved' && (
                         <button onClick={() => setAssignModal(r)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-[#E8F5EE] text-[#1A8A3C] rounded-lg text-xs font-semibold hover:bg-[#C8EDDA] transition-all">
                           <UserPlus size={13} /> Assigner
@@ -109,6 +145,7 @@ export default function AdminRequests() {
           </div>
         </div>
       )}
+      <Pagination page={page} total={total} limit={LIMIT} onChange={p => { setPage(p); loadData(p) }} />
 
       <Modal isOpen={!!assignModal} onClose={() => setAssignModal(null)} title="Assigner un collecteur">
         <div className="flex flex-col gap-4">

@@ -1,9 +1,13 @@
 ﻿const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const PickupRequest = require('../models/PickupRequest');
 const Payment = require('../models/Payment');
 const Complaint = require('../models/Complaint');
 const WasteCategory = require('../models/WasteCategory');
+
+const CM_PHONE_REGEX = /^(\+?237)?[62]\d{8}$/;
 
 // GET /api/admin/dashboard
 const getDashboard = async (req, res) => {
@@ -70,10 +74,11 @@ const getUsers = async (req, res) => {
     ];
     const [rows, total] = await Promise.all([
       User.find(filter).select('-password_hash').sort({ created_at: -1 })
-        .skip((page - 1) * parseInt(limit)).limit(parseInt(limit)).lean({ virtuals: true }),
+        .skip((page - 1) * parseInt(limit)).limit(parseInt(limit)).lean(),
       User.countDocuments(filter),
     ]);
-    res.json({ success: true, data: rows, pagination: { total, page: parseInt(page) } });
+    const users = rows.map(u => ({ ...u, id: u._id.toString() }));
+    res.json({ success: true, data: users, pagination: { total, page: parseInt(page) } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
@@ -83,9 +88,16 @@ const getUsers = async (req, res) => {
 const toggleUserStatus = async (req, res) => {
   try {
     const { is_active } = req.body;
-    await User.findByIdAndUpdate(req.params.id, { $set: { is_active } });
-    res.json({ success: true, message: is_active ? 'Compte active' : 'Compte suspendu' });
+    if (typeof is_active !== 'boolean')
+      return res.status(400).json({ success: false, message: 'Valeur is_active invalide' });
+    if (!mongoose.isValidObjectId(req.params.id))
+      return res.status(400).json({ success: false, message: 'ID utilisateur invalide' });
+    const updated = await User.findByIdAndUpdate(req.params.id, { $set: { is_active } });
+    if (!updated)
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+    res.json({ success: true, message: is_active ? 'Compte activé' : 'Compte suspendu' });
   } catch (err) {
+    console.error('toggleUserStatus error:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -157,8 +169,9 @@ const getReports = async (req, res) => {
 // GET /api/admin/categories
 const getCategories = async (req, res) => {
   try {
-    const rows = await WasteCategory.find().sort({ name: 1 }).lean({ virtuals: true });
-    res.json({ success: true, data: rows });
+    const rows = await WasteCategory.find().sort({ name: 1 }).lean();
+    const data = rows.map(c => ({ ...c, id: c._id.toString() }));
+    res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
@@ -186,4 +199,62 @@ const updateCategory = async (req, res) => {
   }
 };
 
-module.exports = { getDashboard, getUsers, toggleUserStatus, getComplaints, respondComplaint, getReports, getCategories, createCategory, updateCategory };
+// POST /api/admin/users
+const createUser = async (req, res) => {
+  try {
+    const { name, email, phone, role, password } = req.body;
+    if (!name || !email || !password || !role)
+      return res.status(400).json({ success: false, message: 'Nom, email, mot de passe et rôle requis' });
+    if (!['user', 'collector', 'admin'].includes(role))
+      return res.status(400).json({ success: false, message: 'Rôle invalide' });    if (phone) {
+      const cleaned = phone.replace(/[\s\-().]/g, '');
+      if (!CM_PHONE_REGEX.test(cleaned))
+        return res.status(400).json({ success: false, message: 'Numero de telephone camerounais invalide' });
+    }    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    if (existing)
+      return res.status(409).json({ success: false, message: 'Cet email est déjà utilisé' });
+    const password_hash = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      uuid: uuidv4(),
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone || undefined,
+      password_hash,
+      role,
+      is_verified: true,
+      is_active: true,
+      collector_profile: role === 'collector' ? { is_available: true } : undefined,
+    });
+    res.status(201).json({ success: true, message: 'Utilisateur créé', data: { id: user._id.toString() } });
+  } catch (err) {
+    console.error('createUser error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+// DELETE /api/admin/users/:id
+const deleteUser = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id))
+      return res.status(400).json({ success: false, message: 'ID utilisateur invalide' });
+    const user = await User.findById(req.params.id);
+    if (!user)
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
+    if (user.role === 'admin')
+      return res.status(403).json({ success: false, message: 'Impossible de supprimer un administrateur' });
+    // Check for active requests
+    const activeReqs = await PickupRequest.countDocuments({
+      $or: [{ user_id: user._id }, { collector_id: user._id }],
+      status: { $in: ['assigned', 'on_way', 'in_progress'] },
+    });
+    if (activeReqs > 0)
+      return res.status(400).json({ success: false, message: 'Cet utilisateur a des collectes en cours. Terminez-les d\'abord.' });
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: 'Utilisateur supprimé' });
+  } catch (err) {
+    console.error('deleteUser error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+module.exports = { getDashboard, getUsers, toggleUserStatus, createUser, deleteUser, getComplaints, respondComplaint, getReports, getCategories, createCategory, updateCategory };

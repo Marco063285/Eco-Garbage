@@ -147,6 +147,7 @@ const updateStatus = async (req, res) => {
     await PickupRequest.findByIdAndUpdate(pickupReq._id, { $set: updates });
 
     const statusMessages = {
+      approved: 'Votre demande de collecte a ete approuvee. Un collecteur sera bientot assigne.',
       assigned: 'Un collecteur a ete assigne a votre demande.',
       on_way: 'Votre collecteur est en route !',
       completed: 'Collecte terminee avec succes ! Pensez a noter votre collecteur.',

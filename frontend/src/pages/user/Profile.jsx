@@ -4,21 +4,25 @@ import toast from 'react-hot-toast'
 import { authApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { PageHeader, Spinner } from '../../components/common'
+import { isValidCmPhone, formatCmPhone, normalizeCmPhone } from '../../utils/phone'
 
 export default function Profile() {
   const { user, updateUser } = useAuth()
   const [tab, setTab] = useState('info')
-  const [info, setInfo] = useState({ name: user?.name || '', phone: user?.phone || '', address: user?.address || '' })
+  const [info, setInfo] = useState({ name: user?.name || '', phone: user?.phone ? formatCmPhone(user.phone) : '', address: user?.address || '' })
+  const [phoneError, setPhoneError] = useState('')
   const [pw, setPw] = useState({ currentPassword: '', newPassword: '', confirm: '' })
   const [saving, setSaving] = useState(false)
 
   const handleSaveInfo = async (e) => {
     e.preventDefault()
     if (!info.name) return toast.error('Nom requis')
+    if (info.phone && !isValidCmPhone(info.phone)) return toast.error('Numéro de téléphone camerounais invalide')
     setSaving(true)
     try {
-      await authApi.updateProfile(info)
-      updateUser({ name: info.name, phone: info.phone, address: info.address })
+      const normalized = normalizeCmPhone(info.phone)
+      await authApi.updateProfile({ ...info, phone: normalized })
+      updateUser({ name: info.name, phone: normalized, address: info.address })
       toast.success('Profil mis à jour !')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur')
@@ -86,7 +90,15 @@ export default function Profile() {
           </div>
           <div>
             <label className="label">Téléphone</label>
-            <input className="input" placeholder="+237 6XX XXX XXX" value={info.phone} onChange={e => setInfo(p => ({ ...p, phone: e.target.value }))} />
+            <input className={`input ${phoneError ? 'border-red-400 focus:ring-red-200' : ''}`}
+              placeholder="+237 6 XX XX XX XX"
+              value={info.phone}
+              onChange={e => {
+                const formatted = formatCmPhone(e.target.value)
+                setInfo(p => ({ ...p, phone: formatted }))
+                setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'Numéro invalide' : '')
+              }} />
+            {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
           </div>
           <div>
             <label className="label">Adresse</label>

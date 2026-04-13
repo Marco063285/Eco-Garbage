@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { flushSync } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { Leaf, Eye, EyeOff, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -10,23 +11,45 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [unverified, setUnverified] = useState(false)
+  const [resending, setResending] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.email || !form.password) return toast.error('Remplissez tous les champs')
+    setUnverified(false)
     setLoading(true)
     try {
       const { data } = await authApi.login(form)
-      login(data.data.token, data.data.user)
+      flushSync(() => {
+        login(data.data.token, data.data.user)
+      })
       toast.success('Connexion réussie !')
       const role = data.data.user.role
       navigate(role === 'admin' ? '/admin' : role === 'collector' ? '/collector' : '/dashboard', { replace: true })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur de connexion')
+      if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
+        setUnverified(true)
+      } else {
+        toast.error(err.response?.data?.message || 'Erreur de connexion')
+      }
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleResend = async () => {
+    setResending(true)
+    try {
+      await authApi.resendVerification(form.email)
+      toast.success('Email de vérification renvoyé ! Consultez votre boite mail.')
+      setUnverified(false)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors du renvoi')
+    } finally {
+      setResending(false)
     }
   }
 
@@ -74,12 +97,17 @@ export default function LoginPage() {
               <Link to="/register" className="text-[#1A8A3C] font-semibold hover:underline">S'inscrire</Link>
             </p>
 
-            {/* Demo credentials */}
-            <div className="bg-[#E8F5EE] rounded-xl p-3 mb-6 text-xs text-gray-600">
-              <p className="font-semibold text-[#1A8A3C] mb-1">Compte démo admin :</p>
-              <p>Email : <strong>admin@eco-garbage.com</strong></p>
-              <p>Mot de passe : <strong>Admin1234!</strong></p>
-            </div>
+            {/* Email not verified banner */}
+            {unverified && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm">
+                <p className="font-semibold text-amber-800 mb-1">Email non vérifié</p>
+                <p className="text-amber-700 mb-3">Vous devez vérifier votre email avant de vous connecter. Consultez votre boite mail ou renvoyez le lien.</p>
+                <button type="button" onClick={handleResend} disabled={resending}
+                  className="text-[#1A8A3C] font-semibold text-xs hover:underline disabled:opacity-50">
+                  {resending ? 'Envoi...' : 'Renvoyer l\'email de vérification'}
+                </button>
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
@@ -90,7 +118,7 @@ export default function LoginPage() {
               <div>
                 <label className="label flex justify-between">
                   Mot de passe
-                  <span className="text-[#1A8A3C] cursor-pointer text-xs font-normal hover:underline">Oublié ?</span>
+                  <Link to="/forgot-password" className="text-[#1A8A3C] cursor-pointer text-xs font-normal hover:underline">Oublié ?</Link>
                 </label>
                 <div className="relative">
                   <input type={showPw ? 'text' : 'password'} className="input pr-10" placeholder="••••••••"

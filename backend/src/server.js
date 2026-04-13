@@ -4,6 +4,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 
+// ── Startup checks ────────────────────────────────
+if (!process.env.JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET is not set in environment variables. Exiting.');
+  process.exit(1);
+}
+
 const connectDB = require('./config/db');
 const routes = require('./routes');
 

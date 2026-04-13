@@ -4,17 +4,30 @@ import { Link } from 'react-router-dom'
 import { adminApi } from '../../services/api'
 import { StatCard, StatusBadge, PageLoader } from '../../components/common'
 import { format } from 'date-fns'
+import getCategoryIcon from '../../utils/categoryIcons'
 import { fr } from 'date-fns/locale'
 
 export default function AdminDashboard() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
-    adminApi.dashboard().then(r => setData(r.data.data)).finally(() => setLoading(false))
+    adminApi.dashboard()
+      .then(r => setData(r.data.data))
+      .catch(() => setError(true))
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) return <PageLoader />
+  if (error || !data) return (
+    <div className="flex flex-col items-center justify-center py-24 gap-4">
+      <p className="text-gray-500">Impossible de charger le tableau de bord.</p>
+      <button className="btn-primary" onClick={() => { setLoading(true); setError(false); adminApi.dashboard().then(r => setData(r.data.data)).catch(() => setError(true)).finally(() => setLoading(false)) }}>
+        Réessayer
+      </button>
+    </div>
+  )
   const { stats, recentRequests, topCollectors } = data
 
   return (
@@ -53,7 +66,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-400 text-center py-8">Aucune demande</p>
             ) : recentRequests.map(r => (
               <div key={r.uuid} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-[#E8F5EE] transition-all">
-                <div className="w-9 h-9 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-base flex-shrink-0">🗑️</div>
+                <div className="w-9 h-9 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-base flex-shrink-0">{getCategoryIcon(r.category_icon)}</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate">{r.user_name} — {r.category_name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{format(new Date(r.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}</p>

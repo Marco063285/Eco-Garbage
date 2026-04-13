@@ -133,14 +133,15 @@ export default function RequestDetail() {
       </div>
 
       {/* Paiement */}
-      {req.payment_status && (
+      {req.status === 'completed' && (
         <div className={`rounded-2xl p-4 mb-5 flex items-center justify-between ${req.payment_status === 'completed' ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
           <div>
             <p className="text-sm font-semibold">{req.payment_status === 'completed' ? '✅ Paiement effectué' : '⏳ Paiement en attente'}</p>
             {req.payment_amount && <p className="text-xs text-gray-500 mt-0.5">{parseFloat(req.payment_amount).toLocaleString()} FCFA</p>}
+            {!req.payment_amount && req.final_price && <p className="text-xs text-gray-500 mt-0.5">{parseFloat(req.final_price).toLocaleString()} FCFA</p>}
           </div>
           {req.payment_status !== 'completed' && (
-            <button className="btn-primary text-xs px-4 py-2">Payer</button>
+            <Link to="/dashboard/payments" className="btn-primary text-xs px-4 py-2">Payer maintenant</Link>
           )}
         </div>
       )}

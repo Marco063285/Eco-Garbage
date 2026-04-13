@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter } from 'lucide-react'
 import { requestApi } from '../../services/api'
-import { PageHeader, StatusBadge, PageLoader, EmptyState } from '../../components/common'
+import { PageHeader, StatusBadge, PageLoader, EmptyState, Pagination } from '../../components/common'
 import { format } from 'date-fns'
+import getCategoryIcon from '../../utils/categoryIcons'
 import { fr } from 'date-fns/locale'
 
 const STATUS_OPTIONS = [
@@ -21,20 +22,29 @@ export default function MyRequests() {
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const LIMIT = 10
 
-  const fetchRequests = async (status = '') => {
+  const fetchRequests = async (status = '', p = 1) => {
     setLoading(true)
     try {
-      const params = { limit: 50 }
+      const params = { limit: LIMIT, page: p }
       if (status) params.status = status
       const { data } = await requestApi.list(params)
       setRequests(data.data || [])
+      setTotal(data.pagination?.total || 0)
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { fetchRequests(statusFilter) }, [statusFilter])
+  useEffect(() => { setPage(1); fetchRequests(statusFilter, 1) }, [statusFilter])
+
+  const handlePageChange = (p) => {
+    setPage(p)
+    fetchRequests(statusFilter, p)
+  }
 
   const filtered = requests.filter(r =>
     search === '' || r.category_name?.toLowerCase().includes(search.toLowerCase()) || r.address?.toLowerCase().includes(search.toLowerCase())
@@ -44,7 +54,7 @@ export default function MyRequests() {
     <div className="fade-up">
       <PageHeader
         title="Mes demandes"
-        subtitle={`${requests.length} demande(s) au total`}
+        subtitle={`${total} demande(s) au total`}
         action={<Link to="/dashboard/new-request" className="btn-primary"><Plus size={16} />Nouvelle collecte</Link>}
       />
 
@@ -72,7 +82,7 @@ export default function MyRequests() {
           {filtered.map(r => (
             <Link key={r.uuid} to={`/dashboard/requests/${r.uuid}`}
               className="card p-4 flex items-center gap-4 hover:border-[#1A8A3C]/30 hover:-translate-y-0.5 transition-all">
-              <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">🗑️</div>
+              <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">{getCategoryIcon(r.category_icon)}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
                   <p className="font-semibold text-gray-800">{r.category_name}</p>
@@ -92,6 +102,7 @@ export default function MyRequests() {
           ))}
         </div>
       )}
+      <Pagination page={page} total={total} limit={LIMIT} onChange={handlePageChange} />
     </div>
   )
 }

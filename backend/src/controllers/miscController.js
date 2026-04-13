@@ -127,8 +127,9 @@ const payRequest = async (req, res) => {
 
 const getCategories = async (req, res) => {
   try {
-    const rows = await WasteCategory.find({ is_active: true }).sort({ name: 1 }).lean({ virtuals: true });
-    res.json({ success: true, data: rows });
+    const rows = await WasteCategory.find({ is_active: true }).sort({ name: 1 }).lean();
+    const data = rows.map(c => ({ ...c, id: c._id.toString() }));
+    res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
@@ -138,20 +139,26 @@ const getCategories = async (req, res) => {
 
 const getCollectorTasks = async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, page = 1, limit = 10 } = req.query;
     const filter = { collector_id: req.user.id };
     if (status) filter.status = status;
-    const raw = await PickupRequest.find(filter)
-      .populate('user_id', 'name phone')
-      .populate('category_id', 'name icon')
-      .sort({ created_at: -1 }).lean();
+    const [raw, total] = await Promise.all([
+      PickupRequest.find(filter)
+        .populate('user_id', 'name phone')
+        .populate('category_id', 'name icon')
+        .sort({ created_at: -1 })
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .lean(),
+      PickupRequest.countDocuments(filter),
+    ]);
     const rows = raw.map(r => ({
       ...r, id: r._id.toString(),
       user_name: r.user_id?.name, user_phone: r.user_id?.phone,
       category_name: r.category_id?.name, category_icon: r.category_id?.icon,
       user_id: r.user_id?._id?.toString(), category_id: r.category_id?._id?.toString(),
     }));
-    res.json({ success: true, data: rows });
+    res.json({ success: true, data: rows, pagination: { total, page: parseInt(page), limit: parseInt(limit) } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }

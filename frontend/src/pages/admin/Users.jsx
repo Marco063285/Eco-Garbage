@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react'
-import { Search, UserCheck, UserX, Users } from 'lucide-react'
+import { Search, UserCheck, UserX, Users, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { adminApi } from '../../services/api'
-import { PageHeader, PageLoader, EmptyState, ConfirmDialog } from '../../components/common'
+import { PageHeader, PageLoader, EmptyState, ConfirmDialog, Modal } from '../../components/common'
 import { format } from 'date-fns'
 import { fr } from 'date-fns/locale'
 
 const ROLE_LABELS = { user: 'Utilisateur', collector: 'Collecteur', admin: 'Admin' }
 const ROLE_COLORS = { user: 'bg-blue-100 text-blue-700', collector: 'bg-green-100 text-green-700', admin: 'bg-purple-100 text-purple-700' }
+
+import { isValidCmPhone, formatCmPhone, normalizeCmPhone } from '../../utils/phone'
+
+const EMPTY_FORM = { name: '', email: '', phone: '', role: 'user', password: '' }
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([])
@@ -15,6 +19,10 @@ export default function AdminUsers() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [confirmDialog, setConfirmDialog] = useState(null) // { userId, is_active, name }
+  const [deleteDialog, setDeleteDialog] = useState(null)   // { userId, name }
+  const [createModal, setCreateModal] = useState(false)
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [saving, setSaving] = useState(false)
 
   const fetchUsers = async (params = {}) => {
     setLoading(true)
@@ -39,9 +47,41 @@ export default function AdminUsers() {
     }
   }
 
+  const handleCreateUser = async () => {
+    if (!form.name.trim() || !form.email.trim() || !form.password)
+      return toast.error('Nom, email et mot de passe requis')
+    if (form.phone && !isValidCmPhone(form.phone))
+      return toast.error('Numéro de téléphone camerounais invalide')
+    setSaving(true)
+    try {
+      await adminApi.createUser({ ...form, phone: normalizeCmPhone(form.phone) })
+      toast.success('Utilisateur créé avec succès')
+      setCreateModal(false)
+      setForm(EMPTY_FORM)
+      fetchUsers({ role: roleFilter, search })
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la création')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    if (!deleteDialog) return
+    try {
+      await adminApi.deleteUser(deleteDialog.userId)
+      toast.success('Utilisateur supprimé')
+      setDeleteDialog(null)
+      fetchUsers({ role: roleFilter, search })
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la suppression')
+    }
+  }
+
   return (
     <div className="fade-up">
-      <PageHeader title="Utilisateurs" subtitle={`${users.length} utilisateur(s)`} />
+      <PageHeader title="Utilisateurs" subtitle={`${users.length} utilisateur(s)`}
+        action={<button onClick={() => { setForm(EMPTY_FORM); setCreateModal(true) }} className="btn-primary"><Plus size={16} />Ajouter</button>} />
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
@@ -73,7 +113,7 @@ export default function AdminUsers() {
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {users.map(u => (
-                  <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={u._id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-[#E8F5EE] rounded-lg flex items-center justify-center text-[#1A8A3C] font-bold text-xs flex-shrink-0">
@@ -99,15 +139,22 @@ export default function AdminUsers() {
                     </td>
                     <td className="px-4 py-3">
                       {u.role !== 'admin' && (
-                        <button
-                          onClick={() => setConfirmDialog({ userId: u.id, is_active: u.is_active, name: u.name })}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                            u.is_active
-                              ? 'bg-red-50 text-red-500 hover:bg-red-100'
-                              : 'bg-green-50 text-green-600 hover:bg-green-100'
-                          }`}>
-                          {u.is_active ? <><UserX size={13} />Suspendre</> : <><UserCheck size={13} />Activer</>}
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setConfirmDialog({ userId: u._id, is_active: u.is_active, name: u.name })}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                              u.is_active
+                                ? 'bg-red-50 text-red-500 hover:bg-red-100'
+                                : 'bg-green-50 text-green-600 hover:bg-green-100'
+                            }`}>
+                            {u.is_active ? <><UserX size={13} />Suspendre</> : <><UserCheck size={13} />Activer</>}
+                          </button>
+                          <button
+                            onClick={() => setDeleteDialog({ userId: u._id, name: u.name })}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -127,6 +174,56 @@ export default function AdminUsers() {
         confirmLabel={confirmDialog?.is_active ? 'Suspendre' : 'Activer'}
         danger={confirmDialog?.is_active}
       />
+
+      <ConfirmDialog
+        isOpen={!!deleteDialog}
+        onClose={() => setDeleteDialog(null)}
+        onConfirm={handleDeleteUser}
+        title="Supprimer l'utilisateur"
+        message={`Êtes-vous sûr de vouloir supprimer définitivement le compte de ${deleteDialog?.name} ? Cette action est irréversible.`}
+        confirmLabel="Supprimer"
+        danger
+      />
+
+      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Nouvel utilisateur">
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="label">Nom complet *</label>
+            <input className="input" placeholder="Nom et prénom" value={form.name}
+              onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          </div>
+          <div>
+            <label className="label">Email *</label>
+            <input className="input" type="email" placeholder="email@exemple.com" value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
+          </div>
+          <div>
+            <label className="label">Téléphone</label>
+            <input className="input" placeholder="+237 6 XX XX XX XX" value={form.phone}
+              onChange={e => setForm(f => ({ ...f, phone: formatCmPhone(e.target.value) }))} />
+            <p className="text-xs text-gray-400 mt-1">Format camerounais : +237 suivi de 9 chiffres</p>
+          </div>
+          <div>
+            <label className="label">Rôle *</label>
+            <select className="input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
+              <option value="user">Utilisateur</option>
+              <option value="collector">Collecteur</option>
+              <option value="admin">Administrateur</option>
+            </select>
+          </div>
+          <div>
+            <label className="label">Mot de passe *</label>
+            <input className="input" type="password" placeholder="Min. 8 caractères, 1 majuscule, 1 chiffre" value={form.password}
+              onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
+          </div>
+          <div className="flex gap-3 mt-2">
+            <button onClick={() => setCreateModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">Annuler</button>
+            <button onClick={handleCreateUser} disabled={saving} className="btn-primary flex-1 justify-center">
+              {saving ? 'Création...' : 'Créer le compte'}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }

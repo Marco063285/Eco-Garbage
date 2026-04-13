@@ -26,7 +26,7 @@ async function initDatabase() {
   }
   console.log('Categories initialisees (' + categories.length + ')');
 
-  const adminHash = await bcrypt.hash('Admin1234!', 10);
+  const defaultHash = await bcrypt.hash('Admin1234!', 10);
   await User.findOneAndUpdate(
     { email: 'admin@eco-garbage.com' },
     {
@@ -34,7 +34,7 @@ async function initDatabase() {
       name: 'Administrateur',
       email: 'admin@eco-garbage.com',
       phone: '+237600000000',
-      password_hash: adminHash,
+      password_hash: defaultHash,
       role: 'admin',
       is_verified: true,
       is_active: true,
@@ -42,8 +42,41 @@ async function initDatabase() {
     { upsert: true, new: true }
   );
 
+  await User.findOneAndUpdate(
+    { email: 'user@eco-garbage.com' },
+    {
+      uuid: '00000000-0000-0000-0000-000000000002',
+      name: 'Jean Kamga',
+      email: 'user@eco-garbage.com',
+      phone: '+237691234567',
+      password_hash: defaultHash,
+      role: 'user',
+      is_verified: true,
+      is_active: true,
+    },
+    { upsert: true, new: true }
+  );
+
+  await User.findOneAndUpdate(
+    { email: 'collector@eco-garbage.com' },
+    {
+      uuid: '00000000-0000-0000-0000-000000000003',
+      name: 'Paul Mbarga',
+      email: 'collector@eco-garbage.com',
+      phone: '+237670987654',
+      password_hash: defaultHash,
+      role: 'collector',
+      is_verified: true,
+      is_active: true,
+      collector_profile: { is_available: true, rating_avg: 4.5, total_collections: 0 },
+    },
+    { upsert: true, new: true }
+  );
+
   console.log('Base de donnees MongoDB initialisee avec succes !');
-  console.log('Admin : admin@eco-garbage.com / Admin1234!');
+  console.log('Admin     : admin@eco-garbage.com / Admin1234!');
+  console.log('User      : user@eco-garbage.com / Admin1234!');
+  console.log('Collector : collector@eco-garbage.com / Admin1234!');
   await mongoose.connection.close();
 }
 

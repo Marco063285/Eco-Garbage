@@ -4,7 +4,21 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
-const { sendVerificationEmail } = require('../services/emailService');
+const { sendVerificationEmail, sendResetPasswordEmail } = require('../services/emailService');
+
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+const CM_PHONE_REGEX = /^(\+?237)?[62]\d{8}$/;
+const validatePassword = (password) => {
+  if (!password || password.length < 8) return 'Le mot de passe doit contenir au moins 8 caracteres';
+  if (!PASSWORD_REGEX.test(password)) return 'Le mot de passe doit contenir une majuscule, une minuscule et un chiffre';
+  return null;
+};
+const validatePhone = (phone) => {
+  if (!phone) return null;
+  const cleaned = phone.replace(/[\s\-().]/g, '');
+  if (!CM_PHONE_REGEX.test(cleaned)) return 'Numero de telephone camerounais invalide (ex: +237 6XXXXXXXX)';
+  return null;
+};
 
 const generateToken = (user) =>
   jwt.sign(
@@ -19,6 +33,12 @@ const register = async (req, res) => {
     const { name, email, phone, password, role = 'user' } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ success: false, message: 'Champs requis manquants' });
+    const pwError = validatePassword(password);
+    if (pwError)
+      return res.status(400).json({ success: false, message: pwError });
+    const phoneError = validatePhone(phone);
+    if (phoneError)
+      return res.status(400).json({ success: false, message: phoneError });
     if (!['user', 'collector'].includes(role))
       return res.status(400).json({ success: false, message: 'Role invalide' });
 
@@ -28,13 +48,15 @@ const register = async (req, res) => {
 
     const hash = await bcrypt.hash(password, 10);
     const uuid = uuidv4();
+    const smtpConfigured = !!(process.env.SMTP_HOST && process.env.SMTP_USER);
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
     const userData = {
       uuid, name, email, phone: phone || undefined, password_hash: hash, role,
-      email_verification_token: verificationToken,
-      email_verification_expires: verificationExpires,
+      is_verified: !smtpConfigured, // auto-verify when SMTP not configured
+      email_verification_token: smtpConfigured ? verificationToken : null,
+      email_verification_expires: smtpConfigured ? verificationExpires : null,
     };
     if (role === 'collector') {
       userData.collector_profile = { is_available: false, rating_avg: 0, total_collections: 0 };
@@ -45,18 +67,22 @@ const register = async (req, res) => {
     await Notification.create({
       user_id: userDoc._id,
       title: 'Bienvenue sur EcoGarbage !',
-      message: `Bonjour ${name}, votre compte a ete cree avec succes. Verifiez votre email pour activer votre compte.`,
+      message: smtpConfigured
+        ? `Bonjour ${name}, votre compte a ete cree avec succes. Verifiez votre email pour activer votre compte.`
+        : `Bonjour ${name}, bienvenue sur EcoGarbage ! Votre compte est actif.`,
       type: 'welcome',
     });
 
-    // Send verification email (non-blocking — don't fail registration if email fails)
-    try {
-      await sendVerificationEmail(email, name, verificationToken);
-    } catch (mailErr) {
-      console.error('Email verification send error:', mailErr);
+    if (smtpConfigured) {
+      try {
+        await sendVerificationEmail(email, name, verificationToken);
+      } catch (mailErr) {
+        console.error('Email verification send error:', mailErr);
+      }
+      res.status(201).json({ success: true, message: 'Compte cree. Verifiez votre email pour activer votre compte.' });
+    } else {
+      res.status(201).json({ success: true, message: 'Compte cree avec succes ! Vous pouvez vous connecter.', autoVerified: true });
     }
-
-    res.status(201).json({ success: true, message: 'Compte cree. Verifiez votre email pour activer votre compte.' });
   } catch (err) {
     console.error('register error:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
@@ -107,6 +133,11 @@ const getMe = async (req, res) => {
 const updateProfile = async (req, res) => {
   try {
     const { name, phone, address } = req.body;
+    if (phone) {
+      const cleaned = phone.replace(/[\s\-().]/g, '');
+      if (!/^(\+?237)?[62]\d{8}$/.test(cleaned))
+        return res.status(400).json({ success: false, message: 'Numero de telephone camerounais invalide' });
+    }
     await User.findByIdAndUpdate(req.user.id, { $set: { name, phone, address } });
     res.json({ success: true, message: 'Profil mis a jour' });
   } catch (err) {
@@ -121,6 +152,8 @@ const changePassword = async (req, res) => {
     const userDoc = await User.findById(req.user.id);
     const valid = await bcrypt.compare(currentPassword, userDoc.password_hash);
     if (!valid) return res.status(400).json({ success: false, message: 'Mot de passe actuel incorrect' });
+    const pwError = validatePassword(newPassword);
+    if (pwError) return res.status(400).json({ success: false, message: pwError });
     const hash = await bcrypt.hash(newPassword, 10);
     await User.findByIdAndUpdate(req.user.id, { $set: { password_hash: hash } });
     res.json({ success: true, message: 'Mot de passe modifie' });
@@ -155,4 +188,96 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getMe, updateProfile, changePassword, verifyEmail };
+// POST /api/auth/resend-verification
+const resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email requis' });
+
+    const userDoc = await User.findOne({ email: email.toLowerCase() });
+    if (!userDoc)
+      return res.status(404).json({ success: false, message: 'Aucun compte associe a cet email' });
+    if (userDoc.is_verified)
+      return res.status(400).json({ success: false, message: 'Cet email est deja verifie' });
+
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    userDoc.email_verification_token = verificationToken;
+    userDoc.email_verification_expires = verificationExpires;
+    await userDoc.save();
+
+    try {
+      await sendVerificationEmail(userDoc.email, userDoc.name, verificationToken);
+    } catch (mailErr) {
+      console.error('Resend verification email error:', mailErr);
+      return res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi de l\'email' });
+    }
+
+    res.json({ success: true, message: 'Email de verification renvoye. Verifiez votre boite mail.' });
+  } catch (err) {
+    console.error('resendVerification error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+// POST /api/auth/forgot-password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ success: false, message: 'Email requis' });
+
+    const userDoc = await User.findOne({ email: email.toLowerCase() });
+    // Always return success to prevent email enumeration
+    if (!userDoc) return res.json({ success: true, message: 'Si un compte existe avec cet email, un lien de reinitialisation a ete envoye.' });
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    userDoc.password_reset_token = resetToken;
+    userDoc.password_reset_expires = resetExpires;
+    await userDoc.save();
+
+    try {
+      await sendResetPasswordEmail(userDoc.email, userDoc.name, resetToken);
+    } catch (mailErr) {
+      console.error('Reset password email error:', mailErr);
+    }
+
+    res.json({ success: true, message: 'Si un compte existe avec cet email, un lien de reinitialisation a ete envoye.' });
+  } catch (err) {
+    console.error('forgotPassword error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+// POST /api/auth/reset-password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ success: false, message: 'Token et mot de passe requis' });
+
+    const pwError = validatePassword(password);
+    if (pwError) return res.status(400).json({ success: false, message: pwError });
+
+    const userDoc = await User.findOne({
+      password_reset_token: token,
+      password_reset_expires: { $gt: new Date() },
+    });
+
+    if (!userDoc) return res.status(400).json({ success: false, message: 'Lien invalide ou expire.' });
+
+    const hash = await bcrypt.hash(password, 10);
+    userDoc.password_hash = hash;
+    userDoc.password_reset_token = null;
+    userDoc.password_reset_expires = null;
+    await userDoc.save();
+
+    res.json({ success: true, message: 'Mot de passe reinitialise avec succes. Vous pouvez maintenant vous connecter.' });
+  } catch (err) {
+    console.error('resetPassword error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+module.exports = { register, login, getMe, updateProfile, changePassword, verifyEmail, resendVerification, forgotPassword, resetPassword };

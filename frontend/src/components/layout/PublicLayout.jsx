@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Outlet, Link, useNavigate } from 'react-router-dom'
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Leaf, Menu, X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -8,6 +8,7 @@ export default function PublicLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -18,11 +19,34 @@ export default function PublicLayout() {
   const dashLink = user?.role === 'admin' ? '/admin' : user?.role === 'collector' ? '/collector' : '/dashboard'
 
   const navLinks = [
-    { label: 'Accueil', to: '/' },
-    { label: 'Services', to: '/#services' },
-    { label: 'Tarifs', to: '/#pricing' },
-    { label: 'À propos', to: '/#about' },
+    { label: 'Accueil', hash: null },
+    { label: 'Services', hash: 'services' },
+    { label: 'Tarifs', hash: 'pricing' },
+    { label: 'À propos', hash: 'about' },
   ]
+
+  const handleNavClick = (e, hash) => {
+    e.preventDefault()
+    setMobileOpen(false)
+    if (!hash) {
+      if (location.pathname === '/') {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        navigate('/')
+      }
+      return
+    }
+    const scrollToEl = () => {
+      const el = document.getElementById(hash)
+      if (el) el.scrollIntoView({ behavior: 'smooth' })
+    }
+    if (location.pathname === '/') {
+      scrollToEl()
+    } else {
+      navigate('/')
+      setTimeout(scrollToEl, 150)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#f7faf8]">
@@ -40,9 +64,10 @@ export default function PublicLayout() {
           <ul className="hidden md:flex items-center gap-1 ml-auto">
             {navLinks.map(l => (
               <li key={l.label}>
-                <Link to={l.to} className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-[#1A8A3C] hover:bg-[#E8F5EE] transition-all">
+                <button onClick={(e) => handleNavClick(e, l.hash)}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-gray-500 hover:text-[#1A8A3C] hover:bg-[#E8F5EE] transition-all">
                   {l.label}
-                </Link>
+                </button>
               </li>
             ))}
           </ul>
@@ -69,10 +94,10 @@ export default function PublicLayout() {
         {mobileOpen && (
           <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-2">
             {navLinks.map(l => (
-              <Link key={l.label} to={l.to} onClick={() => setMobileOpen(false)}
-                className="py-2.5 px-4 rounded-xl text-sm font-medium text-gray-600 hover:bg-[#E8F5EE] hover:text-[#1A8A3C]">
+              <button key={l.label} onClick={(e) => handleNavClick(e, l.hash)}
+                className="py-2.5 px-4 rounded-xl text-sm font-medium text-gray-600 hover:bg-[#E8F5EE] hover:text-[#1A8A3C] text-left">
                 {l.label}
-              </Link>
+              </button>
             ))}
             <div className="flex gap-2 mt-2">
               <Link to="/login" className="btn-outline flex-1 justify-center" onClick={() => setMobileOpen(false)}>Connexion</Link>

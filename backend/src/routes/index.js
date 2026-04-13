@@ -1,4 +1,5 @@
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const router = express.Router();
 const { authMiddleware, requireRole } = require('../middleware/auth');
 
@@ -7,10 +8,22 @@ const req_ = require('../controllers/requestController');
 const admin = require('../controllers/adminController');
 const misc = require('../controllers/miscController');
 
+// Rate limiters
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+});
+
 // ── AUTH ──────────────────────────────────────────
-router.post('/auth/register', auth.register);
-router.post('/auth/login', auth.login);
+router.post('/auth/register', authLimiter, auth.register);
+router.post('/auth/login', authLimiter, auth.login);
 router.get('/auth/verify-email', auth.verifyEmail);
+router.post('/auth/resend-verification', authLimiter, auth.resendVerification);
+router.post('/auth/forgot-password', authLimiter, auth.forgotPassword);
+router.post('/auth/reset-password', authLimiter, auth.resetPassword);
 router.get('/auth/me', authMiddleware, auth.getMe);
 router.put('/auth/profile', authMiddleware, auth.updateProfile);
 router.put('/auth/password', authMiddleware, auth.changePassword);
@@ -49,7 +62,9 @@ router.get('/collector/stats', authMiddleware, requireRole('collector'), misc.ge
 // ── ADMIN ─────────────────────────────────────────
 router.get('/admin/dashboard', authMiddleware, requireRole('admin'), admin.getDashboard);
 router.get('/admin/users', authMiddleware, requireRole('admin'), admin.getUsers);
+router.post('/admin/users', authMiddleware, requireRole('admin'), admin.createUser);
 router.put('/admin/users/:id/status', authMiddleware, requireRole('admin'), admin.toggleUserStatus);
+router.delete('/admin/users/:id', authMiddleware, requireRole('admin'), admin.deleteUser);
 router.get('/admin/complaints', authMiddleware, requireRole('admin'), admin.getComplaints);
 router.put('/admin/complaints/:uuid', authMiddleware, requireRole('admin'), admin.respondComplaint);
 router.get('/admin/reports', authMiddleware, requireRole('admin'), admin.getReports);

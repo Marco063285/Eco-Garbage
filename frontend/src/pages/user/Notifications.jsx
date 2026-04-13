@@ -11,15 +11,15 @@ export default function Notifications() {
   const [notifs, setNotifs] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const fetch = () => {
+  const loadData = () => {
     notifApi.list().then(r => setNotifs(r.data.data || [])).finally(() => setLoading(false))
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { loadData() }, [])
 
   const markAll = async () => {
     await notifApi.readAll()
     toast.success('Toutes les notifications lues')
-    fetch()
+    loadData()
   }
 
   return (

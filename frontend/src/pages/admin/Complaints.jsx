@@ -19,10 +19,10 @@ export default function AdminComplaints() {
   const [status, setStatus] = useState('in_review')
   const [saving, setSaving] = useState(false)
 
-  const fetch = () => {
+  const loadData = () => {
     adminApi.complaints().then(r => setComplaints(r.data.data || [])).finally(() => setLoading(false))
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { loadData() }, [])
 
   const openComplaint = (c) => {
     setSelected(c)
@@ -37,7 +37,7 @@ export default function AdminComplaints() {
       await adminApi.respondComplaint(selected.uuid, { status, admin_response: response })
       toast.success('Réclamation mise à jour')
       setSelected(null)
-      fetch()
+      loadData()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur')
     } finally {

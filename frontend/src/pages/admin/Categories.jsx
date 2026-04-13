@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Plus, Edit2, Tag } from 'lucide-react'
+import getCategoryIcon from '../../utils/categoryIcons'
 import toast from 'react-hot-toast'
 import { adminApi } from '../../services/api'
 import { PageHeader, PageLoader, EmptyState, Modal } from '../../components/common'
@@ -14,10 +15,10 @@ export default function AdminCategories() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
 
-  const fetch = () => {
+  const loadData = () => {
     adminApi.categories().then(r => setCategories(r.data.data || [])).finally(() => setLoading(false))
   }
-  useEffect(() => { fetch() }, [])
+  useEffect(() => { loadData() }, [])
 
   const openCreate = () => { setEditing(null); setForm(EMPTY_FORM); setModal(true) }
   const openEdit = (cat) => { setEditing(cat); setForm({ ...cat }); setModal(true) }
@@ -34,7 +35,7 @@ export default function AdminCategories() {
         toast.success('Catégorie créée')
       }
       setModal(false)
-      fetch()
+      loadData()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur')
     } finally {
@@ -57,7 +58,7 @@ export default function AdminCategories() {
           {categories.map(cat => (
             <div key={cat.id} className={`card p-5 ${!cat.is_active ? 'opacity-50' : ''}`}>
               <div className="flex items-start justify-between mb-3">
-                <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-lg">🗑️</div>
+                <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-lg">{getCategoryIcon(cat.icon)}</div>
                 <button onClick={() => openEdit(cat)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">
                   <Edit2 size={14} />
                 </button>
