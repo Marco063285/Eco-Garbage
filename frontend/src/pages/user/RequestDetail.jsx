@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, X, Star } from 'lucide-react'
 import toast from 'react-hot-toast'
-import { requestApi, ratingApi, complaintApi } from '../../services/api'
+import { useTranslation } from 'react-i18next'
+import { requestApi, ratingApi } from '../../services/api'
 import { StatusBadge, PageLoader, ConfirmDialog, Modal } from '../../components/common'
 import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { fr, enUS } from 'date-fns/locale'
 
 export default function RequestDetail() {
+  const { t, i18n } = useTranslation()
+  const dateLocale = i18n.language?.startsWith('en') ? enUS : fr
+  const isEn = i18n.language?.startsWith('en')
   const { uuid } = useParams()
   const navigate = useNavigate()
   const [req, setReq] = useState(null)
@@ -17,12 +21,21 @@ export default function RequestDetail() {
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
 
+  const TIMELINE = [
+    { status: 'pending',     label: isEn ? 'Request received'  : 'Demande reçue',       icon: '📨' },
+    { status: 'approved',    label: isEn ? 'Request approved'  : 'Demande approuvée',    icon: '✅' },
+    { status: 'assigned',    label: isEn ? 'Collector assigned': 'Collecteur assigné',   icon: '👤' },
+    { status: 'on_way',      label: isEn ? 'Collector en route': 'Collecteur en route',  icon: '🚛' },
+    { status: 'in_progress', label: isEn ? 'Collection ongoing': 'Collecte en cours',    icon: '⚙️' },
+    { status: 'completed',   label: isEn ? 'Collection done'   : 'Collecte terminée',    icon: '🎉' },
+  ]
+
   const fetchReq = async () => {
     try {
       const { data } = await requestApi.get(uuid)
       setReq(data.data)
     } catch {
-      toast.error('Demande introuvable')
+      toast.error(isEn ? 'Request not found' : 'Demande introuvable')
       navigate('/dashboard/requests')
     } finally {
       setLoading(false)
@@ -33,21 +46,21 @@ export default function RequestDetail() {
   const handleCancel = async () => {
     try {
       await requestApi.cancel(uuid)
-      toast.success('Demande annulée')
+      toast.success(t('user.requests.cancelSuccess'))
       fetchReq()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Impossible d\'annuler')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     }
   }
 
   const handleRating = async () => {
     try {
       await ratingApi.create({ request_uuid: uuid, score, comment })
-      toast.success('Note enregistrée !')
+      toast.success(isEn ? 'Rating saved!' : 'Note enregistrée !')
       setRatingModal(false)
       fetchReq()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     }
   }
 
@@ -57,24 +70,28 @@ export default function RequestDetail() {
   const canCancel = !['completed','cancelled','in_progress'].includes(req.status)
   const canRate = req.status === 'completed' && !req.rating_score
 
-  const TIMELINE = [
-    { status: 'pending', label: 'Demande reçue', icon: '📨' },
-    { status: 'approved', label: 'Demande approuvée', icon: '✅' },
-    { status: 'assigned', label: 'Collecteur assigné', icon: '👤' },
-    { status: 'on_way', label: 'Collecteur en route', icon: '🚛' },
-    { status: 'in_progress', label: 'Collecte en cours', icon: '⚙️' },
-    { status: 'completed', label: 'Collecte terminée', icon: '🎉' },
-  ]
-
   const ORDER = ['pending','approved','assigned','on_way','in_progress','completed']
   const currentIdx = ORDER.indexOf(req.status)
+
+  const details = [
+    [isEn ? 'Waste type'       : 'Type de déchet',   req.category_name],
+    [isEn ? 'Service type'     : 'Type de service',   req.service_type],
+    [isEn ? 'Address'          : 'Adresse',            req.address],
+    [isEn ? 'Quantity'         : 'Quantité',           req.quantity_number ? `${req.quantity_number} ${isEn ? 'unit(s)' : 'unité(s)'}` : req.quantity_estimate || '—'],
+    [isEn ? 'Distance'         : 'Distance',           req.distance_km ? `${req.distance_km} km` : '—'],
+    [isEn ? 'Estimated price'  : 'Prix estimé',        req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : '—'],
+    [isEn ? 'Final price'      : 'Prix final',         req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : '—'],
+    [isEn ? 'Created on'       : 'Créée le',           format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
+    [isEn ? 'Collector'        : 'Collecteur',         req.collector_name || (isEn ? 'Not assigned' : 'Non assigné')],
+    [isEn ? 'Collector phone'  : 'Tél. collecteur',    req.collector_phone || '—'],
+  ]
 
   return (
     <div className="fade-up max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate(-1)} className="btn-ghost p-2"><ArrowLeft size={18} /></button>
         <div>
-          <h1 className="text-xl font-display font-bold">Détail de la collecte</h1>
+          <h1 className="text-xl font-display font-bold">{isEn ? 'Collection detail' : 'Détail de la collecte'}</h1>
           <p className="text-sm text-gray-400">#{req.uuid?.slice(0,8).toUpperCase()}</p>
         </div>
         <div className="ml-auto"><StatusBadge status={req.status} /></div>
@@ -83,7 +100,7 @@ export default function RequestDetail() {
       {/* Timeline */}
       {!['cancelled','failed'].includes(req.status) && (
         <div className="card p-6 mb-5">
-          <h3 className="font-display font-bold mb-5">Progression</h3>
+          <h3 className="font-display font-bold mb-5">{isEn ? 'Progress' : 'Progression'}</h3>
           <div className="flex items-start gap-0">
             {TIMELINE.map((step, i) => {
               const done = i <= currentIdx
@@ -106,20 +123,9 @@ export default function RequestDetail() {
 
       {/* Details */}
       <div className="card p-6 mb-5">
-        <h3 className="font-display font-bold mb-4">Informations</h3>
+        <h3 className="font-display font-bold mb-4">{isEn ? 'Information' : 'Informations'}</h3>
         <div className="grid grid-cols-2 gap-4">
-          {[
-            ['Type de déchet', req.category_name],
-            ['Type de service', req.service_type],
-            ['Adresse', req.address],
-            ['Quantité', req.quantity_number ? `${req.quantity_number} unité(s)` : req.quantity_estimate || '—'],
-            ['Distance', req.distance_km ? `${req.distance_km} km` : '—'],
-            ['Prix estimé', req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : '—'],
-            ['Prix final', req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : '—'],
-            ['Créée le', format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: fr })],
-            ['Collecteur', req.collector_name || 'Non assigné'],
-            ['Tél. collecteur', req.collector_phone || '—'],
-          ].map(([k, v]) => (
+          {details.map(([k, v]) => (
             <div key={k}>
               <p className="text-xs text-gray-400 mb-0.5">{k}</p>
               <p className="text-sm font-medium text-gray-800 break-words">{v}</p>
@@ -128,22 +134,31 @@ export default function RequestDetail() {
         </div>
         {req.notes && (
           <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs text-gray-400 mb-1">Instructions</p>
+            <p className="text-xs text-gray-400 mb-1">{isEn ? 'Instructions' : 'Instructions'}</p>
             <p className="text-sm text-gray-600">{req.notes}</p>
           </div>
         )}
       </div>
 
-      {/* Paiement */}
+      {/* Payment */}
       {req.status === 'completed' && (
         <div className={`rounded-2xl p-4 mb-5 flex items-center justify-between ${req.payment_status === 'completed' ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
           <div>
-            <p className="text-sm font-semibold">{req.payment_status === 'completed' ? '✅ Paiement effectué' : '⏳ Paiement en attente'}</p>
-            {req.payment_amount && <p className="text-xs text-gray-500 mt-0.5">{parseFloat(req.payment_amount).toLocaleString()} FCFA</p>}
-            {!req.payment_amount && req.final_price && <p className="text-xs text-gray-500 mt-0.5">{parseFloat(req.final_price).toLocaleString()} FCFA</p>}
+            <p className="text-sm font-semibold">
+              {req.payment_status === 'completed'
+                ? (isEn ? '✅ Payment completed' : '✅ Paiement effectué')
+                : (isEn ? '⏳ Payment pending'   : '⏳ Paiement en attente')}
+            </p>
+            {(req.payment_amount || req.final_price) && (
+              <p className="text-xs text-gray-500 mt-0.5">
+                {parseFloat(req.payment_amount || req.final_price).toLocaleString()} FCFA
+              </p>
+            )}
           </div>
           {req.payment_status !== 'completed' && (
-            <Link to="/dashboard/payments" className="btn-primary text-xs px-4 py-2">Payer maintenant</Link>
+            <Link to="/dashboard/payments" className="btn-primary text-xs px-4 py-2">
+              {isEn ? 'Pay now' : 'Payer maintenant'}
+            </Link>
           )}
         </div>
       )}
@@ -151,7 +166,7 @@ export default function RequestDetail() {
       {/* Rating */}
       {req.rating_score && (
         <div className="card p-4 mb-5">
-          <p className="text-sm font-semibold mb-1">Votre évaluation</p>
+          <p className="text-sm font-semibold mb-1">{isEn ? 'Your rating' : 'Votre évaluation'}</p>
           <div className="flex gap-0.5 text-yellow-400">{'★'.repeat(req.rating_score)}{'☆'.repeat(5-req.rating_score)}</div>
           {req.rating_comment && <p className="text-xs text-gray-400 mt-1 italic">"{req.rating_comment}"</p>}
         </div>
@@ -161,28 +176,31 @@ export default function RequestDetail() {
       <div className="flex gap-3 flex-wrap">
         {canRate && (
           <button onClick={() => setRatingModal(true)} className="btn-primary flex-1 justify-center">
-            <Star size={16} /> Noter le collecteur
+            <Star size={16} /> {isEn ? 'Rate collector' : 'Noter le collecteur'}
           </button>
         )}
         {canCancel && (
           <button onClick={() => setCancelDialog(true)}
             className="flex-1 justify-center inline-flex items-center gap-2 border-2 border-red-300 text-red-500 px-6 py-3 rounded-xl font-semibold text-sm hover:bg-red-50 transition-all">
-            <X size={16} /> Annuler la demande
+            <X size={16} /> {isEn ? 'Cancel request' : 'Annuler la demande'}
           </button>
         )}
-        <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">💬 Signaler un problème</Link>
+        <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">
+          💬 {isEn ? 'Report a problem' : 'Signaler un problème'}
+        </Link>
       </div>
 
-      {/* Cancel confirm */}
       <ConfirmDialog isOpen={cancelDialog} onClose={() => setCancelDialog(false)} onConfirm={handleCancel}
-        title="Annuler la demande" message="Êtes-vous sûr de vouloir annuler cette demande ? Cette action est irréversible."
-        confirmLabel="Oui, annuler" danger />
+        title={isEn ? 'Cancel request' : 'Annuler la demande'}
+        message={isEn ? 'Are you sure you want to cancel this request? This action is irreversible.' : 'Êtes-vous sûr de vouloir annuler cette demande ? Cette action est irréversible.'}
+        confirmLabel={isEn ? 'Yes, cancel' : 'Oui, annuler'} danger />
 
-      {/* Rating modal */}
-      <Modal isOpen={ratingModal} onClose={() => setRatingModal(false)} title="Évaluer le collecteur">
+      <Modal isOpen={ratingModal} onClose={() => setRatingModal(false)} title={isEn ? 'Rate the collector' : 'Évaluer le collecteur'}>
         <div className="flex flex-col gap-4">
           <div className="text-center">
-            <p className="text-sm text-gray-500 mb-3">Collecteur : <strong>{req.collector_name}</strong></p>
+            <p className="text-sm text-gray-500 mb-3">
+              {isEn ? 'Collector:' : 'Collecteur :'} <strong className="">{req.collector_name}</strong>
+            </p>
             <div className="flex justify-center gap-2">
               {[1,2,3,4,5].map(n => (
                 <button key={n} type="button" onClick={() => setScore(n)}
@@ -191,11 +209,12 @@ export default function RequestDetail() {
             </div>
             <p className="text-xs text-gray-400 mt-1">{score}/5</p>
           </div>
-          <textarea className="input resize-none min-h-[80px]" placeholder="Commentaire optionnel..."
+          <textarea className="input resize-none min-h-[80px]"
+            placeholder={isEn ? 'Optional comment...' : 'Commentaire optionnel...'}
             value={comment} onChange={e => setComment(e.target.value)} />
           <div className="flex gap-3">
-            <button onClick={() => setRatingModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">Annuler</button>
-            <button onClick={handleRating} className="btn-primary flex-1 justify-center">Envoyer la note</button>
+            <button onClick={() => setRatingModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">{t('common.cancel')}</button>
+            <button onClick={handleRating} className="btn-primary flex-1 justify-center">{t('common.send')}</button>
           </div>
         </div>
       </Modal>

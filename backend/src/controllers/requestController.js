@@ -87,35 +87,54 @@ const getRequestById = async (req, res) => {
   }
 };
 
-// Helper: find nearest available collector
+// Helper: find nearest available collector (optimized with MongoDB $geoNear)
 const findNearestCollector = async (latitude, longitude) => {
   if (!latitude || !longitude) return null;
 
-  // Try geospatial $near query first (requires collectors with location set)
-  const collectorsWithGeo = await User.find({
-    role: 'collector',
-    is_active: true,
-    'collector_profile.is_available': true,
-    'collector_profile.location.coordinates': { $ne: [0, 0] },
-  }).lean();
+  try {
+    const result = await User.aggregate([
+      {
+        $geoNear: {
+          near: {
+            type: 'Point',
+            coordinates: [longitude, latitude]
+          },
+          distanceField: 'distance_meters',
+          maxDistance: MAX_SEARCH_RADIUS_KM * 1000, // Convert to meters
+          spherical: true,
+          query: {
+            role: 'collector',
+            is_active: true,
+            'collector_profile.is_available': true,
+            'collector_profile.location.coordinates': { $ne: [0, 0] }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          phone: 1,
+          avatar_url: 1,
+          collector_profile: 1,
+          distance_km: {
+            $divide: ['$distance_meters', 1000]
+          }
+        }
+      },
+      {
+        $limit: 1
+      }
+    ]);
 
-  if (collectorsWithGeo.length === 0) return null;
+    if (result.length === 0) return null;
 
-  // Calculate distance for each collector and pick the closest
-  let nearest = null;
-  let minDistance = Infinity;
-
-  for (const collector of collectorsWithGeo) {
-    const [cLng, cLat] = collector.collector_profile.location.coordinates;
-    if (cLat === 0 && cLng === 0) continue;
-    const dist = haversineDistance(latitude, longitude, cLat, cLng);
-    if (dist < minDistance && dist <= MAX_SEARCH_RADIUS_KM) {
-      minDistance = dist;
-      nearest = collector;
-    }
+    const collector = result[0];
+    return { collector, distance_km: Math.round(collector.distance_km * 100) / 100 };
+  } catch (error) {
+    console.error('Error in findNearestCollector:', error);
+    return null;
   }
-
-  return nearest ? { collector: nearest, distance_km: Math.round(minDistance * 100) / 100 } : null;
 };
 
 // POST /api/requests
@@ -163,25 +182,25 @@ const createRequest = async (req, res) => {
       collector_id, status: assignedStatus,
     });
 
-    // Notify user
-    await Notification.create({
-      user_id: req.user.id,
-      title: collector_id ? 'Collecteur assigne !' : 'Demande recue',
-      message: collector_id
-        ? `Un collecteur (${assignment.collector.name}) a ete assigne. Il est a ${distance_km} km. Prix estime: ${estimated_price.toLocaleString()} FCFA`
-        : 'Votre demande de collecte a ete enregistree. Nous recherchons un collecteur disponible.',
-      type: 'request',
-    });
-
-    // Notify assigned collector
-    if (collector_id) {
-      await Notification.create({
-        user_id: collector_id,
-        title: 'Nouvelle mission !',
-        message: `Vous avez une nouvelle collecte a ${address}. Distance: ${distance_km} km. Montant: ${estimated_price.toLocaleString()} FCFA`,
+    // Fire both notifications concurrently
+    await Promise.all([
+      Notification.create({
+        user_id: req.user.id,
+        title: collector_id ? 'Collecteur assigne !' : 'Demande recue',
+        message: collector_id
+          ? `Un collecteur (${assignment.collector.name}) a ete assigne. Il est a ${distance_km} km. Prix estime: ${estimated_price.toLocaleString()} FCFA`
+          : 'Votre demande de collecte a ete enregistree. Nous recherchons un collecteur disponible.',
         type: 'request',
-      });
-    }
+      }),
+      collector_id
+        ? Notification.create({
+            user_id: collector_id,
+            title: 'Nouvelle mission !',
+            message: `Vous avez une nouvelle collecte a ${address}. Distance: ${distance_km} km. Montant: ${estimated_price.toLocaleString()} FCFA`,
+            type: 'request',
+          })
+        : Promise.resolve(),
+    ]);
 
     res.status(201).json({
       success: true,
@@ -247,7 +266,6 @@ const updateStatus = async (req, res) => {
         });
       }
       if (pickupReq.collector_id) {
-        const User = require('../models/User');
         await User.findByIdAndUpdate(pickupReq.collector_id, {
           $inc: { 'collector_profile.total_collections': 1 },
         });

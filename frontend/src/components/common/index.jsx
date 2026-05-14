@@ -1,4 +1,5 @@
-import { Leaf } from 'lucide-react'
+﻿import { Leaf } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 // ── Spinner ───────────────────────────────────────
 export function Spinner({ size = 'md', className = '' }) {
@@ -7,36 +8,32 @@ export function Spinner({ size = 'md', className = '' }) {
 }
 
 export function PageLoader() {
+  const { t } = useTranslation()
   return (
     <div className="flex items-center justify-center h-64">
       <div className="flex flex-col items-center gap-3">
         <Spinner size="lg" />
-        <p className="text-sm text-gray-400">Chargement...</p>
+        <p className="text-sm text-gray-400">{t('common.loading')}</p>
       </div>
     </div>
   )
 }
 
 // ── Status Badge ──────────────────────────────────
-const STATUS_LABELS = {
-  pending: 'En attente', approved: 'Approuvée', assigned: 'Assignée',
-  on_way: 'En route', in_progress: 'En cours', completed: 'Complétée',
-  cancelled: 'Annulée', failed: 'Échouée',
-  open: 'Ouvert', in_review: 'En révision', resolved: 'Résolu', closed: 'Fermé',
-}
 export function StatusBadge({ status }) {
-  const label = STATUS_LABELS[status] || status
+  const { t } = useTranslation()
+  const label = t(`status.${status}`, { defaultValue: status })
   return <span className={`badge-${status} badge`}>{label}</span>
 }
 
 // ── Stat Card ─────────────────────────────────────
 export function StatCard({ icon: Icon, label, value, sub, color = 'green', trend }) {
   const colors = {
-    green: { bg: 'bg-[#E8F5EE]', text: 'text-[#1A8A3C]' },
-    yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600' },
-    blue: { bg: 'bg-blue-50', text: 'text-blue-600' },
-    red: { bg: 'bg-red-50', text: 'text-red-500' },
-    purple: { bg: 'bg-purple-50', text: 'text-purple-600' },
+    green:  { bg: 'bg-[#E8F5EE]',  text: 'text-[#1A8A3C]' },
+    yellow: { bg: 'bg-yellow-50',  text: 'text-yellow-600' },
+    blue:   { bg: 'bg-blue-50',      text: 'text-blue-600' },
+    red:    { bg: 'bg-red-50',        text: 'text-red-500' },
+    purple: { bg: 'bg-purple-50',  text: 'text-purple-600' },
   }
   const c = colors[color] || colors.green
   return (
@@ -91,17 +88,18 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
 }
 
 // ── Confirm Dialog ────────────────────────────────
-export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmLabel = 'Confirmer', danger = false }) {
+export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmLabel, danger = false }) {
+  const { t } = useTranslation()
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <p className="text-sm text-gray-600 mb-6">{message}</p>
       <div className="flex gap-3">
-        <button onClick={onClose} className="btn-outline flex-1 justify-center">Annuler</button>
+        <button onClick={onClose} className="btn-outline flex-1 justify-center">{t('common.cancel')}</button>
         <button
           onClick={() => { onConfirm(); onClose(); }}
           className={`flex-1 justify-center ${danger ? 'inline-flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-red-600 transition-all' : 'btn-primary'}`}
         >
-          {confirmLabel}
+          {confirmLabel || t('common.confirm')}
         </button>
       </div>
     </Modal>
@@ -137,11 +135,13 @@ export function Field({ label, error, required, children }) {
 }
 
 // ── Table ─────────────────────────────────────────
-export function Table({ columns, data, emptyMessage = 'Aucune donnée' }) {
+export function Table({ columns, data, emptyMessage }) {
+  const { t } = useTranslation()
+  const msg = emptyMessage || t('common.noData')
   if (!data?.length) {
     return (
       <div className="card">
-        <div className="flex items-center justify-center py-12 text-sm text-gray-400">{emptyMessage}</div>
+        <div className="flex items-center justify-center py-12 text-sm text-gray-400">{msg}</div>
       </div>
     )
   }
@@ -189,18 +189,19 @@ export function Select({ options, value, onChange, placeholder, className = '' }
 
 // ── Pagination ────────────────────────────────────
 export function Pagination({ page, total, limit, onChange }) {
+  const { t } = useTranslation()
   const totalPages = Math.ceil(total / limit)
   if (totalPages <= 1) return null
   return (
     <div className="flex items-center justify-center gap-2 mt-6">
       <button disabled={page <= 1} onClick={() => onChange(page - 1)}
         className="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
-        ← Précédent
+        {t('common.previous')}
       </button>
-      <span className="text-sm text-gray-500">Page {page} / {totalPages}</span>
+      <span className="text-sm text-gray-500">{t('common.page')} {page} {t('common.of')} {totalPages}</span>
       <button disabled={page >= totalPages} onClick={() => onChange(page + 1)}
         className="px-3 py-1.5 rounded-lg text-sm font-medium border border-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all">
-        Suivant →
+        {t('common.next')}
       </button>
     </div>
   )

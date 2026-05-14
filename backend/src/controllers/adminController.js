@@ -5,6 +5,7 @@ const User = require('../models/User');
 const PickupRequest = require('../models/PickupRequest');
 const Payment = require('../models/Payment');
 const Complaint = require('../models/Complaint');
+const Rating = require('../models/Rating');
 const WasteCategory = require('../models/WasteCategory');
 
 const CM_PHONE_REGEX = /^(\+?237)?[62]\d{8}$/;
@@ -113,17 +114,27 @@ const toggleUserStatus = async (req, res) => {
 // GET /api/admin/complaints
 const getComplaints = async (req, res) => {
   try {
-    const raw = await Complaint.find()
-      .populate('user_id', 'name email')
-      .populate('request_id', 'uuid')
-      .sort({ created_at: -1 }).lean();
+    const { status, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+
+    const [raw, total] = await Promise.all([
+      Complaint.find(filter)
+        .populate('user_id', 'name email')
+        .populate('request_id', 'uuid')
+        .sort({ created_at: -1 })
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .lean(),
+      Complaint.countDocuments(filter),
+    ]);
     const rows = raw.map(c => ({
       ...c, id: c._id.toString(),
       user_name: c.user_id?.name, user_email: c.user_id?.email,
       request_uuid: c.request_id?.uuid,
       user_id: c.user_id?._id?.toString(), request_id: c.request_id?._id?.toString(),
     }));
-    res.json({ success: true, data: rows });
+    res.json({ success: true, data: rows, pagination: { total, page: parseInt(page), limit: parseInt(limit) } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
@@ -277,10 +288,12 @@ const getCollectorDetails = async (req, res) => {
     if (user.role !== 'collector')
       return res.status(400).json({ success: false, message: 'Cet utilisateur n\'est pas un collecteur' });
     
-    // Get collector stats
-    const totalRequests = await PickupRequest.countDocuments({ collector_id: user._id });
-    const completedRequests = await PickupRequest.countDocuments({ collector_id: user._id, status: 'completed' });
-    const ratings = await require('../models/Rating').countDocuments({ collector_id: user._id });
+    // Run all three stats queries in parallel
+    const [totalRequests, completedRequests, ratings] = await Promise.all([
+      PickupRequest.countDocuments({ collector_id: user._id }),
+      PickupRequest.countDocuments({ collector_id: user._id, status: 'completed' }),
+      Rating.countDocuments({ collector_id: user._id }),
+    ]);
     
     res.json({ 
       success: true, 

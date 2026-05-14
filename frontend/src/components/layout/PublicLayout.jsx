@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
-import { Leaf, Menu, X } from 'lucide-react'
+import { Leaf, Menu, X, Languages } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../context/AuthContext'
 
 export default function PublicLayout() {
+  const { t, i18n } = useTranslation()
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -17,41 +20,35 @@ export default function PublicLayout() {
   }, [])
 
   const dashLink = user?.role === 'admin' ? '/admin' : user?.role === 'collector' ? '/collector' : '/dashboard'
+  const currentLang = i18n.language?.startsWith('en') ? 'EN' : 'FR'
 
   const navLinks = [
-    { label: 'Accueil', hash: null },
-    { label: 'Services', hash: 'services' },
-    { label: 'Tarifs', hash: 'pricing' },
-    { label: 'À propos', hash: 'about' },
+    { label: i18n.language?.startsWith('en') ? 'Home' : 'Accueil',    hash: null },
+    { label: i18n.language?.startsWith('en') ? 'Services' : 'Services', hash: 'services' },
+    { label: i18n.language?.startsWith('en') ? 'Pricing' : 'Tarifs',  hash: 'pricing' },
+    { label: i18n.language?.startsWith('en') ? 'About' : 'À propos',  hash: 'about' },
   ]
 
   const handleNavClick = (e, hash) => {
     e.preventDefault()
     setMobileOpen(false)
     if (!hash) {
-      if (location.pathname === '/') {
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      } else {
-        navigate('/')
-      }
+      location.pathname === '/' ? window.scrollTo({ top: 0, behavior: 'smooth' }) : navigate('/')
       return
     }
-    const scrollToEl = () => {
-      const el = document.getElementById(hash)
-      if (el) el.scrollIntoView({ behavior: 'smooth' })
-    }
-    if (location.pathname === '/') {
-      scrollToEl()
-    } else {
-      navigate('/')
-      setTimeout(scrollToEl, 150)
-    }
+    const scrollToEl = () => document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth' })
+    if (location.pathname === '/') scrollToEl()
+    else { navigate('/'); setTimeout(scrollToEl, 150) }
   }
+
+  const baseNav = scrolled
+    ? 'bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-green-sm'
+    : 'bg-transparent'
 
   return (
     <div className="min-h-screen bg-[#f7faf8]">
       {/* Navbar */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-green-sm' : 'bg-transparent'}`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${baseNav}`}>
         <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2.5 font-display font-bold text-xl text-gray-900">
             <div className="w-9 h-9 bg-[#1A8A3C] rounded-xl flex items-center justify-center">
@@ -72,15 +69,38 @@ export default function PublicLayout() {
             ))}
           </ul>
 
+          {/* Controls */}
           <div className="hidden md:flex items-center gap-2">
+            {/* Lang switcher */}
+            <div className="relative">
+              <button onClick={() => setLangOpen(o => !o)}
+                className="flex items-center gap-1.5 p-2 rounded-xl text-gray-500 hover:bg-[#E8F5EE] hover:text-[#1A8A3C] transition-all text-xs font-bold">
+                <Languages size={16} />{currentLang}
+              </button>
+              {langOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+                  <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
+                    {[{ code: 'fr', label: '🇫🇷 Français' }, { code: 'en', label: '🇬🇧 English' }].map(({ code, label }) => (
+                      <button key={code} onClick={() => { i18n.changeLanguage(code); setLangOpen(false) }}
+                        className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors
+                          ${i18n.language?.startsWith(code) ? 'bg-[#E8F5EE] text-[#1A8A3C]' : 'text-gray-700 hover:bg-gray-50'}`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
             {user ? (
               <button onClick={() => navigate(dashLink)} className="btn-primary">
-                Mon tableau de bord
+                {i18n.language?.startsWith('en') ? 'My dashboard' : 'Mon tableau de bord'}
               </button>
             ) : (
               <>
-                <Link to="/login" className="btn-ghost">Connexion</Link>
-                <Link to="/register" className="btn-primary">Commencer</Link>
+                <Link to="/login" className="btn-ghost">{t('auth.login.submit')}</Link>
+                <Link to="/register" className="btn-primary">{t('landing.hero.cta')}</Link>
               </>
             )}
           </div>
@@ -99,9 +119,19 @@ export default function PublicLayout() {
                 {l.label}
               </button>
             ))}
+            <div className="flex items-center gap-3 px-4 py-2">
+              <button onClick={() => i18n.changeLanguage(i18n.language?.startsWith('en') ? 'fr' : 'en')}
+                className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
+                <Languages size={16} /> {currentLang}
+              </button>
+            </div>
             <div className="flex gap-2 mt-2">
-              <Link to="/login" className="btn-outline flex-1 justify-center" onClick={() => setMobileOpen(false)}>Connexion</Link>
-              <Link to="/register" className="btn-primary flex-1 justify-center" onClick={() => setMobileOpen(false)}>S'inscrire</Link>
+              <Link to="/login" className="btn-outline flex-1 justify-center" onClick={() => setMobileOpen(false)}>
+                {t('auth.login.submit')}
+              </Link>
+              <Link to="/register" className="btn-primary flex-1 justify-center" onClick={() => setMobileOpen(false)}>
+                {t('auth.register.submit')}
+              </Link>
             </div>
           </div>
         )}
@@ -120,7 +150,9 @@ export default function PublicLayout() {
                 </div>
                 EcoGarbage
               </Link>
-              <p className="text-sm text-white/50 leading-relaxed">Collecte de déchets à la demande. Ensemble, construisons des communautés plus propres.</p>
+              <p className="text-sm text-white/50 leading-relaxed">
+                {t('landing.hero.desc')}
+              </p>
             </div>
             {[
               { title: 'Services', links: ['Collecte immédiate','Collecte planifiée','Abonnement','Entreprises'] },
@@ -138,7 +170,7 @@ export default function PublicLayout() {
             ))}
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 text-xs text-white/30">
-            <p>© 2026 EcoGarbage. Tous droits réservés.</p>
+            <p>© 2026 EcoGarbage. {i18n.language?.startsWith('en') ? 'All rights reserved.' : 'Tous droits réservés.'}</p>
           </div>
         </div>
       </footer>

@@ -1,13 +1,15 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { flushSync } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { Leaf, Eye, EyeOff, LogIn } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { authApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { Spinner } from '../../components/common'
 
 export default function LoginPage() {
+  const { t } = useTranslation()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -18,22 +20,20 @@ export default function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.email || !form.password) return toast.error('Remplissez tous les champs')
+    if (!form.email || !form.password) return toast.error(t('auth.login.fillFields'))
     setUnverified(false)
     setLoading(true)
     try {
       const { data } = await authApi.login(form)
-      flushSync(() => {
-        login(data.data.token, data.data.user)
-      })
-      toast.success('Connexion réussie !')
+      flushSync(() => { login(data.data.token, data.data.user) })
+      toast.success(t('auth.login.success'))
       const role = data.data.user.role
       navigate(role === 'admin' ? '/admin' : role === 'collector' ? '/collector' : '/dashboard', { replace: true })
     } catch (err) {
       if (err.response?.data?.code === 'EMAIL_NOT_VERIFIED') {
         setUnverified(true)
       } else {
-        toast.error(err.response?.data?.message || 'Erreur de connexion')
+        toast.error(err.response?.data?.message || t('common.serverError'))
       }
     } finally {
       setLoading(false)
@@ -44,10 +44,10 @@ export default function LoginPage() {
     setResending(true)
     try {
       await authApi.resendVerification(form.email)
-      toast.success('Email de vérification renvoyé ! Consultez votre boite mail.')
+      toast.success(t('auth.login.resendSuccess'))
       setUnverified(false)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors du renvoi')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     } finally {
       setResending(false)
     }
@@ -67,10 +67,10 @@ export default function LoginPage() {
             </div>
             EcoGarbage
           </Link>
-          <h2 className="text-3xl font-display font-bold text-white mb-4">Bienvenue de retour !</h2>
-          <p className="text-white/70 leading-relaxed">Connectez-vous pour gérer vos collectes, suivre vos demandes et contribuer à un environnement plus propre.</p>
+          <h2 className="text-3xl font-display font-bold text-white mb-4">{t('auth.login.welcomeBack')}</h2>
+          <p className="text-white/70 leading-relaxed">{t('auth.login.welcomeDesc')}</p>
           <div className="mt-8 flex flex-col gap-3">
-            {['Collecte à la demande', 'Suivi GPS en temps réel', 'Paiement sécurisé'].map(f => (
+            {t('auth.login.features', { returnObjects: true }).map(f => (
               <div key={f} className="flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl text-sm text-white">
                 <span className="text-green-300">✓</span>{f}
               </div>
@@ -91,34 +91,36 @@ export default function LoginPage() {
           </Link>
 
           <div className="bg-white rounded-3xl shadow-green-lg p-8">
-            <h1 className="text-2xl font-display font-bold mb-1">Se connecter</h1>
+            <h1 className="text-2xl font-display font-bold mb-1">{t('auth.login.title')}</h1>
             <p className="text-sm text-gray-400 mb-8">
-              Pas encore de compte ?{' '}
-              <Link to="/register" className="text-[#1A8A3C] font-semibold hover:underline">S'inscrire</Link>
+              {t('auth.login.noAccount')}{' '}
+              <Link to="/register" className="text-[#1A8A3C] font-semibold hover:underline">{t('auth.login.register')}</Link>
             </p>
 
             {/* Email not verified banner */}
             {unverified && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm">
-                <p className="font-semibold text-amber-800 mb-1">Email non vérifié</p>
-                <p className="text-amber-700 mb-3">Vous devez vérifier votre email avant de vous connecter. Consultez votre boite mail ou renvoyez le lien.</p>
+                <p className="font-semibold text-amber-800 mb-1">{t('auth.login.unverifiedTitle')}</p>
+                <p className="text-amber-700 mb-3">{t('auth.login.unverifiedDesc')}</p>
                 <button type="button" onClick={handleResend} disabled={resending}
                   className="text-[#1A8A3C] font-semibold text-xs hover:underline disabled:opacity-50">
-                  {resending ? 'Envoi...' : 'Renvoyer l\'email de vérification'}
+                  {resending ? t('auth.login.resending') : t('auth.login.resend')}
                 </button>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label className="label">Email</label>
-                <input type="email" className="input" placeholder="votre@email.com"
+                <label className="label">{t('auth.login.email')}</label>
+                <input type="email" className="input" placeholder={t('auth.login.emailPlaceholder')}
                   value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
               </div>
               <div>
                 <label className="label flex justify-between">
-                  Mot de passe
-                  <Link to="/forgot-password" className="text-[#1A8A3C] cursor-pointer text-xs font-normal hover:underline">Oublié ?</Link>
+                  {t('auth.login.password')}
+                  <Link to="/forgot-password" className="text-[#1A8A3C] cursor-pointer text-xs font-normal hover:underline">
+                    {t('auth.login.forgotPassword')}
+                  </Link>
                 </label>
                 <div className="relative">
                   <input type={showPw ? 'text' : 'password'} className="input pr-10" placeholder="••••••••"
@@ -131,12 +133,10 @@ export default function LoginPage() {
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5">
                 {loading ? <Spinner size="sm" /> : <LogIn size={16} />}
-                {loading ? 'Connexion...' : 'Se connecter'}
+                {loading ? t('auth.login.submitting') : t('auth.login.submit')}
               </button>
             </form>
           </div>
-
-          
         </div>
       </div>
     </div>

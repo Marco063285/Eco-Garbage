@@ -1,42 +1,47 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 
-// Layouts
+// Layouts — loaded eagerly because every authenticated page needs them
 import PublicLayout from './components/layout/PublicLayout'
 import DashboardLayout from './components/layout/DashboardLayout'
 
-// Auth Pages
-import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
-import VerifyEmailPage from './pages/auth/VerifyEmailPage'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
-import ResetPasswordPage from './pages/auth/ResetPasswordPage'
+// Route-level code splitting: each chunk is only fetched when the route is visited
+const LoginPage          = lazy(() => import('./pages/auth/LoginPage'))
+const RegisterPage       = lazy(() => import('./pages/auth/RegisterPage'))
+const VerifyEmailPage    = lazy(() => import('./pages/auth/VerifyEmailPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage  = lazy(() => import('./pages/auth/ResetPasswordPage'))
 
-// Public Pages
-import LandingPage from './pages/LandingPage'
+const LandingPage        = lazy(() => import('./pages/LandingPage'))
 
-// User Pages
-import UserDashboard from './pages/user/Dashboard'
-import NewRequest from './pages/user/NewRequest'
-import MyRequests from './pages/user/MyRequests'
-import RequestDetail from './pages/user/RequestDetail'
-import Payments from './pages/user/Payments'
-import Complaints from './pages/user/Complaints'
-import Profile from './pages/user/Profile'
-import Notifications from './pages/user/Notifications'
+const UserDashboard      = lazy(() => import('./pages/user/Dashboard'))
+const NewRequest         = lazy(() => import('./pages/user/NewRequest'))
+const MyRequests         = lazy(() => import('./pages/user/MyRequests'))
+const RequestDetail      = lazy(() => import('./pages/user/RequestDetail'))
+const Payments           = lazy(() => import('./pages/user/Payments'))
+const Complaints         = lazy(() => import('./pages/user/Complaints'))
+const Profile            = lazy(() => import('./pages/user/Profile'))
+const Notifications      = lazy(() => import('./pages/user/Notifications'))
 
-// Collector Pages
-import CollectorDashboard from './pages/collector/Dashboard'
-import CollectorTasks from './pages/collector/Tasks'
-import TaskDetail from './pages/collector/TaskDetail'
+const CollectorDashboard = lazy(() => import('./pages/collector/Dashboard'))
+const CollectorTasks     = lazy(() => import('./pages/collector/Tasks'))
+const TaskDetail         = lazy(() => import('./pages/collector/TaskDetail'))
 
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminUsers from './pages/admin/Users'
-import AdminRequests from './pages/admin/Requests'
-import AdminCategories from './pages/admin/Categories'
-import AdminComplaints from './pages/admin/Complaints'
-import AdminReports from './pages/admin/Reports'
+const AdminDashboard     = lazy(() => import('./pages/admin/Dashboard'))
+const AdminUsers         = lazy(() => import('./pages/admin/Users'))
+const AdminRequests      = lazy(() => import('./pages/admin/Requests'))
+const AdminCategories    = lazy(() => import('./pages/admin/Categories'))
+const AdminComplaints    = lazy(() => import('./pages/admin/Complaints'))
+const AdminReports       = lazy(() => import('./pages/admin/Reports'))
+
+function PageFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <span className="w-8 h-8 border-4 border-[#1A8A3C] border-t-transparent rounded-full spinner" />
+    </div>
+  )
+}
 
 // Guards
 function PrivateRoute({ children, roles }) {
@@ -60,6 +65,7 @@ function GuestRoute({ children }) {
 
 export default function App() {
   return (
+    <Suspense fallback={<PageFallback />}>
     <Routes>
       {/* Public */}
       <Route element={<PublicLayout />}>
@@ -108,5 +114,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   )
 }

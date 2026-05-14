@@ -31,17 +31,20 @@ export function AuthProvider({ children }) {
 
   useEffect(() => { fetchMe(); }, [fetchMe]);
 
-  const login = (token, userData) => {
+  const login = useCallback((token, userData) => {
     localStorage.setItem('eco_token', token);
     localStorage.setItem('eco_user', JSON.stringify(userData));
     setUser(userData);
-  };
+  }, []);
 
-  const updateUser = (updates) => {
-    const updated = { ...user, ...updates };
-    setUser(updated);
-    localStorage.setItem('eco_user', JSON.stringify(updated));
-  };
+  // Functional update avoids closing over stale `user` reference
+  const updateUser = useCallback((updates) => {
+    setUser(prev => {
+      const updated = { ...prev, ...updates };
+      localStorage.setItem('eco_user', JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, updateUser, fetchMe }}>

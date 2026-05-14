@@ -1,40 +1,39 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { adminApi } from '../../services/api'
 import { PageHeader, PageLoader } from '../../components/common'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line, CartesianGrid
+  PieChart, Pie, Cell, LineChart, Line, CartesianGrid
 } from 'recharts'
-
-const PERIOD_OPTIONS = [
-  { value: 'week', label: '7 jours' },
-  { value: 'month', label: '30 jours' },
-  { value: 'year', label: '12 mois' },
-]
 
 const COLORS = ['#1A8A3C', '#27AE60', '#4ade80', '#86efac', '#bbf7d0', '#C8EDDA', '#fbbf24', '#f87171']
 
-const STATUS_LABELS = {
-  pending: 'En attente', approved: 'Approuvée', assigned: 'Assignée',
-  on_way: 'En route', in_progress: 'En cours', completed: 'Complétée',
-  cancelled: 'Annulée', failed: 'Échouée',
-}
-
 export default function AdminReports() {
+  const { t, i18n } = useTranslation()
+  const isEn = i18n.language?.startsWith('en')
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState('month')
+
+  const PERIOD_OPTIONS = [
+    { value: 'week',  label: t('admin.reports.week') },
+    { value: 'month', label: t('admin.reports.month') },
+    { value: 'year',  label: t('admin.reports.year') },
+  ]
 
   useEffect(() => {
     setLoading(true)
     adminApi.reports({ period }).then(r => setData(r.data.data)).finally(() => setLoading(false))
   }, [period])
 
+  const statusLabel = (s) => t(`status.${s}`) || s
+
   return (
     <div className="fade-up">
       <PageHeader
-        title="Rapports & Analytics"
-        subtitle="Analyse des performances de la plateforme"
+        title={t('admin.reports.title')}
+        subtitle={t('admin.reports.subtitle')}
         action={
           <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
             {PERIOD_OPTIONS.map(p => (
@@ -52,7 +51,7 @@ export default function AdminReports() {
           {/* Revenue line chart */}
           {data.dailyRevenue?.length > 0 && (
             <div className="card p-6">
-              <h3 className="font-display font-bold mb-6">Revenus quotidiens (FCFA)</h3>
+              <h3 className="font-display font-bold mb-6">{t('admin.reports.revenue')} (FCFA)</h3>
               <ResponsiveContainer width="100%" height={240}>
                 <LineChart data={data.dailyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -60,7 +59,7 @@ export default function AdminReports() {
                   <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} />
                   <Tooltip
                     contentStyle={{ borderRadius: '12px', border: '1px solid #E8F5EE', fontSize: '12px' }}
-                    formatter={(v) => [`${parseFloat(v).toLocaleString()} FCFA`, 'Revenu']}
+                    formatter={(v) => [`${parseFloat(v).toLocaleString()} FCFA`, isEn ? 'Revenue' : 'Revenu']}
                   />
                   <Line type="monotone" dataKey="amount" stroke="#1A8A3C" strokeWidth={2.5} dot={{ fill: '#1A8A3C', r: 4 }} />
                 </LineChart>
@@ -72,14 +71,14 @@ export default function AdminReports() {
             {/* By category bar chart */}
             {data.byCategory?.length > 0 && (
               <div className="card p-6">
-                <h3 className="font-display font-bold mb-6">Collectes par catégorie</h3>
+                <h3 className="font-display font-bold mb-6">{t('admin.reports.byCategory')}</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={data.byCategory} layout="vertical">
                     <XAxis type="number" tick={{ fontSize: 11, fill: '#9ca3af' }} />
                     <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: '#6b7280' }} width={100} />
                     <Tooltip
                       contentStyle={{ borderRadius: '12px', border: '1px solid #E8F5EE', fontSize: '12px' }}
-                      formatter={(v, n) => [n === 'count' ? `${v} collectes` : `${parseFloat(v).toLocaleString()} FCFA`, n === 'count' ? 'Collectes' : 'Revenus']}
+                      formatter={(v, n) => [n === 'count' ? `${v} ${t('admin.reports.collections').toLowerCase()}` : `${parseFloat(v).toLocaleString()} FCFA`, n === 'count' ? t('admin.reports.collections') : t('admin.reports.revenueLabel')]}
                     />
                     <Bar dataKey="count" fill="#1A8A3C" radius={[0, 6, 6, 0]} />
                   </BarChart>
@@ -90,17 +89,17 @@ export default function AdminReports() {
             {/* By status pie chart */}
             {data.byStatus?.length > 0 && (
               <div className="card p-6">
-                <h3 className="font-display font-bold mb-6">Répartition par statut</h3>
+                <h3 className="font-display font-bold mb-6">{t('admin.reports.byStatus')}</h3>
                 <ResponsiveContainer width="100%" height={240}>
                   <PieChart>
                     <Pie data={data.byStatus} dataKey="count" nameKey="status" cx="50%" cy="50%" outerRadius={90}
-                      label={({ status, percent }) => `${STATUS_LABELS[status] || status} ${(percent * 100).toFixed(0)}%`}
+                      label={({ status, percent }) => `${statusLabel(status)} ${(percent * 100).toFixed(0)}%`}
                       labelLine={false}>
                       {data.byStatus.map((_, i) => (
                         <Cell key={i} fill={COLORS[i % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v, n) => [v, STATUS_LABELS[n] || n]} />
+                    <Tooltip formatter={(v, n) => [v, statusLabel(n)]} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -110,14 +109,14 @@ export default function AdminReports() {
           {/* Revenue by category table */}
           {data.byCategory?.length > 0 && (
             <div className="card p-6">
-              <h3 className="font-display font-bold mb-4">Revenus par catégorie</h3>
+              <h3 className="font-display font-bold mb-4">{t('admin.reports.revenueLabel')} {isEn ? 'by category' : 'par catégorie'}</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b border-gray-100">
                     <tr>
-                      <th className="text-left py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Catégorie</th>
-                      <th className="text-right py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Nb collectes</th>
-                      <th className="text-right py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Revenus</th>
+                      <th className="text-left py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('admin.categories.name')}</th>
+                      <th className="text-right py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('admin.reports.collections')}</th>
+                      <th className="text-right py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">{t('admin.reports.revenueLabel')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -137,8 +136,8 @@ export default function AdminReports() {
           {data.byCategory?.length === 0 && data.byStatus?.length === 0 && (
             <div className="card p-12 text-center text-gray-400">
               <p className="text-4xl mb-3">📊</p>
-              <p className="font-semibold">Pas encore de données pour cette période</p>
-              <p className="text-sm mt-1">Les graphiques apparaîtront dès que des collectes seront complétées.</p>
+              <p className="font-semibold">{t('admin.reports.noData')}</p>
+              <p className="text-sm mt-1">{isEn ? 'Charts will appear once collections are completed.' : 'Les graphiques apparaîtront dès que des collectes seront complétées.'}</p>
             </div>
           )}
         </div>

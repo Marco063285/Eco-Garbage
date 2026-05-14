@@ -1,28 +1,31 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Search, UserCheck, UserX, Users, Plus, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { adminApi } from '../../services/api'
 import { PageHeader, PageLoader, EmptyState, ConfirmDialog, Modal } from '../../components/common'
 import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
-
-const ROLE_LABELS = { user: 'Utilisateur', collector: 'Collecteur', admin: 'Admin' }
-const ROLE_COLORS = { user: 'bg-blue-100 text-blue-700', collector: 'bg-green-100 text-green-700', admin: 'bg-purple-100 text-purple-700' }
-
+import { fr, enUS } from 'date-fns/locale'
 import { isValidCmPhone, formatCmPhone, normalizeCmPhone } from '../../utils/phone'
+
+const ROLE_COLORS = { user: 'bg-blue-100 text-blue-700', collector: 'bg-green-100 text-green-700', admin: 'bg-purple-100 text-purple-700' }
 
 const EMPTY_FORM = { name: '', email: '', phone: '', role: 'user', password: '' }
 
 export default function AdminUsers() {
+  const { t, i18n } = useTranslation()
+  const dateLocale = i18n.language?.startsWith('en') ? enUS : fr
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
-  const [confirmDialog, setConfirmDialog] = useState(null) // { userId, is_active, name }
-  const [deleteDialog, setDeleteDialog] = useState(null)   // { userId, name }
+  const [confirmDialog, setConfirmDialog] = useState(null)
+  const [deleteDialog, setDeleteDialog] = useState(null)
   const [createModal, setCreateModal] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+
+  const ROLE_LABELS = { user: t('roles.user'), collector: t('roles.collector'), admin: t('roles.admin') }
 
   const fetchUsers = async (params = {}) => {
     setLoading(true)
@@ -40,27 +43,27 @@ export default function AdminUsers() {
     if (!confirmDialog) return
     try {
       await adminApi.toggleUser(confirmDialog.userId, { is_active: !confirmDialog.is_active })
-      toast.success(confirmDialog.is_active ? 'Compte suspendu' : 'Compte activé')
+      toast.success(t('admin.users.statusSuccess'))
       fetchUsers({ role: roleFilter, search })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     }
   }
 
   const handleCreateUser = async () => {
     if (!form.name.trim() || !form.email.trim() || !form.password)
-      return toast.error('Nom, email et mot de passe requis')
+      return toast.error(t('admin.users.name') + ', ' + t('admin.users.email') + ', ' + t('admin.users.password') + ' requis')
     if (form.phone && !isValidCmPhone(form.phone))
       return toast.error('Numéro de téléphone camerounais invalide')
     setSaving(true)
     try {
       await adminApi.createUser({ ...form, phone: normalizeCmPhone(form.phone) })
-      toast.success('Utilisateur créé avec succès')
+      toast.success(t('admin.users.createSuccess'))
       setCreateModal(false)
       setForm(EMPTY_FORM)
       fetchUsers({ role: roleFilter, search })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la création')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     } finally {
       setSaving(false)
     }
@@ -70,43 +73,42 @@ export default function AdminUsers() {
     if (!deleteDialog) return
     try {
       await adminApi.deleteUser(deleteDialog.userId)
-      toast.success('Utilisateur supprimé')
+      toast.success(t('admin.users.deleteSuccess'))
       setDeleteDialog(null)
       fetchUsers({ role: roleFilter, search })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la suppression')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     }
   }
 
   return (
     <div className="fade-up">
-      <PageHeader title="Utilisateurs" subtitle={`${users.length} utilisateur(s)`}
-        action={<button onClick={() => { setForm(EMPTY_FORM); setCreateModal(true) }} className="btn-primary"><Plus size={16} />Ajouter</button>} />
+      <PageHeader title={t('admin.users.title')} subtitle={`${users.length} ${t('admin.users.title').toLowerCase()}`}
+        action={<button onClick={() => { setForm(EMPTY_FORM); setCreateModal(true) }} className="btn-primary"><Plus size={16} />{t('common.create')}</button>} />
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input className="input pl-10" placeholder="Rechercher par nom ou email..." value={search}
+          <input className="input pl-10" placeholder={t('admin.users.search')} value={search}
             onChange={e => setSearch(e.target.value)} />
         </div>
         <select className="input w-auto" value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-          <option value="">Tous les rôles</option>
-          <option value="user">Utilisateurs</option>
-          <option value="collector">Collecteurs</option>
-          <option value="admin">Admins</option>
+          <option value="">{t('admin.users.filterRole')}</option>
+          <option value="user">{t('roles.user')}</option>
+          <option value="collector">{t('roles.collector')}</option>
+          <option value="admin">{t('roles.admin')}</option>
         </select>
       </div>
 
       {loading ? <PageLoader /> : users.length === 0 ? (
-        <EmptyState icon={Users} title="Aucun utilisateur" description="Aucun utilisateur ne correspond à votre recherche." />
+        <EmptyState icon={Users} title={t('admin.users.noUsers')} description={t('admin.users.noUsersDesc')} />
       ) : (
         <div className="card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="border-b border-gray-100 bg-gray-50/50">
                 <tr>
-                  {['Utilisateur', 'Rôle', 'Téléphone', 'Statut', 'Inscrit le', 'Actions'].map(h => (
+                  {[t('admin.users.name'), t('admin.users.role'), t('admin.users.phone'), t('admin.users.status'), i18n.language?.startsWith('en') ? 'Registered' : 'Inscrit le', t('admin.users.actions')].map(h => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -131,11 +133,11 @@ export default function AdminUsers() {
                     <td className="px-4 py-3 text-gray-500">{u.phone || '—'}</td>
                     <td className="px-4 py-3">
                       <span className={`badge ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {u.is_active ? '✓ Actif' : '✗ Suspendu'}
+                        {u.is_active ? `✓ ${t('common.active')}` : `✗ ${i18n.language?.startsWith('en') ? 'Suspended' : 'Suspendu'}`}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
-                      {format(new Date(u.created_at), 'dd MMM yyyy', { locale: fr })}
+                      {format(new Date(u.created_at), 'dd MMM yyyy', { locale: dateLocale })}
                     </td>
                     <td className="px-4 py-3">
                       {u.role !== 'admin' && (
@@ -147,7 +149,7 @@ export default function AdminUsers() {
                                 ? 'bg-red-50 text-red-500 hover:bg-red-100'
                                 : 'bg-green-50 text-green-600 hover:bg-green-100'
                             }`}>
-                            {u.is_active ? <><UserX size={13} />Suspendre</> : <><UserCheck size={13} />Activer</>}
+                            {u.is_active ? <><UserX size={13} />{t('admin.users.suspend')}</> : <><UserCheck size={13} />{t('admin.users.activate')}</>}
                           </button>
                           <button
                             onClick={() => setDeleteDialog({ userId: u._id, name: u.name })}
@@ -169,9 +171,9 @@ export default function AdminUsers() {
         isOpen={!!confirmDialog}
         onClose={() => setConfirmDialog(null)}
         onConfirm={handleToggle}
-        title={confirmDialog?.is_active ? 'Suspendre le compte' : 'Activer le compte'}
-        message={`Êtes-vous sûr de vouloir ${confirmDialog?.is_active ? 'suspendre' : 'activer'} le compte de ${confirmDialog?.name} ?`}
-        confirmLabel={confirmDialog?.is_active ? 'Suspendre' : 'Activer'}
+        title={confirmDialog?.is_active ? (i18n.language?.startsWith('en') ? 'Suspend account' : 'Suspendre le compte') : (i18n.language?.startsWith('en') ? 'Activate account' : 'Activer le compte')}
+        message={`${i18n.language?.startsWith('en') ? 'Are you sure you want to' : 'Êtes-vous sûr de vouloir'} ${confirmDialog?.is_active ? (i18n.language?.startsWith('en') ? 'suspend' : 'suspendre') : (i18n.language?.startsWith('en') ? 'activate' : 'activer')} ${i18n.language?.startsWith('en') ? 'the account of' : 'le compte de'} ${confirmDialog?.name} ?`}
+        confirmLabel={confirmDialog?.is_active ? t('admin.users.suspend') : t('admin.users.activate')}
         danger={confirmDialog?.is_active}
       />
 
@@ -179,47 +181,46 @@ export default function AdminUsers() {
         isOpen={!!deleteDialog}
         onClose={() => setDeleteDialog(null)}
         onConfirm={handleDeleteUser}
-        title="Supprimer l'utilisateur"
-        message={`Êtes-vous sûr de vouloir supprimer définitivement le compte de ${deleteDialog?.name} ? Cette action est irréversible.`}
-        confirmLabel="Supprimer"
+        title={t('admin.users.deleteUser')}
+        message={t('admin.users.deleteConfirm')}
+        confirmLabel={t('common.delete')}
         danger
       />
 
-      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Nouvel utilisateur">
+      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title={i18n.language?.startsWith('en') ? 'New user' : 'Nouvel utilisateur'}>
         <div className="flex flex-col gap-4">
           <div>
-            <label className="label">Nom complet *</label>
-            <input className="input" placeholder="Nom et prénom" value={form.name}
+            <label className="label">{t('admin.users.name')} *</label>
+            <input className="input" placeholder={i18n.language?.startsWith('en') ? 'Full name' : 'Nom et prénom'} value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           </div>
           <div>
-            <label className="label">Email *</label>
+            <label className="label">{t('admin.users.email')} *</label>
             <input className="input" type="email" placeholder="email@exemple.com" value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
           </div>
           <div>
-            <label className="label">Téléphone</label>
+            <label className="label">{t('admin.users.phone')}</label>
             <input className="input" placeholder="+237 6 XX XX XX XX" value={form.phone}
               onChange={e => setForm(f => ({ ...f, phone: formatCmPhone(e.target.value) }))} />
-            <p className="text-xs text-gray-400 mt-1">Format camerounais : +237 suivi de 9 chiffres</p>
           </div>
           <div>
-            <label className="label">Rôle *</label>
+            <label className="label">{t('admin.users.role')} *</label>
             <select className="input" value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}>
-              <option value="user">Utilisateur</option>
-              <option value="collector">Collecteur</option>
-              <option value="admin">Administrateur</option>
+              <option value="user">{t('roles.user')}</option>
+              <option value="collector">{t('roles.collector')}</option>
+              <option value="admin">{t('roles.admin')}</option>
             </select>
           </div>
           <div>
-            <label className="label">Mot de passe *</label>
-            <input className="input" type="password" placeholder="Min. 8 caractères, 1 majuscule, 1 chiffre" value={form.password}
+            <label className="label">{t('admin.users.password')} *</label>
+            <input className="input" type="password" placeholder={i18n.language?.startsWith('en') ? 'Min. 8 chars, 1 uppercase, 1 digit' : 'Min. 8 caractères, 1 majuscule, 1 chiffre'} value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
           </div>
           <div className="flex gap-3 mt-2">
-            <button onClick={() => setCreateModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">Annuler</button>
+            <button onClick={() => setCreateModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">{t('common.cancel')}</button>
             <button onClick={handleCreateUser} disabled={saving} className="btn-primary flex-1 justify-center">
-              {saving ? 'Création...' : 'Créer le compte'}
+              {saving ? (i18n.language?.startsWith('en') ? 'Creating...' : 'Création...') : (i18n.language?.startsWith('en') ? 'Create account' : 'Créer le compte')}
             </button>
           </div>
         </div>

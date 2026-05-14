@@ -12,4 +12,7 @@ const notificationSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
+notificationSchema.index({ user_id: 1, created_at: -1 });  // list sorted
+notificationSchema.index({ user_id: 1, is_read: 1 });       // unread count
+
 module.exports = mongoose.model('Notification', notificationSchema);

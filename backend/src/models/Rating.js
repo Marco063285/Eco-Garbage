@@ -12,4 +12,6 @@ const ratingSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
+ratingSchema.index({ collector_id: 1 });   // average calculation
+
 module.exports = mongoose.model('Rating', ratingSchema);

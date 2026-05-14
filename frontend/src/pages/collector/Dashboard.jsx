@@ -1,16 +1,19 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Truck, CheckCircle, Star, ToggleLeft, ToggleRight, ArrowRight, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { collectorApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { StatCard, StatusBadge, PageLoader, EmptyState } from '../../components/common'
 import { format } from 'date-fns'
+import { fr, enUS } from 'date-fns/locale'
 import getCategoryIcon from '../../utils/categoryIcons'
-import { fr } from 'date-fns/locale'
 
 export default function CollectorDashboard() {
+  const { t, i18n } = useTranslation()
   const { user } = useAuth()
+  const dateLocale = i18n.language?.startsWith('en') ? enUS : fr
   const [stats, setStats] = useState(null)
   const [tasks, setTasks] = useState([])
   const [available, setAvailable] = useState(false)
@@ -18,23 +21,18 @@ export default function CollectorDashboard() {
   const [toggling, setToggling] = useState(false)
   const locationIntervalRef = useRef(null)
 
-  // Send GPS location to the server
   const sendLocation = () => {
     if (!navigator.geolocation) return
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        collectorApi.updateLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
-          .catch(() => {})
-      },
+      (pos) => collectorApi.updateLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }).catch(() => {}),
       () => {},
       { enableHighAccuracy: true, timeout: 10000 }
     )
   }
 
-  // Start/stop periodic location updates
   const startLocationTracking = () => {
-    sendLocation() // send immediately
-    locationIntervalRef.current = setInterval(sendLocation, 60000) // update every 60s
+    sendLocation()
+    locationIntervalRef.current = setInterval(sendLocation, 60000)
   }
   const stopLocationTracking = () => {
     if (locationIntervalRef.current) {
@@ -44,17 +42,13 @@ export default function CollectorDashboard() {
   }
 
   useEffect(() => {
-    Promise.all([
-      collectorApi.stats(),
-      collectorApi.tasks({ limit: 5 }),
-    ]).then(([s, t]) => {
+    Promise.all([collectorApi.stats(), collectorApi.tasks({ limit: 5 })]).then(([s, tk]) => {
       setStats(s.data.data)
-      setTasks(t.data.data || [])
+      setTasks(tk.data.data || [])
       const isAvail = s.data.data?.profile?.is_available || false
       setAvailable(isAvail)
       if (isAvail) startLocationTracking()
     }).finally(() => setLoading(false))
-
     return () => stopLocationTracking()
   }, [])
 
@@ -62,14 +56,10 @@ export default function CollectorDashboard() {
     setToggling(true)
     try {
       const newState = !available
-      // If going available, get location first
       if (newState && navigator.geolocation) {
-        await new Promise((resolve) => {
+        await new Promise(resolve => {
           navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-              await collectorApi.updateLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
-              resolve()
-            },
+            async (pos) => { await collectorApi.updateLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }); resolve() },
             () => resolve(),
             { enableHighAccuracy: true, timeout: 10000 }
           )
@@ -77,15 +67,10 @@ export default function CollectorDashboard() {
       }
       await collectorApi.setAvailability({ is_available: newState })
       setAvailable(newState)
-      if (newState) {
-        startLocationTracking()
-        toast.success('Vous êtes maintenant disponible — position GPS activée 📍')
-      } else {
-        stopLocationTracking()
-        toast.success('Vous êtes maintenant indisponible')
-      }
+      if (newState) { startLocationTracking(); toast.success(t('collector.dashboard.available') + ' 📍') }
+      else { stopLocationTracking(); toast.success(t('collector.dashboard.unavailable')) }
     } catch {
-      toast.error('Erreur lors de la mise à jour')
+      toast.error(t('common.serverError'))
     } finally {
       setToggling(false)
     }
@@ -95,7 +80,9 @@ export default function CollectorDashboard() {
 
   const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'C'
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir'
+  const greeting = hour < 12
+    ? t('user.dashboard.greetingMorning')
+    : hour < 18 ? t('user.dashboard.greetingAfternoon') : t('user.dashboard.greetingEvening')
 
   return (
     <div className="fade-up">
@@ -107,44 +94,42 @@ export default function CollectorDashboard() {
           </div>
           <div>
             <h1 className="text-2xl font-display font-bold">{greeting}, {user?.name?.split(' ')[0]} 🚛</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Tableau de bord collecteur</p>
+            <p className="text-sm text-gray-400 mt-0.5">{t('collector.dashboard.subtitle')}</p>
           </div>
         </div>
-        {/* Availability toggle */}
-        <button
-          onClick={toggleAvailability}
-          disabled={toggling}
+        <button onClick={toggleAvailability} disabled={toggling}
           className={`flex items-center gap-3 px-5 py-3 rounded-xl font-semibold text-sm transition-all border-2 ${
             available
               ? 'bg-[#E8F5EE] border-[#1A8A3C] text-[#1A8A3C]'
               : 'bg-gray-50 border-gray-200 text-gray-500'
-          }`}
-        >
-          {available
-            ? <ToggleRight size={20} className="text-[#1A8A3C]" />
-            : <ToggleLeft size={20} />}
-          {available ? 'Disponible' : 'Indisponible'}
+          }`}>
+          {available ? <ToggleRight size={20} className="text-[#1A8A3C]" /> : <ToggleLeft size={20} />}
+          {available ? t('collector.dashboard.available') : t('collector.dashboard.unavailable')}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Truck} label="Total collectes" value={stats?.completed ?? 0} color="green" />
-        <StatCard icon={CheckCircle} label="Ce mois" value={tasks.filter(t => t.status === 'completed').length} color="blue" />
-        <StatCard icon={Star} label="Note moyenne" value={stats?.profile?.rating_avg ? parseFloat(stats.profile.rating_avg).toFixed(1) : '—'} color="yellow" />
-        <StatCard icon={Truck} label="Gains totaux" value={`${(stats?.earnings || 0).toLocaleString()} FCFA`} color="purple" />
+        <StatCard icon={Truck}       label={t('collector.dashboard.totalCollections')} value={stats?.completed ?? 0} color="green" />
+        <StatCard icon={CheckCircle} label={t('common.active')}                        value={tasks.filter(tk => tk.status === 'completed').length} color="blue" />
+        <StatCard icon={Star}        label={t('collector.dashboard.rating')}            value={stats?.profile?.rating_avg ? parseFloat(stats.profile.rating_avg).toFixed(1) : '—'} color="yellow" />
+        <StatCard icon={Truck}       label={t('collector.dashboard.earnings')}          value={`${(stats?.earnings || 0).toLocaleString()} FCFA`} color="purple" />
       </div>
 
       {/* Status banner */}
-      <div className={`rounded-2xl p-4 mb-6 flex items-center gap-3 ${available ? 'bg-[#E8F5EE] border border-[#C8EDDA]' : 'bg-gray-100 border border-gray-200'}`}>
+      <div className={`rounded-2xl p-4 mb-6 flex items-center gap-3 ${
+        available
+          ? 'bg-[#E8F5EE] border border-[#C8EDDA]'
+          : 'bg-gray-100 border border-gray-200'
+      }`}>
         <div className={`w-3 h-3 rounded-full ${available ? 'bg-[#1A8A3C] animate-pulse' : 'bg-gray-400'}`} />
         <div className="flex-1">
           <p className={`text-sm font-semibold ${available ? 'text-[#1A8A3C]' : 'text-gray-500'}`}>
-            {available ? 'Vous êtes disponible pour recevoir des tâches' : 'Vous êtes indisponible — activez votre disponibilité pour recevoir des tâches'}
+            {available ? t('collector.dashboard.available') : t('collector.dashboard.unavailable')}
           </p>
           {available && (
             <p className="text-xs text-[#1A8A3C]/60 mt-0.5 flex items-center gap-1">
-              <MapPin size={10} /> Position GPS partagée en temps réel
+              <MapPin size={10} /> GPS
             </p>
           )}
         </div>
@@ -154,34 +139,36 @@ export default function CollectorDashboard() {
         {/* Tasks */}
         <div className="lg:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-display font-bold">Tâches récentes</h2>
+            <h2 className="text-lg font-display font-bold">{t('collector.dashboard.myTasks')}</h2>
             <Link to="/collector/tasks" className="text-sm text-[#1A8A3C] font-semibold flex items-center gap-1 hover:underline">
-              Voir tout <ArrowRight size={14} />
+              {t('common.seeAll')} <ArrowRight size={14} />
             </Link>
           </div>
           {tasks.length === 0 ? (
-            <EmptyState icon={Truck} title="Aucune tâche" description="Les tâches qui vous sont assignées apparaîtront ici." />
+            <EmptyState icon={Truck} title={t('collector.tasks.noTasks')} description={t('collector.tasks.noTasksDesc')} />
           ) : (
             <div className="flex flex-col gap-3">
-              {tasks.slice(0, 5).map(t => (
-                <Link key={t.uuid} to={`/collector/tasks/${t.uuid}`}
+              {tasks.slice(0, 5).map(tk => (
+                <Link key={tk.uuid} to={`/collector/tasks/${tk.uuid}`}
                   className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-[#E8F5EE] transition-all group">
-                  <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-white">{getCategoryIcon(t.category_icon)}</div>
+                  <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-lg flex-shrink-0 group-hover:bg-white">
+                    {getCategoryIcon(tk.category_icon)}
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">{t.category_name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{t.address}</p>
+                    <p className="text-sm font-semibold text-gray-800 truncate">{tk.category_name}</p>
+                    <p className="text-xs text-gray-400 mt-0.5 truncate">{tk.address}</p>
                     <p className="text-xs text-gray-300 mt-0.5">
-                      {t.user_name} · {format(new Date(t.created_at), 'dd MMM', { locale: fr })}
+                      {tk.user_name} · {format(new Date(tk.created_at), 'dd MMM', { locale: dateLocale })}
                     </p>
                   </div>
-                  <StatusBadge status={t.status} />
+                  <StatusBadge status={tk.status} />
                 </Link>
               ))}
             </div>
           )}
         </div>
 
-        {/* Quick stats */}
+        {/* Performance */}
         <div className="flex flex-col gap-5">
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">Performance</h3>
@@ -197,8 +184,10 @@ export default function CollectorDashboard() {
               </div>
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-gray-500">Satisfaction client</span>
-                  <span className="font-semibold text-yellow-500">{stats?.profile?.rating_avg ? `${parseFloat(stats.profile.rating_avg).toFixed(1)}/5` : '—'}</span>
+                  <span className="text-gray-500">Satisfaction</span>
+                  <span className="font-semibold text-yellow-500">
+                    {stats?.profile?.rating_avg ? `${parseFloat(stats.profile.rating_avg).toFixed(1)}/5` : '—'}
+                  </span>
                 </div>
                 <div className="bg-gray-100 rounded-full h-2">
                   <div className="bg-yellow-400 h-2 rounded-full" style={{ width: `${((stats?.profile?.rating_avg || 0) / 5) * 100}%` }} />
@@ -208,11 +197,11 @@ export default function CollectorDashboard() {
           </div>
 
           <div className="bg-[#1A8A3C] rounded-2xl p-5 text-white">
-            <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2">Gains ce mois</p>
+            <p className="text-white/60 text-xs font-semibold uppercase tracking-wider mb-2">{t('collector.dashboard.earnings')}</p>
             <p className="text-3xl font-display font-bold">{(stats?.earnings || 0).toLocaleString()}</p>
             <p className="text-white/60 text-sm mt-0.5">FCFA</p>
             <div className="mt-4 pt-4 border-t border-white/20">
-              <p className="text-sm text-white/70">{stats?.completed || 0} collectes complétées</p>
+              <p className="text-sm text-white/70">{stats?.completed || 0} {t('status.completed').toLowerCase()}</p>
             </div>
           </div>
         </div>

@@ -23,4 +23,7 @@ const paymentSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
+paymentSchema.index({ user_id: 1, created_at: -1 });   // user payment history
+paymentSchema.index({ status: 1, paid_at: 1 });         // revenue aggregations
+
 module.exports = mongoose.model('Payment', paymentSchema);

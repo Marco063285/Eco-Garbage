@@ -22,4 +22,7 @@ const complaintSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
+complaintSchema.index({ user_id: 1, created_at: -1 });   // user's complaints
+complaintSchema.index({ status: 1, created_at: -1 });    // admin filter by status
+
 module.exports = mongoose.model('Complaint', complaintSchema);

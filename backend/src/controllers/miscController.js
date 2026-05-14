@@ -49,8 +49,12 @@ const createRating = async (req, res) => {
       { upsert: true }
     );
 
-    const ratings = await Rating.find({ collector_id: pickupReq.collector_id });
-    const avg = ratings.reduce((s, r) => s + r.score, 0) / ratings.length;
+    // Compute average in DB instead of loading all ratings into memory
+    const [avgResult] = await Rating.aggregate([
+      { $match: { collector_id: pickupReq.collector_id } },
+      { $group: { _id: null, avg: { $avg: '$score' } } },
+    ]);
+    const avg = avgResult?.avg || 0;
     await User.findByIdAndUpdate(pickupReq.collector_id, {
       $set: { 'collector_profile.rating_avg': parseFloat(avg.toFixed(2)) },
     });
@@ -125,11 +129,20 @@ const payRequest = async (req, res) => {
 
 // ========== CATEGORIES (public) ==========
 
+// Simple in-process TTL cache — categories change rarely
+let _categoriesCache = null;
+let _categoriesCachedAt = 0;
+const CATEGORIES_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 const getCategories = async (req, res) => {
   try {
+    if (_categoriesCache && Date.now() - _categoriesCachedAt < CATEGORIES_TTL_MS) {
+      return res.json({ success: true, data: _categoriesCache });
+    }
     const rows = await WasteCategory.find({ is_active: true }).sort({ name: 1 }).lean();
-    const data = rows.map(c => ({ ...c, id: c._id.toString() }));
-    res.json({ success: true, data });
+    _categoriesCache = rows.map(c => ({ ...c, id: c._id.toString() }));
+    _categoriesCachedAt = Date.now();
+    res.json({ success: true, data: _categoriesCache });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
@@ -224,16 +237,18 @@ const updateCollectorLocation = async (req, res) => {
 
 const getCollectorStats = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).lean();
-    const profile = user?.collector_profile || {};
-    const completed = await PickupRequest.countDocuments({ collector_id: req.user.id, status: 'completed' });
-    const earningsResult = await Payment.aggregate([
-      { $match: { status: 'completed' } },
-      { $lookup: { from: 'pickuprequests', localField: 'request_id', foreignField: '_id', as: 'request' } },
-      { $unwind: '$request' },
-      { $match: { 'request.collector_id': new mongoose.Types.ObjectId(req.user.id) } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
+    const collectorOid = new mongoose.Types.ObjectId(req.user.id);
+    // Run all three queries in parallel; sum final_price directly on PickupRequest
+    // to avoid an expensive Payment→PickupRequest join across the full payments collection
+    const [user, completed, earningsResult] = await Promise.all([
+      User.findById(req.user.id).select('collector_profile').lean(),
+      PickupRequest.countDocuments({ collector_id: req.user.id, status: 'completed' }),
+      PickupRequest.aggregate([
+        { $match: { collector_id: collectorOid, status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$final_price' } } },
+      ]),
     ]);
+    const profile = user?.collector_profile || {};
     const earnings = earningsResult[0]?.total || 0;
     res.json({ success: true, data: { profile, completed, earnings } });
   } catch (err) {

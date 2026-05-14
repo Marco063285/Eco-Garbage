@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Plus, Edit2, Tag } from 'lucide-react'
 import getCategoryIcon from '../../utils/categoryIcons'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 import { adminApi } from '../../services/api'
 import { PageHeader, PageLoader, EmptyState, Modal } from '../../components/common'
 
 const EMPTY_FORM = { name: '', description: '', icon: 'trash', base_price: '', is_hazardous: false, is_recyclable: false, is_active: true }
 
 export default function AdminCategories() {
+  const { t, i18n } = useTranslation()
+  const isEn = i18n.language?.startsWith('en')
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState(false)
@@ -24,20 +27,20 @@ export default function AdminCategories() {
   const openEdit = (cat) => { setEditing(cat); setForm({ ...cat }); setModal(true) }
 
   const handleSave = async () => {
-    if (!form.name || !form.base_price) return toast.error('Nom et prix requis')
+    if (!form.name || !form.base_price) return toast.error(isEn ? 'Name and price required' : 'Nom et prix requis')
     setSaving(true)
     try {
       if (editing) {
         await adminApi.updateCategory(editing.id, form)
-        toast.success('Catégorie mise à jour')
+        toast.success(t('admin.categories.updateSuccess'))
       } else {
         await adminApi.createCategory(form)
-        toast.success('Catégorie créée')
+        toast.success(t('admin.categories.createSuccess'))
       }
       setModal(false)
       loadData()
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur')
+      toast.error(err.response?.data?.message || t('common.serverError'))
     } finally {
       setSaving(false)
     }
@@ -47,12 +50,12 @@ export default function AdminCategories() {
 
   return (
     <div className="fade-up">
-      <PageHeader title="Catégories de déchets" subtitle={`${categories.length} catégorie(s)`}
-        action={<button onClick={openCreate} className="btn-primary"><Plus size={16} />Nouvelle catégorie</button>} />
+      <PageHeader title={t('admin.categories.title')} subtitle={`${categories.length} ${isEn ? 'category(ies)' : 'catégorie(s)'}`}
+        action={<button onClick={openCreate} className="btn-primary"><Plus size={16} />{t('admin.categories.add')}</button>} />
 
       {loading ? <PageLoader /> : categories.length === 0 ? (
-        <EmptyState icon={Tag} title="Aucune catégorie" description="Créez votre première catégorie de déchets."
-          action={<button onClick={openCreate} className="btn-primary"><Plus size={16} />Créer</button>} />
+        <EmptyState icon={Tag} title={t('admin.categories.noCategories')} description={isEn ? 'Create your first waste category.' : 'Créez votre première catégorie de déchets.'}
+          action={<button onClick={openCreate} className="btn-primary"><Plus size={16} />{t('common.create')}</button>} />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map(cat => (
@@ -68,9 +71,9 @@ export default function AdminCategories() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-[#1A8A3C]">{parseFloat(cat.base_price).toLocaleString()} FCFA</span>
                 <div className="flex gap-1.5">
-                  {cat.is_hazardous && <span className="badge bg-red-100 text-red-600 text-[10px]">⚠️ Danger</span>}
+                  {cat.is_hazardous && <span className="badge bg-red-100 text-red-600 text-[10px]">⚠️ {t('admin.categories.hazardous')}</span>}
                   {cat.is_recyclable && <span className="badge bg-green-100 text-green-600 text-[10px]">♻️</span>}
-                  {!cat.is_active && <span className="badge bg-gray-100 text-gray-500 text-[10px]">Inactif</span>}
+                  {!cat.is_active && <span className="badge bg-gray-100 text-gray-500 text-[10px]">{t('common.inactive')}</span>}
                 </div>
               </div>
             </div>
@@ -78,40 +81,40 @@ export default function AdminCategories() {
         </div>
       )}
 
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? 'Modifier la catégorie' : 'Nouvelle catégorie'}>
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? (isEn ? 'Edit category' : 'Modifier la catégorie') : t('admin.categories.add')}>
         <div className="flex flex-col gap-4">
           <div>
-            <label className="label">Nom <span className="text-red-500">*</span></label>
-            <input className="input" value={form.name} onChange={e => set('name', e.target.value)} placeholder="Ex: Déchets organiques" />
+            <label className="label">{t('admin.categories.name')} <span className="text-red-500">*</span></label>
+            <input className="input" value={form.name} onChange={e => set('name', e.target.value)} placeholder={isEn ? 'e.g. Organic waste' : 'Ex: Déchets organiques'} />
           </div>
           <div>
-            <label className="label">Description</label>
+            <label className="label">{isEn ? 'Description' : 'Description'}</label>
             <textarea className="input resize-none" rows={2} value={form.description} onChange={e => set('description', e.target.value)} />
           </div>
           <div>
-            <label className="label">Prix de base (FCFA) <span className="text-red-500">*</span></label>
+            <label className="label">{t('admin.categories.basePrice')} <span className="text-red-500">*</span></label>
             <input type="number" className="input" value={form.base_price} onChange={e => set('base_price', e.target.value)} placeholder="500" />
           </div>
           <div className="flex gap-4">
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" className="accent-[#1A8A3C]" checked={form.is_hazardous} onChange={e => set('is_hazardous', e.target.checked)} />
-              Dangereux
+              {t('admin.categories.hazardous')}
             </label>
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" className="accent-[#1A8A3C]" checked={form.is_recyclable} onChange={e => set('is_recyclable', e.target.checked)} />
-              Recyclable
+              {t('admin.categories.recyclable')}
             </label>
             {editing && (
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input type="checkbox" className="accent-[#1A8A3C]" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} />
-                Actif
+                {t('admin.categories.active')}
               </label>
             )}
           </div>
           <div className="flex gap-3 pt-2">
-            <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">Annuler</button>
+            <button onClick={() => setModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">{t('common.cancel')}</button>
             <button onClick={handleSave} disabled={saving} className="btn-primary flex-1 justify-center">
-              {saving ? 'Sauvegarde...' : editing ? 'Modifier' : 'Créer'}
+              {saving ? t('user.profile.saving') : editing ? t('common.edit') : t('common.create')}
             </button>
           </div>
         </div>

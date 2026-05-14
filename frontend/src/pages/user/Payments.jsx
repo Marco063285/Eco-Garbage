@@ -1,12 +1,14 @@
-// src/pages/user/Payments.jsx
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { paymentApi } from '../../services/api'
 import { PageHeader, PageLoader, EmptyState, StatusBadge } from '../../components/common'
 import { CreditCard } from 'lucide-react'
 import { format } from 'date-fns'
-import { fr } from 'date-fns/locale'
+import { fr, enUS } from 'date-fns/locale'
 
 export default function Payments() {
+  const { t, i18n } = useTranslation()
+  const dateLocale = i18n.language?.startsWith('en') ? enUS : fr
   const [payments, setPayments] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -18,13 +20,13 @@ export default function Payments() {
 
   return (
     <div className="fade-up">
-      <PageHeader title="Paiements" subtitle="Historique de vos paiements" />
+      <PageHeader title={t('user.payments.title')} subtitle={t('user.payments.subtitle')} />
       {loading ? <PageLoader /> : payments.length === 0 ? (
-        <EmptyState icon={CreditCard} title="Aucun paiement" description="Vos paiements apparaîtront ici après une collecte complétée." />
+        <EmptyState icon={CreditCard} title={t('user.payments.noPayments')} description={t('user.payments.noPaymentsDesc')} />
       ) : (
         <>
           <div className="bg-[#1A8A3C] rounded-2xl p-6 text-white mb-6">
-            <p className="text-white/60 text-sm">Total payé</p>
+            <p className="text-white/60 text-sm">{t('user.payments.amount')}</p>
             <p className="text-3xl font-display font-bold mt-1">{total.toLocaleString()} FCFA</p>
           </div>
           <div className="flex flex-col gap-3">
@@ -34,7 +36,9 @@ export default function Payments() {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold">{p.category_name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {p.paid_at ? format(new Date(p.paid_at), 'dd MMM yyyy HH:mm', { locale: fr }) : 'En attente'}
+                    {p.paid_at
+                      ? format(new Date(p.paid_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })
+                      : t('status.pending')}
                     {p.method && ` · ${p.method}`}
                   </p>
                 </div>
