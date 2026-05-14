@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Truck, CheckCircle, Star, ToggleLeft, ToggleRight, ArrowRight } from 'lucide-react'
+import { Truck, CheckCircle, Star, ToggleLeft, ToggleRight, ArrowRight, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { collectorApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
@@ -16,6 +16,32 @@ export default function CollectorDashboard() {
   const [available, setAvailable] = useState(false)
   const [loading, setLoading] = useState(true)
   const [toggling, setToggling] = useState(false)
+  const locationIntervalRef = useRef(null)
+
+  // Send GPS location to the server
+  const sendLocation = () => {
+    if (!navigator.geolocation) return
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        collectorApi.updateLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
+          .catch(() => {})
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
+  // Start/stop periodic location updates
+  const startLocationTracking = () => {
+    sendLocation() // send immediately
+    locationIntervalRef.current = setInterval(sendLocation, 60000) // update every 60s
+  }
+  const stopLocationTracking = () => {
+    if (locationIntervalRef.current) {
+      clearInterval(locationIntervalRef.current)
+      locationIntervalRef.current = null
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -24,16 +50,40 @@ export default function CollectorDashboard() {
     ]).then(([s, t]) => {
       setStats(s.data.data)
       setTasks(t.data.data || [])
-      setAvailable(s.data.data?.profile?.is_available || false)
+      const isAvail = s.data.data?.profile?.is_available || false
+      setAvailable(isAvail)
+      if (isAvail) startLocationTracking()
     }).finally(() => setLoading(false))
+
+    return () => stopLocationTracking()
   }, [])
 
   const toggleAvailability = async () => {
     setToggling(true)
     try {
-      await collectorApi.setAvailability({ is_available: !available })
-      setAvailable(!available)
-      toast.success(!available ? 'Vous êtes maintenant disponible' : 'Vous êtes maintenant indisponible')
+      const newState = !available
+      // If going available, get location first
+      if (newState && navigator.geolocation) {
+        await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              await collectorApi.updateLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude })
+              resolve()
+            },
+            () => resolve(),
+            { enableHighAccuracy: true, timeout: 10000 }
+          )
+        })
+      }
+      await collectorApi.setAvailability({ is_available: newState })
+      setAvailable(newState)
+      if (newState) {
+        startLocationTracking()
+        toast.success('Vous êtes maintenant disponible — position GPS activée 📍')
+      } else {
+        stopLocationTracking()
+        toast.success('Vous êtes maintenant indisponible')
+      }
     } catch {
       toast.error('Erreur lors de la mise à jour')
     } finally {
@@ -88,9 +138,16 @@ export default function CollectorDashboard() {
       {/* Status banner */}
       <div className={`rounded-2xl p-4 mb-6 flex items-center gap-3 ${available ? 'bg-[#E8F5EE] border border-[#C8EDDA]' : 'bg-gray-100 border border-gray-200'}`}>
         <div className={`w-3 h-3 rounded-full ${available ? 'bg-[#1A8A3C] animate-pulse' : 'bg-gray-400'}`} />
-        <p className={`text-sm font-semibold ${available ? 'text-[#1A8A3C]' : 'text-gray-500'}`}>
-          {available ? 'Vous êtes disponible pour recevoir des tâches' : 'Vous êtes indisponible — activez votre disponibilité pour recevoir des tâches'}
-        </p>
+        <div className="flex-1">
+          <p className={`text-sm font-semibold ${available ? 'text-[#1A8A3C]' : 'text-gray-500'}`}>
+            {available ? 'Vous êtes disponible pour recevoir des tâches' : 'Vous êtes indisponible — activez votre disponibilité pour recevoir des tâches'}
+          </p>
+          {available && (
+            <p className="text-xs text-[#1A8A3C]/60 mt-0.5 flex items-center gap-1">
+              <MapPin size={10} /> Position GPS partagée en temps réel
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

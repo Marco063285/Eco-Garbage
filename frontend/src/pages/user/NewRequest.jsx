@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Send, Loader2 } from 'lucide-react'
+import { Send, Loader2, MapPin, Navigation, User, Phone, TrendingUp, Minus, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { categoryApi, requestApi } from '../../services/api'
 import { PageHeader, PageLoader } from '../../components/common'
@@ -19,13 +19,20 @@ export default function NewRequest() {
   const [categories, setCategories] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [locating, setLocating] = useState(false)
+  const [estimating, setEstimating] = useState(false)
+  const [estimate, setEstimate] = useState(null)
+  const [assignResult, setAssignResult] = useState(null)
   const [form, setForm] = useState({
     category_id: '',
     service_type: 'immediate',
     address: '',
     quantity_estimate: '',
+    quantity_number: 1,
     notes: '',
     scheduled_at: '',
+    latitude: null,
+    longitude: null,
   })
 
   useEffect(() => {
@@ -34,20 +41,64 @@ export default function NewRequest() {
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
-  const selectedCat = categories.find(c => c.id == form.category_id)
-  const estimatedPrice = selectedCat?.base_price
-    ? `${parseFloat(selectedCat.base_price).toLocaleString()} FCFA`
-    : '—'
+  // Get user's GPS location
+  const getLocation = () => {
+    if (!navigator.geolocation) return toast.error('Géolocalisation non supportée par votre navigateur')
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setForm(p => ({ ...p, latitude: pos.coords.latitude, longitude: pos.coords.longitude }))
+        toast.success('Position GPS obtenue !')
+        setLocating(false)
+      },
+      (err) => {
+        toast.error('Impossible d\'obtenir votre position. Vérifiez les permissions.')
+        setLocating(false)
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    )
+  }
+
+  // Fetch live price estimate
+  const fetchEstimate = useCallback(async () => {
+    if (!form.category_id) return
+    setEstimating(true)
+    try {
+      const res = await requestApi.estimate({
+        category_id: form.category_id,
+        latitude: form.latitude,
+        longitude: form.longitude,
+        quantity_number: form.quantity_number,
+      })
+      setEstimate(res.data.data)
+    } catch {
+      setEstimate(null)
+    } finally {
+      setEstimating(false)
+    }
+  }, [form.category_id, form.latitude, form.longitude, form.quantity_number])
+
+  // Auto-estimate when key fields change
+  useEffect(() => {
+    if (form.category_id) fetchEstimate()
+  }, [fetchEstimate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.category_id || !form.address) return toast.error('Catégorie et adresse sont obligatoires')
     if (form.service_type !== 'immediate' && !form.scheduled_at) return toast.error('Veuillez choisir une date de collecte')
+    if (!form.latitude || !form.longitude) return toast.error('Veuillez activer la géolocalisation pour une attribution automatique')
     setSubmitting(true)
     try {
-      await requestApi.create(form)
-      toast.success('Demande créée avec succès !')
-      navigate('/dashboard/requests')
+      const res = await requestApi.create(form)
+      const data = res.data.data
+      if (data.collector_name) {
+        setAssignResult(data)
+        toast.success('Collecteur assigné automatiquement !')
+      } else {
+        toast.success('Demande créée ! Nous recherchons un collecteur.')
+        navigate('/dashboard/requests')
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de la création')
     } finally {
@@ -56,6 +107,49 @@ export default function NewRequest() {
   }
 
   if (loading) return <PageLoader />
+
+  // Show success screen with assigned collector info
+  if (assignResult) {
+    return (
+      <div className="fade-up max-w-lg mx-auto mt-10">
+        <div className="card p-8 text-center">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[#E8F5EE] flex items-center justify-center">
+            <Navigation size={36} className="text-[#1A8A3C]" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-gray-900 mb-2">Collecteur en route !</h2>
+          <p className="text-gray-500 mb-6">Un collecteur a été assigné automatiquement à votre demande.</p>
+
+          <div className="bg-[#E8F5EE] rounded-2xl p-5 mb-6 text-left">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-[#1A8A3C] flex items-center justify-center">
+                <User size={24} className="text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">{assignResult.collector_name}</p>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <Phone size={12} /> {assignResult.collector_phone}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Distance</span>
+                <span className="font-semibold">{assignResult.distance_km} km</span>
+              </div>
+              <div className="flex justify-between border-t border-[#C8EDDA] pt-2">
+                <span className="font-semibold text-[#1A8A3C]">Prix estimé</span>
+                <span className="font-bold text-[#1A8A3C] text-lg">{assignResult.estimated_price?.toLocaleString()} FCFA</span>
+              </div>
+            </div>
+          </div>
+
+          <button onClick={() => navigate('/dashboard/requests')} className="btn-primary w-full justify-center py-3">
+            Voir mes demandes
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="fade-up max-w-2xl mx-auto">
@@ -93,9 +187,40 @@ export default function NewRequest() {
           </div>
         </div>
 
+        {/* Quantity picker */}
+        <div className="card p-6">
+          <h3 className="font-display font-bold mb-4">Quantité de déchets</h3>
+          <div className="flex items-center justify-center gap-5">
+            <button type="button"
+              onClick={() => set('quantity_number', Math.max(1, form.quantity_number - 1))}
+              className="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-[#1A8A3C] transition-colors">
+              <Minus size={20} />
+            </button>
+            <div className="text-center">
+              <span className="text-4xl font-bold text-[#1A8A3C]">{form.quantity_number}</span>
+              <p className="text-xs text-gray-400 mt-1">unité(s) / sac(s)</p>
+            </div>
+            <button type="button"
+              onClick={() => set('quantity_number', Math.min(20, form.quantity_number + 1))}
+              className="w-12 h-12 rounded-full border-2 border-gray-200 flex items-center justify-center hover:border-[#1A8A3C] transition-colors">
+              <Plus size={20} />
+            </button>
+          </div>
+        </div>
+
         {/* Details */}
         <div className="card p-6 flex flex-col gap-5">
           <h3 className="font-display font-bold">Détails de la collecte</h3>
+
+          {/* GPS Location */}
+          <div>
+            <label className="label">Votre position GPS <span className="text-red-500">*</span></label>
+            <button type="button" onClick={getLocation} disabled={locating}
+              className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all ${form.latitude ? 'border-[#1A8A3C] bg-[#E8F5EE] text-[#1A8A3C]' : 'border-dashed border-gray-300 text-gray-500 hover:border-[#1A8A3C]'}`}>
+              {locating ? <Loader2 size={16} className="spinner" /> : <MapPin size={16} />}
+              {locating ? 'Localisation...' : form.latitude ? `📍 Position obtenue (${form.latitude.toFixed(4)}, ${form.longitude.toFixed(4)})` : 'Activer la géolocalisation'}
+            </button>
+          </div>
 
           <div>
             <label className="label">Adresse de collecte <span className="text-red-500">*</span></label>
@@ -104,7 +229,7 @@ export default function NewRequest() {
           </div>
 
           <div>
-            <label className="label">Quantité estimée</label>
+            <label className="label">Quantité estimée (description)</label>
             <input className="input" placeholder="Ex: 3 sacs, 2m³, 1 canapé..." value={form.quantity_estimate}
               onChange={e => set('quantity_estimate', e.target.value)} />
           </div>
@@ -125,15 +250,32 @@ export default function NewRequest() {
           </div>
         </div>
 
-        {/* Summary */}
-        {selectedCat && (
+        {/* Live Estimate Summary */}
+        {(estimate || form.category_id) && (
           <div className="bg-[#E8F5EE] border border-[#C8EDDA] rounded-2xl p-5">
-            <h3 className="font-display font-bold text-[#1A8A3C] mb-3">Récapitulatif</h3>
-            <div className="flex flex-col gap-2 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Type de déchet</span><span className="font-medium">{selectedCat.name}</span></div>
-              <div className="flex justify-between"><span className="text-gray-500">Type de service</span><span className="font-medium">{SERVICE_TYPES.find(s => s.value === form.service_type)?.label}</span></div>
-              <div className="flex justify-between border-t border-[#C8EDDA] pt-2 mt-1"><span className="font-semibold text-[#1A8A3C]">Prix estimé</span><span className="font-bold text-[#1A8A3C] text-base">{estimatedPrice}</span></div>
-            </div>
+            <h3 className="font-display font-bold text-[#1A8A3C] mb-3 flex items-center gap-2">
+              <TrendingUp size={18} /> Estimation en direct
+              {estimating && <Loader2 size={14} className="spinner" />}
+            </h3>
+            {estimate ? (
+              <div className="flex flex-col gap-2 text-sm">
+                <div className="flex justify-between"><span className="text-gray-500">Type de déchet</span><span className="font-medium">{categories.find(c => c.id == form.category_id)?.name}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Prix de base / unité</span><span className="font-medium">{estimate.base_price?.toLocaleString()} FCFA</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Quantité</span><span className="font-medium">{estimate.quantity} unité(s)</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Distance collecteur</span><span className="font-medium">{estimate.distance_km > 0 ? `${estimate.distance_km} km` : 'En attente GPS'}</span></div>
+                <div className="flex justify-between"><span className="text-gray-500">Collecteur disponible</span>
+                  <span className={`font-medium ${estimate.collector_found ? 'text-[#1A8A3C]' : 'text-orange-500'}`}>
+                    {estimate.collector_found ? `✅ ${estimate.collector_name}` : '⏳ Recherche...'}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-[#C8EDDA] pt-2 mt-1">
+                  <span className="font-semibold text-[#1A8A3C]">Prix estimé</span>
+                  <span className="font-bold text-[#1A8A3C] text-lg">{estimate.estimated_price?.toLocaleString()} FCFA</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Sélectionnez une catégorie et activez la géolocalisation pour voir l'estimation.</p>
+            )}
           </div>
         )}
 

@@ -7,6 +7,11 @@ const collectorProfileSchema = new mongoose.Schema({
   is_available: { type: Boolean, default: false },
   rating_avg: { type: Number, default: 0 },
   total_collections: { type: Number, default: 0 },
+  location: {
+    type: { type: String, enum: ['Point'], default: 'Point' },
+    coordinates: { type: [Number], default: [0, 0] }, // [longitude, latitude]
+  },
+  last_location_update: Date,
 }, { _id: false });
 
 const userSchema = new mongoose.Schema({
@@ -30,5 +35,8 @@ const userSchema = new mongoose.Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true },
 });
+
+// Create 2dsphere index for geolocation queries
+userSchema.index({ 'collector_profile.location': '2dsphere' });
 
 module.exports = mongoose.model('User', userSchema);

@@ -34,6 +34,7 @@ router.get('/categories', misc.getCategories);
 // ── PICKUP REQUESTS ───────────────────────────────
 router.get('/requests', authMiddleware, req_.getRequests);
 router.post('/requests', authMiddleware, requireRole('user'), req_.createRequest);
+router.post('/requests/estimate', authMiddleware, requireRole('user'), req_.estimatePrice);
 router.get('/requests/:uuid', authMiddleware, req_.getRequestById);
 router.put('/requests/:uuid/status', authMiddleware, requireRole('collector', 'admin'), req_.updateStatus);
 router.put('/requests/:uuid/assign', authMiddleware, requireRole('admin'), req_.assignCollector);
@@ -57,6 +58,7 @@ router.post('/payments/pay', authMiddleware, misc.payRequest);
 // ── COLLECTOR ─────────────────────────────────────
 router.get('/collector/tasks', authMiddleware, requireRole('collector'), misc.getCollectorTasks);
 router.put('/collector/availability', authMiddleware, requireRole('collector'), misc.updateCollectorAvailability);
+router.put('/collector/location', authMiddleware, requireRole('collector'), misc.updateCollectorLocation);
 router.get('/collector/stats', authMiddleware, requireRole('collector'), misc.getCollectorStats);
 
 // ── ADMIN ─────────────────────────────────────────

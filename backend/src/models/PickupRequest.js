@@ -14,6 +14,8 @@ const pickupRequestSchema = new mongoose.Schema({
   latitude: Number,
   longitude: Number,
   quantity_estimate: String,
+  quantity_number: { type: Number, default: 1 },
+  distance_km: Number,
   notes: String,
   image_url: String,
   proof_url: String,

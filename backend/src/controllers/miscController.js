@@ -174,6 +174,26 @@ const updateCollectorAvailability = async (req, res) => {
   }
 };
 
+const updateCollectorLocation = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    if (latitude == null || longitude == null)
+      return res.status(400).json({ success: false, message: 'Coordonnees requises' });
+    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
+      return res.status(400).json({ success: false, message: 'Coordonnees invalides' });
+
+    await User.findByIdAndUpdate(req.user.id, {
+      $set: {
+        'collector_profile.location': { type: 'Point', coordinates: [longitude, latitude] },
+        'collector_profile.last_location_update': new Date(),
+      },
+    });
+    res.json({ success: true, message: 'Position mise a jour' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
 const getCollectorStats = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).lean();
@@ -197,5 +217,5 @@ module.exports = {
   getNotifications, markAllRead,
   createRating, createComplaint, getMyComplaints,
   getPayments, payRequest, getCategories,
-  getCollectorTasks, updateCollectorAvailability, getCollectorStats,
+  getCollectorTasks, updateCollectorAvailability, updateCollectorLocation, getCollectorStats,
 };

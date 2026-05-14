@@ -4,6 +4,8 @@ const PickupRequest = require('../models/PickupRequest');
 const Payment = require('../models/Payment');
 const Notification = require('../models/Notification');
 const WasteCategory = require('../models/WasteCategory');
+const User = require('../models/User');
+const { haversineDistance, calculateEstimatedPrice, MAX_SEARCH_RADIUS_KM } = require('../utils/geo');
 
 const flattenRequest = (r, payment) => ({
   ...r,
@@ -19,6 +21,8 @@ const flattenRequest = (r, payment) => ({
   category_name: r.category_id?.name,
   category_icon: r.category_id?.icon,
   base_price: r.category_id?.base_price,
+  distance_km: r.distance_km,
+  quantity_number: r.quantity_number,
   payment_status: payment?.status,
   payment_amount: payment?.amount,
   payment_method: payment?.method,
@@ -80,10 +84,46 @@ const getRequestById = async (req, res) => {
   }
 };
 
+// Helper: find nearest available collector
+const findNearestCollector = async (latitude, longitude) => {
+  if (!latitude || !longitude) return null;
+
+  // Try geospatial $near query first (requires collectors with location set)
+  const collectorsWithGeo = await User.find({
+    role: 'collector',
+    is_active: true,
+    'collector_profile.is_available': true,
+    'collector_profile.location.coordinates': { $ne: [0, 0] },
+  }).lean();
+
+  if (collectorsWithGeo.length === 0) return null;
+
+  // Calculate distance for each collector and pick the closest
+  let nearest = null;
+  let minDistance = Infinity;
+
+  for (const collector of collectorsWithGeo) {
+    const [cLng, cLat] = collector.collector_profile.location.coordinates;
+    if (cLat === 0 && cLng === 0) continue;
+    const dist = haversineDistance(latitude, longitude, cLat, cLng);
+    if (dist < minDistance && dist <= MAX_SEARCH_RADIUS_KM) {
+      minDistance = dist;
+      nearest = collector;
+    }
+  }
+
+  return nearest ? { collector: nearest, distance_km: Math.round(minDistance * 100) / 100 } : null;
+};
+
 // POST /api/requests
 const createRequest = async (req, res) => {
   try {
-    const { category_id, address, quantity_estimate, notes, scheduled_at, service_type = 'immediate' } = req.body;
+    const {
+      category_id, address, quantity_estimate, notes,
+      scheduled_at, service_type = 'immediate',
+      latitude, longitude, quantity_number = 1,
+    } = req.body;
+
     if (!category_id || !address)
       return res.status(400).json({ success: false, message: 'Categorie et adresse requis' });
 
@@ -91,23 +131,101 @@ const createRequest = async (req, res) => {
     if (!cat) return res.status(404).json({ success: false, message: 'Categorie non trouvee' });
 
     const uuid = uuidv4();
-    await PickupRequest.create({
+    const qty = Math.max(1, parseInt(quantity_number) || 1);
+
+    // Auto-assign nearest collector if coordinates provided
+    let collector_id = null;
+    let distance_km = null;
+    let assignedStatus = 'pending';
+    let estimated_price = cat.base_price;
+
+    const assignment = await findNearestCollector(latitude, longitude);
+
+    if (assignment) {
+      collector_id = assignment.collector._id;
+      distance_km = assignment.distance_km;
+      assignedStatus = 'assigned';
+      estimated_price = calculateEstimatedPrice(cat.base_price, qty, distance_km);
+    } else {
+      // No collector found, still calculate price with 0 distance
+      estimated_price = calculateEstimatedPrice(cat.base_price, qty, 0);
+    }
+
+    const request = await PickupRequest.create({
       uuid, user_id: req.user.id, category_id,
-      address, quantity_estimate, notes,
+      address, quantity_estimate, quantity_number: qty, notes,
+      latitude, longitude, distance_km,
       scheduled_at: scheduled_at || undefined,
-      service_type, estimated_price: cat.base_price,
+      service_type, estimated_price,
+      collector_id, status: assignedStatus,
     });
 
+    // Notify user
     await Notification.create({
       user_id: req.user.id,
-      title: 'Demande recue',
-      message: 'Votre demande de collecte a ete enregistree. Nous vous assignons un collecteur.',
+      title: collector_id ? 'Collecteur assigne !' : 'Demande recue',
+      message: collector_id
+        ? `Un collecteur (${assignment.collector.name}) a ete assigne. Il est a ${distance_km} km. Prix estime: ${estimated_price.toLocaleString()} FCFA`
+        : 'Votre demande de collecte a ete enregistree. Nous recherchons un collecteur disponible.',
       type: 'request',
     });
 
-    res.status(201).json({ success: true, message: 'Demande creee', data: { uuid } });
+    // Notify assigned collector
+    if (collector_id) {
+      await Notification.create({
+        user_id: collector_id,
+        title: 'Nouvelle mission !',
+        message: `Vous avez une nouvelle collecte a ${address}. Distance: ${distance_km} km. Montant: ${estimated_price.toLocaleString()} FCFA`,
+        type: 'request',
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: collector_id ? 'Demande creee — collecteur assigne automatiquement' : 'Demande creee',
+      data: {
+        uuid,
+        status: assignedStatus,
+        collector_name: assignment?.collector?.name || null,
+        collector_phone: assignment?.collector?.phone || null,
+        distance_km,
+        estimated_price,
+      },
+    });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+// POST /api/requests/estimate — get price estimate before creating request
+const estimatePrice = async (req, res) => {
+  try {
+    const { category_id, latitude, longitude, quantity_number = 1 } = req.body;
+
+    if (!category_id)
+      return res.status(400).json({ success: false, message: 'Categorie requise' });
+
+    const cat = await WasteCategory.findById(category_id);
+    if (!cat) return res.status(404).json({ success: false, message: 'Categorie non trouvee' });
+
+    const qty = Math.max(1, parseInt(quantity_number) || 1);
+    const assignment = await findNearestCollector(latitude, longitude);
+    const distance_km = assignment?.distance_km || 0;
+    const price = calculateEstimatedPrice(cat.base_price, qty, distance_km);
+
+    res.json({
+      success: true,
+      data: {
+        base_price: cat.base_price,
+        quantity: qty,
+        distance_km,
+        estimated_price: price,
+        collector_found: !!assignment,
+        collector_name: assignment?.collector?.name || null,
+      },
+    });
+  } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 };
@@ -196,4 +314,4 @@ const cancelRequest = async (req, res) => {
   }
 };
 
-module.exports = { getRequests, getRequestById, createRequest, updateStatus, assignCollector, cancelRequest };
+module.exports = { getRequests, getRequestById, createRequest, updateStatus, assignCollector, cancelRequest, estimatePrice };

@@ -68,7 +68,13 @@ async function initDatabase() {
       role: 'collector',
       is_verified: true,
       is_active: true,
-      collector_profile: { is_available: true, rating_avg: 4.5, total_collections: 0 },
+      collector_profile: {
+        is_available: true,
+        rating_avg: 4.5,
+        total_collections: 0,
+        location: { type: 'Point', coordinates: [9.7679, 4.0511] },
+        last_location_update: new Date(),
+      },
     },
     { upsert: true, new: true }
   );

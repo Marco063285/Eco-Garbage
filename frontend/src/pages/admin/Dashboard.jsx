@@ -42,12 +42,17 @@ export default function AdminDashboard() {
         <StatCard icon={Users} label="Utilisateurs" value={stats.users} color="green" />
         <StatCard icon={Truck} label="Collecteurs" value={stats.collectors} color="blue" />
         <StatCard icon={CheckCircle} label="Collectes totales" value={stats.totalRequests} color="purple" />
-        <StatCard icon={DollarSign} label="Revenus" value={`${stats.revenue.toLocaleString()} FCFA`} color="yellow" />
+        <StatCard icon={DollarSign} label="Revenus totaux" value={`${stats.revenue.toLocaleString()} FCFA`} color="yellow" />
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={CheckCircle} label="Complétées" value={stats.completedRequests} color="green" />
         <StatCard icon={Clock} label="En attente" value={stats.pendingRequests} color="yellow" />
+        <StatCard icon={DollarSign} label="Encaissé" value={`${(stats.paidRevenue || 0).toLocaleString()} FCFA`} color="green" />
+        <StatCard icon={Clock} label="En attente paiement" value={`${(stats.pendingRevenue || 0).toLocaleString()} FCFA`} color="yellow" />
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
         <StatCard icon={MessageSquare} label="Réclamations ouvertes" value={stats.openComplaints} color="red" />
         <StatCard icon={BarChart3} label="Taux complétion" value={stats.totalRequests > 0 ? `${Math.round((stats.completedRequests / stats.totalRequests) * 100)}%` : '0%'} color="blue" />
       </div>

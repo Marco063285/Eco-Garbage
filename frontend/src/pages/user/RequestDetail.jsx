@@ -112,11 +112,13 @@ export default function RequestDetail() {
             ['Type de déchet', req.category_name],
             ['Type de service', req.service_type],
             ['Adresse', req.address],
-            ['Quantité', req.quantity_estimate || '—'],
+            ['Quantité', req.quantity_number ? `${req.quantity_number} unité(s)` : req.quantity_estimate || '—'],
+            ['Distance', req.distance_km ? `${req.distance_km} km` : '—'],
             ['Prix estimé', req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : '—'],
             ['Prix final', req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : '—'],
             ['Créée le', format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: fr })],
             ['Collecteur', req.collector_name || 'Non assigné'],
+            ['Tél. collecteur', req.collector_phone || '—'],
           ].map(([k, v]) => (
             <div key={k}>
               <p className="text-xs text-gray-400 mb-0.5">{k}</p>

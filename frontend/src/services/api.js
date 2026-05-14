@@ -46,6 +46,7 @@ export const requestApi = {
   list: (params) => api.get('/requests', { params }),
   get: (uuid) => api.get(`/requests/${uuid}`),
   create: (data) => api.post('/requests', data),
+  estimate: (data) => api.post('/requests/estimate', data),
   updateStatus: (uuid, data) => api.put(`/requests/${uuid}/status`, data),
   assign: (uuid, data) => api.put(`/requests/${uuid}/assign`, data),
   cancel: (uuid) => api.delete(`/requests/${uuid}`),
@@ -84,6 +85,7 @@ export const collectorApi = {
   tasks: (params) => api.get('/collector/tasks', { params }),
   stats: () => api.get('/collector/stats'),
   setAvailability: (data) => api.put('/collector/availability', data),
+  updateLocation: (data) => api.put('/collector/location', data),
 };
 
 // ── Admin ─────────────────────────────────────────

@@ -21,11 +21,19 @@ const getDashboard = async (req, res) => {
       Complaint.countDocuments({ status: 'open' }),
     ]);
 
-    const revenueResult = await Payment.aggregate([
-      { $match: { status: 'completed' } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
+    const [revenueResult, pendingRevenueResult] = await Promise.all([
+      Payment.aggregate([
+        { $match: { status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      Payment.aggregate([
+        { $match: { status: 'pending' } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
     ]);
     const revenue = revenueResult[0]?.total || 0;
+    const pendingRevenue = pendingRevenueResult[0]?.total || 0;
+    const totalRevenue = revenue + pendingRevenue;
 
     const rawRecent = await PickupRequest.find()
       .populate('user_id', 'name')
@@ -52,7 +60,7 @@ const getDashboard = async (req, res) => {
     res.json({
       success: true,
       data: {
-        stats: { users, collectors, totalRequests: totalReq, completedRequests: completedReq, pendingRequests: pendingReq, revenue, openComplaints },
+        stats: { users, collectors, totalRequests: totalReq, completedRequests: completedReq, pendingRequests: pendingReq, revenue: totalRevenue, paidRevenue: revenue, pendingRevenue, openComplaints },
         recentRequests, topCollectors,
       },
     });
