@@ -57,7 +57,7 @@ async function initDatabase() {
     { upsert: true, new: true }
   );
 
-  await User.findOneAndUpdate(
+  const collectorUser = await User.findOneAndUpdate(
     { email: 'collector@eco-garbage.com' },
     {
       uuid: '00000000-0000-0000-0000-000000000003',
@@ -68,6 +68,7 @@ async function initDatabase() {
       role: 'collector',
       is_verified: true,
       is_active: true,
+      avatar_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Paul-Mbarga-Collector',
       collector_profile: {
         is_available: true,
         rating_avg: 4.5,
@@ -78,6 +79,7 @@ async function initDatabase() {
     },
     { upsert: true, new: true }
   );
+  console.log('Collector avatar_url saved:', collectorUser.avatar_url);
 
   console.log('Base de donnees MongoDB initialisee avec succes !');
   console.log('Admin     : admin@eco-garbage.com / Admin1234!');

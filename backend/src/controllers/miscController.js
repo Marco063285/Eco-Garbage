@@ -164,6 +164,34 @@ const getCollectorTasks = async (req, res) => {
   }
 };
 
+const getAvailableCollectorRequests = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    const filter = { status: 'pending', collector_id: null };
+    const [raw, total] = await Promise.all([
+      PickupRequest.find(filter)
+        .populate('user_id', 'name phone')
+        .populate('category_id', 'name icon')
+        .sort({ created_at: -1 })
+        .skip((parseInt(page) - 1) * parseInt(limit))
+        .limit(parseInt(limit))
+        .lean(),
+      PickupRequest.countDocuments(filter),
+    ]);
+
+    const rows = raw.map(r => ({
+      ...r, id: r._id.toString(),
+      user_name: r.user_id?.name, user_phone: r.user_id?.phone,
+      category_name: r.category_id?.name, category_icon: r.category_id?.icon,
+      user_id: r.user_id?._id?.toString(), category_id: r.category_id?._id?.toString(),
+    }));
+
+    res.json({ success: true, data: rows, pagination: { total, page: parseInt(page), limit: parseInt(limit) } });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
 const updateCollectorAvailability = async (req, res) => {
   try {
     const { is_available } = req.body;
@@ -217,5 +245,5 @@ module.exports = {
   getNotifications, markAllRead,
   createRating, createComplaint, getMyComplaints,
   getPayments, payRequest, getCategories,
-  getCollectorTasks, updateCollectorAvailability, updateCollectorLocation, getCollectorStats,
+  getCollectorTasks, getAvailableCollectorRequests, updateCollectorAvailability, updateCollectorLocation, getCollectorStats,
 };

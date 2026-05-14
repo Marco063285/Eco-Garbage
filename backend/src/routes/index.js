@@ -1,5 +1,8 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 const { authMiddleware, requireRole } = require('../middleware/auth');
 
@@ -7,6 +10,31 @@ const auth = require('../controllers/authController');
 const req_ = require('../controllers/requestController');
 const admin = require('../controllers/adminController');
 const misc = require('../controllers/miscController');
+
+const collectorUploadDir = path.join(__dirname, '..', 'uploads', 'collectors');
+if (!fs.existsSync(collectorUploadDir)) fs.mkdirSync(collectorUploadDir, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: collectorUploadDir,
+    filename: (req, file, cb) => {
+      const safeName = file.originalname.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9.-]/g, '');
+      cb(null, `${Date.now()}-${safeName}`);
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = {
+      'image/jpeg': true,
+      'image/png': true,
+      'image/jpg': true,
+      'video/mp4': true,
+      'video/webm': true,
+      'video/quicktime': true,
+    };
+    cb(null, !!allowed[file.mimetype]);
+  },
+  limits: { fileSize: 60 * 1024 * 1024 },
+});
 
 // Rate limiters
 const authLimiter = rateLimit({
@@ -18,7 +46,12 @@ const authLimiter = rateLimit({
 });
 
 // ── AUTH ──────────────────────────────────────────
-router.post('/auth/register', authLimiter, auth.register);
+router.post('/auth/register', authLimiter, upload.fields([
+  { name: 'id_front', maxCount: 1 },
+  { name: 'id_back', maxCount: 1 },
+  { name: 'selfie_photo', maxCount: 1 },
+  { name: 'selfie_video', maxCount: 1 },
+]), auth.register);
 router.post('/auth/login', authLimiter, auth.login);
 router.get('/auth/verify-email', auth.verifyEmail);
 router.post('/auth/resend-verification', authLimiter, auth.resendVerification);
@@ -37,7 +70,10 @@ router.post('/requests', authMiddleware, requireRole('user'), req_.createRequest
 router.post('/requests/estimate', authMiddleware, requireRole('user'), req_.estimatePrice);
 router.get('/requests/:uuid', authMiddleware, req_.getRequestById);
 router.put('/requests/:uuid/status', authMiddleware, requireRole('collector', 'admin'), req_.updateStatus);
+router.put('/requests/:uuid/location', authMiddleware, requireRole('collector'), req_.updateLocation);
 router.put('/requests/:uuid/assign', authMiddleware, requireRole('admin'), req_.assignCollector);
+router.put('/requests/:uuid/archive', authMiddleware, requireRole('user', 'collector'), req_.archiveRequest);
+router.put('/requests/:uuid/restore', authMiddleware, requireRole('user', 'collector'), req_.restoreRequest);
 router.delete('/requests/:uuid', authMiddleware, requireRole('user'), req_.cancelRequest);
 
 // ── NOTIFICATIONS ─────────────────────────────────
@@ -57,6 +93,7 @@ router.post('/payments/pay', authMiddleware, misc.payRequest);
 
 // ── COLLECTOR ─────────────────────────────────────
 router.get('/collector/tasks', authMiddleware, requireRole('collector'), misc.getCollectorTasks);
+router.get('/collector/available-requests', authMiddleware, requireRole('collector'), misc.getAvailableCollectorRequests);
 router.put('/collector/availability', authMiddleware, requireRole('collector'), misc.updateCollectorAvailability);
 router.put('/collector/location', authMiddleware, requireRole('collector'), misc.updateCollectorLocation);
 router.get('/collector/stats', authMiddleware, requireRole('collector'), misc.getCollectorStats);
@@ -64,6 +101,7 @@ router.get('/collector/stats', authMiddleware, requireRole('collector'), misc.ge
 // ── ADMIN ─────────────────────────────────────────
 router.get('/admin/dashboard', authMiddleware, requireRole('admin'), admin.getDashboard);
 router.get('/admin/users', authMiddleware, requireRole('admin'), admin.getUsers);
+router.get('/admin/collectors/:id', authMiddleware, requireRole('admin'), admin.getCollectorDetails);
 router.post('/admin/users', authMiddleware, requireRole('admin'), admin.createUser);
 router.put('/admin/users/:id/status', authMiddleware, requireRole('admin'), admin.toggleUserStatus);
 router.delete('/admin/users/:id', authMiddleware, requireRole('admin'), admin.deleteUser);
