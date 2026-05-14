@@ -28,12 +28,13 @@ const CollectorDashboard = lazy(() => import('./pages/collector/Dashboard'))
 const CollectorTasks     = lazy(() => import('./pages/collector/Tasks'))
 const TaskDetail         = lazy(() => import('./pages/collector/TaskDetail'))
 
-const AdminDashboard     = lazy(() => import('./pages/admin/Dashboard'))
-const AdminUsers         = lazy(() => import('./pages/admin/Users'))
-const AdminRequests      = lazy(() => import('./pages/admin/Requests'))
-const AdminCategories    = lazy(() => import('./pages/admin/Categories'))
-const AdminComplaints    = lazy(() => import('./pages/admin/Complaints'))
-const AdminReports       = lazy(() => import('./pages/admin/Reports'))
+const AdminDashboard      = lazy(() => import('./pages/admin/Dashboard'))
+const AdminUsers          = lazy(() => import('./pages/admin/Users'))
+const AdminRequests       = lazy(() => import('./pages/admin/Requests'))
+const AdminCategories     = lazy(() => import('./pages/admin/Categories'))
+const AdminComplaints     = lazy(() => import('./pages/admin/Complaints'))
+const AdminReports        = lazy(() => import('./pages/admin/Reports'))
+const CollectorDetail     = lazy(() => import('./pages/admin/CollectorDetail'))
 
 function PageFallback() {
   return (
@@ -104,6 +105,7 @@ export default function App() {
       <Route path="/admin" element={<PrivateRoute roles={['admin']}><DashboardLayout role="admin" /></PrivateRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="collectors/:id" element={<CollectorDetail />} />
         <Route path="requests" element={<AdminRequests />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="complaints" element={<AdminComplaints />} />

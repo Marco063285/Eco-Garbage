@@ -95,6 +95,7 @@ export const adminApi = {
   createUser: (data) => api.post('/admin/users', data),
   toggleUser: (id, data) => api.put(`/admin/users/${id}/status`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  getCollectorDetails: (id) => api.get(`/admin/collectors/${id}`),
   complaints: () => api.get('/admin/complaints'),
   respondComplaint: (uuid, data) => api.put(`/admin/complaints/${uuid}`, data),
   reports: (params) => api.get('/admin/reports', { params }),

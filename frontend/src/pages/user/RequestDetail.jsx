@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, X, Star } from 'lucide-react'
+import { ArrowLeft, X, Star, ShieldCheck, User } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { requestApi, ratingApi } from '../../services/api'
@@ -117,6 +117,36 @@ export default function RequestDetail() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Collector security card — shown when a collector is assigned */}
+      {req.collector_name && ['assigned','on_way','in_progress','completed'].includes(req.status) && (
+        <div className="card p-5 mb-5 border-[#C8EDDA]">
+          <div className="flex items-center gap-2 mb-4">
+            <ShieldCheck size={16} className="text-[#1A8A3C]" />
+            <h3 className="font-display font-bold text-[#1A8A3C]">{isEn ? 'Your collector — security verification' : 'Votre collecteur — vérification sécurité'}</h3>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#E8F5EE] flex-shrink-0 flex items-center justify-center">
+              {req.collector_avatar_url ? (
+                <img src={req.collector_avatar_url} alt={req.collector_name} className="w-full h-full object-cover" />
+              ) : (
+                <User size={28} className="text-[#1A8A3C]" />
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-gray-900 text-lg">{req.collector_name}</p>
+              {req.collector_phone && (
+                <a href={`tel:${req.collector_phone}`} className="text-sm text-[#1A8A3C] font-medium hover:underline">
+                  📞 {req.collector_phone}
+                </a>
+              )}
+              <p className="text-xs text-gray-400 mt-1">
+                {isEn ? '✅ Identity verified by EcoGarbage' : '✅ Identité vérifiée par EcoGarbage'}
+              </p>
+            </div>
           </div>
         </div>
       )}

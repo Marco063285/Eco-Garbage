@@ -1,7 +1,8 @@
 ﻿import { useState, useEffect } from 'react'
-import { Search, UserCheck, UserX, Users, Plus, Trash2 } from 'lucide-react'
+import { Search, UserCheck, UserX, Users, Plus, Trash2, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { adminApi } from '../../services/api'
 import { PageHeader, PageLoader, EmptyState, ConfirmDialog, Modal } from '../../components/common'
 import { format } from 'date-fns'
@@ -14,6 +15,7 @@ const EMPTY_FORM = { name: '', email: '', phone: '', role: 'user', password: '' 
 
 export default function AdminUsers() {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const dateLocale = i18n.language?.startsWith('en') ? enUS : fr
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -142,6 +144,14 @@ export default function AdminUsers() {
                     <td className="px-4 py-3">
                       {u.role !== 'admin' && (
                         <div className="flex items-center gap-2">
+                          {u.role === 'collector' && (
+                            <button
+                              onClick={() => navigate(`/admin/collectors/${u._id}`)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-[#E8F5EE] text-[#1A8A3C] hover:bg-[#C8EDDA] transition-all"
+                              title={i18n.language?.startsWith('en') ? 'View profile' : 'Voir le profil'}>
+                              <Eye size={13} />
+                            </button>
+                          )}
                           <button
                             onClick={() => setConfirmDialog({ userId: u._id, is_active: u.is_active, name: u.name })}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
