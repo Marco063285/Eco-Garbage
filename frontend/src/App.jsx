@@ -15,6 +15,7 @@ const ResetPasswordPage  = lazy(() => import('./pages/auth/ResetPasswordPage'))
 
 const LandingPage        = lazy(() => import('./pages/LandingPage'))
 
+<<<<<<< HEAD
 const UserDashboard      = lazy(() => import('./pages/user/Dashboard'))
 const NewRequest         = lazy(() => import('./pages/user/NewRequest'))
 const MyRequests         = lazy(() => import('./pages/user/MyRequests'))
@@ -23,11 +24,24 @@ const Payments           = lazy(() => import('./pages/user/Payments'))
 const Complaints         = lazy(() => import('./pages/user/Complaints'))
 const Profile            = lazy(() => import('./pages/user/Profile'))
 const Notifications      = lazy(() => import('./pages/user/Notifications'))
+=======
+// User Pages
+import UserDashboard from './pages/user/Dashboard'
+import NewRequest from './pages/user/NewRequest'
+import MyRequests from './pages/user/MyRequests'
+import RequestDetail from './pages/user/RequestDetail'
+import ArchivedRequests from './pages/user/ArchivedRequests'
+import Payments from './pages/user/Payments'
+import Complaints from './pages/user/Complaints'
+import Profile from './pages/user/Profile'
+import Notifications from './pages/user/Notifications'
+>>>>>>> a2e4304 (......./.)
 
 const CollectorDashboard = lazy(() => import('./pages/collector/Dashboard'))
 const CollectorTasks     = lazy(() => import('./pages/collector/Tasks'))
 const TaskDetail         = lazy(() => import('./pages/collector/TaskDetail'))
 
+<<<<<<< HEAD
 const AdminDashboard     = lazy(() => import('./pages/admin/Dashboard'))
 const AdminUsers         = lazy(() => import('./pages/admin/Users'))
 const AdminRequests      = lazy(() => import('./pages/admin/Requests'))
@@ -42,6 +56,16 @@ function PageFallback() {
     </div>
   )
 }
+=======
+// Admin Pages
+import AdminDashboard from './pages/admin/Dashboard'
+import AdminUsers from './pages/admin/Users'
+import AdminRequests from './pages/admin/Requests'
+import AdminCategories from './pages/admin/Categories'
+import AdminComplaints from './pages/admin/Complaints'
+import AdminReports from './pages/admin/Reports'
+import CollectorDetail from './pages/admin/CollectorDetail'
+>>>>>>> a2e4304 (......./.)
 
 // Guards
 function PrivateRoute({ children, roles }) {
@@ -85,6 +109,7 @@ export default function App() {
         <Route path="new-request" element={<NewRequest />} />
         <Route path="requests" element={<MyRequests />} />
         <Route path="requests/:uuid" element={<RequestDetail />} />
+        <Route path="archived" element={<ArchivedRequests />} />
         <Route path="payments" element={<Payments />} />
         <Route path="complaints" element={<Complaints />} />
         <Route path="notifications" element={<Notifications />} />
@@ -96,6 +121,7 @@ export default function App() {
         <Route index element={<CollectorDashboard />} />
         <Route path="tasks" element={<CollectorTasks />} />
         <Route path="tasks/:uuid" element={<TaskDetail />} />
+        <Route path="archived" element={<ArchivedRequests />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
       </Route>
@@ -104,6 +130,7 @@ export default function App() {
       <Route path="/admin" element={<PrivateRoute roles={['admin']}><DashboardLayout role="admin" /></PrivateRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
+        <Route path="collectors/:id" element={<CollectorDetail />} />
         <Route path="requests" element={<AdminRequests />} />
         <Route path="categories" element={<AdminCategories />} />
         <Route path="complaints" element={<AdminComplaints />} />

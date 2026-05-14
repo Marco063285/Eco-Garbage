@@ -51,12 +51,13 @@ export default function UserDashboard() {
   return (
     <div className="fade-up">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-[#E8F5EE] rounded-2xl flex items-center justify-center text-[#1A8A3C] font-bold text-xl font-display">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
+        <div className="flex items-center gap-3 md:gap-4">
+          <div className="w-12 md:w-14 h-12 md:h-14 bg-[#E8F5EE] rounded-2xl flex items-center justify-center text-[#1A8A3C] font-bold text-lg md:text-xl font-display">
             {initials}
           </div>
           <div>
+<<<<<<< HEAD
             <h1 className="text-2xl font-display font-bold text-gray-900">
               {greeting}, {user?.name?.split(' ')[0]} 👋
             </h1>
@@ -65,24 +66,48 @@ export default function UserDashboard() {
         </div>
         <Link to="/dashboard/new-request" className="btn-primary">
           <Plus size={16} /> {t('user.dashboard.newRequest')}
+=======
+            <h1 className="text-xl md:text-2xl font-display font-bold text-gray-900">{greeting}, {user?.name?.split(' ')[0]} 👋</h1>
+            <p className="text-xs md:text-sm text-gray-400 mt-0.5">Voici un aperçu de votre activité</p>
+          </div>
+        </div>
+        <Link to="/dashboard/new-request" className="btn-primary whitespace-nowrap">
+          <Plus size={16} /> Nouvelle collecte
+>>>>>>> a2e4304 (......./.)
         </Link>
       </div>
 
       {/* Stats */}
+<<<<<<< HEAD
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={Truck}       label={t('user.dashboard.totalRequests')} value={requests.length} color="green" />
         <StatCard icon={Clock}       label={t('user.dashboard.inProgress')}    value={pending}         color="yellow" />
         <StatCard icon={CheckCircle} label={t('user.dashboard.completed')}     value={completed}       color="blue" />
         <StatCard icon={Star}        label={t('user.dashboard.amountPaid')}    value={`${totalPaid.toLocaleString()} FCFA`} color="purple" />
+=======
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+        <StatCard icon={Truck} label="Total demandes" value={requests.length} color="green" />
+        <StatCard icon={Clock} label="En cours" value={pending} color="yellow" />
+        <StatCard icon={CheckCircle} label="Complétées" value={completed} color="blue" />
+        <StatCard icon={Star} label="Montant payé" value={`${totalPaid.toLocaleString()} FCFA`} color="purple" />
+>>>>>>> a2e4304 (......./.)
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-3 gap-4 md:gap-6">
         {/* Recent Requests */}
+<<<<<<< HEAD
         <div className="lg:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-display font-bold">{t('user.dashboard.recentRequests')}</h2>
             <Link to="/dashboard/requests" className="text-sm text-[#1A8A3C] font-semibold hover:underline flex items-center gap-1">
               {t('common.seeAll')} <ArrowRight size={14} />
+=======
+        <div className="md:col-span-2 card p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 md:mb-5">
+            <h2 className="text-base md:text-lg font-display font-bold">Demandes récentes</h2>
+            <Link to="/dashboard/requests" className="text-xs md:text-sm text-[#1A8A3C] font-semibold hover:underline flex items-center gap-1 whitespace-nowrap">
+              Voir tout <ArrowRight size={14} />
+>>>>>>> a2e4304 (......./.)
             </Link>
           </div>
           {requests.length === 0 ? (
@@ -114,14 +139,29 @@ export default function UserDashboard() {
         </div>
 
         {/* Quick actions + Plan */}
+<<<<<<< HEAD
         <div className="flex flex-col gap-5">
           <div className="card p-6">
             <h2 className="text-lg font-display font-bold mb-4">{t('user.dashboard.quickActions')}</h2>
             <div className="flex flex-col gap-2.5">
               {quickActions.map(a => (
+=======
+        <div className="flex flex-col gap-4 md:gap-5">
+          <div className="card p-4 md:p-6">
+            <h2 className="text-base md:text-lg font-display font-bold mb-3 md:mb-4">Actions rapides</h2>
+            <div className="flex flex-col gap-2.5">
+              {[
+                { to: '/dashboard/new-request', icon: '➕', label: 'Demander une collecte' },
+                { to: '/dashboard/requests', icon: '📋', label: 'Mes demandes' },
+                { to: '/dashboard/archived', icon: '📁', label: 'Demandes archivées' },
+                { to: '/dashboard/payments', icon: '💳', label: 'Historique paiements' },
+                { to: '/dashboard/complaints', icon: '💬', label: 'Soumettre une réclamation' },
+              ].map(a => (
+>>>>>>> a2e4304 (......./.)
                 <Link key={a.to} to={a.to}
-                  className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:border-[#1A8A3C] hover:text-[#1A8A3C] hover:bg-[#E8F5EE] transition-all">
-                  <span className="text-lg">{a.icon}</span>{a.label}
+                  className="flex items-center gap-2 md:gap-3 p-2.5 md:p-3 border border-gray-200 rounded-xl text-xs md:text-sm font-medium text-gray-600 hover:border-[#1A8A3C] hover:text-[#1A8A3C] hover:bg-[#E8F5EE] transition-all">
+                  <span className="text-sm md:text-lg flex-shrink-0">{a.icon}</span>
+                  <span className="truncate">{a.label}</span>
                 </Link>
               ))}
             </div>

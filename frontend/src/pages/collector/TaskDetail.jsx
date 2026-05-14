@@ -1,12 +1,28 @@
 ﻿import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+<<<<<<< HEAD
 import { ArrowLeft, Phone, MapPin, CheckCircle, Navigation, AlertCircle } from 'lucide-react'
+=======
+import { ArrowLeft, Phone, MapPin, CheckCircle, Navigation, Play, AlertCircle, Archive } from 'lucide-react'
+>>>>>>> a2e4304 (......./.)
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { requestApi } from '../../services/api'
 import { StatusBadge, PageLoader, Modal } from '../../components/common'
 import { format } from 'date-fns'
+<<<<<<< HEAD
 import { fr, enUS } from 'date-fns/locale'
+=======
+import { fr } from 'date-fns/locale'
+import LiveRouteMap from '../../components/common/LiveRouteMap'
+import { watchPosition, getGeolocationStatus } from '../../utils/geolocation'
+
+const STATUS_FLOW = {
+  assigned: { next: 'on_way', label: '🚛 Démarrer le trajet', icon: Navigation, color: 'bg-blue-500' },
+  on_way: { next: 'in_progress', label: '📍 Arrivé sur place', icon: MapPin, color: 'bg-orange-500' },
+  in_progress: { next: 'completed', label: '✅ Marquer comme complété', icon: CheckCircle, color: 'bg-[#1A8A3C]' },
+}
+>>>>>>> a2e4304 (......./.)
 
 export default function TaskDetail() {
   const { t, i18n } = useTranslation()
@@ -19,6 +35,9 @@ export default function TaskDetail() {
   const [updating, setUpdating] = useState(false)
   const [issueModal, setIssueModal] = useState(false)
   const [issueNote, setIssueNote] = useState('')
+  const [locationWatchId, setLocationWatchId] = useState(null)
+  const [locationError, setLocationError] = useState('')
+  const [archiving, setArchiving] = useState(false)
 
   const STATUS_FLOW = {
     assigned:    { next: 'on_way',      label: isEn ? '🚛 Start trip'        : '🚛 Démarrer le trajet', icon: Navigation,   color: 'bg-blue-500' },
@@ -38,6 +57,38 @@ export default function TaskDetail() {
     }
   }
   useEffect(() => { fetchTask() }, [uuid])
+
+  // Check geolocation support on mount
+  useEffect(() => {
+    const geoStatus = getGeolocationStatus()
+    if (!geoStatus.supported) {
+      toast.error(geoStatus.reason)
+    }
+  }, [])
+
+  // Polling for live updates when task is active
+  useEffect(() => {
+    if (task && ['assigned', 'on_way', 'in_progress'].includes(task.status)) {
+      const interval = setInterval(fetchTask, 10000) // Update every 10 seconds
+      return () => clearInterval(interval)
+    }
+  }, [task?.status])
+
+  // Location tracking when en route
+  useEffect(() => {
+    if (task && ['on_way', 'in_progress'].includes(task.status)) {
+      startLocationTracking()
+    } else {
+      stopLocationTracking()
+    }
+    return () => stopLocationTracking()
+  }, [task?.status])
+
+  const handleRetryLocation = () => {
+    setLocationError('')
+    stopLocationTracking()
+    startLocationTracking()
+  }
 
   const handleStatusUpdate = async (newStatus) => {
     setUpdating(true)
@@ -63,6 +114,49 @@ export default function TaskDetail() {
       toast.error(err.response?.data?.message || t('common.serverError'))
     } finally {
       setUpdating(false)
+    }
+  }
+
+  const startLocationTracking = () => {
+    stopLocationTracking()
+    const watchId = watchPosition(
+      async (position) => {
+        setLocationError('')
+        try {
+          await requestApi.updateLocation(uuid, {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          })
+        } catch (err) {
+          console.error('Failed to update location:', err)
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error)
+        setLocationError(error.message)
+        toast.error(error.message)
+      }
+    )
+    if (watchId !== null) setLocationWatchId(watchId)
+  }
+
+  const stopLocationTracking = () => {
+    if (locationWatchId) {
+      navigator.geolocation.clearWatch(locationWatchId)
+      setLocationWatchId(null)
+    }
+  }
+
+  const handleArchive = async () => {
+    setArchiving(true)
+    try {
+      await requestApi.archive(uuid)
+      toast.success('Tâche archivée avec succès')
+      navigate('/collector/archived')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
+    } finally {
+      setArchiving(false)
     }
   }
 
@@ -138,6 +232,31 @@ export default function TaskDetail() {
         )}
       </div>
 
+      {/* Live Route Map */}
+      {['assigned', 'on_way', 'in_progress'].includes(task.status) && (
+        <div className="card p-6 mb-5">
+          <h3 className="font-display font-bold mb-5">Trajet en temps réel</h3>
+          <LiveRouteMap
+            userLocation={task.latitude && task.longitude ? { latitude: task.latitude, longitude: task.longitude } : null}
+            collectorLocation={task.collector_location}
+            userLabel="Adresse de collecte"
+            collectorLabel="Ma position"
+          />
+          <p className="text-xs text-gray-500 mt-3">
+            Votre position actuelle et l'adresse de collecte sont affichées. Partagez votre position pour guider le client.
+          </p>
+          {locationError && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              <p className="font-semibold">Erreur de partage de position :</p>
+              <p>{locationError}</p>
+              <button onClick={handleRetryLocation} className="mt-3 btn-outline">
+                Réessayer la localisation
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Actions */}
       {nextAction && (
         <div className="flex flex-col gap-3 mb-4">
@@ -159,7 +278,7 @@ export default function TaskDetail() {
       )}
 
       {task.status === 'completed' && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
+        <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center mb-4">
           <p className="text-lg">🎉</p>
           <p className="font-semibold text-green-700 mt-1">{isEn ? 'Collection completed successfully!' : 'Collecte complétée avec succès !'}</p>
           {task.collected_at && (
@@ -168,7 +287,19 @@ export default function TaskDetail() {
         </div>
       )}
 
+<<<<<<< HEAD
       <Modal isOpen={issueModal} onClose={() => setIssueModal(false)} title={isEn ? 'Report an issue' : 'Signaler un problème'} size="sm">
+=======
+      {/* Archive button for completed tasks */}
+      {['completed', 'cancelled', 'failed'].includes(task.status) && (
+        <button onClick={handleArchive} disabled={archiving} className="btn-primary w-full justify-center mb-4">
+          <Archive size={16} />
+          {archiving ? 'Archivage...' : 'Archiver cette tâche'}
+        </button>
+      )}
+
+      <Modal isOpen={issueModal} onClose={() => setIssueModal(false)} title="Signaler un problème" size="sm">
+>>>>>>> a2e4304 (......./.)
         <div className="flex flex-col gap-4">
           <p className="text-sm text-gray-500">
             {isEn ? 'Describe the issue. The collection will be marked as failed.' : 'Décrivez le problème rencontré. La collecte sera marquée comme échouée.'}

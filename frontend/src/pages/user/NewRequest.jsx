@@ -4,6 +4,7 @@ import { Send, Loader2, MapPin, Navigation, User, Phone, TrendingUp, Minus, Plus
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { categoryApi, requestApi } from '../../services/api'
+import { getCurrentPosition, getGeolocationStatus } from '../../utils/geolocation'
 import { PageHeader, PageLoader } from '../../components/common'
 
 export default function NewRequest() {
@@ -28,6 +29,8 @@ export default function NewRequest() {
     latitude: null,
     longitude: null,
   })
+  const [geoLoading, setGeoLoading] = useState(false)
+  const [geoError, setGeoError] = useState('')
 
   const SERVICE_TYPES = [
     { value: 'immediate',  label: isEn ? '⚡ Immediate'  : '⚡ Immédiate',  desc: isEn ? 'As soon as possible'    : 'Dans les plus brefs délais' },
@@ -40,6 +43,12 @@ export default function NewRequest() {
 
   useEffect(() => {
     categoryApi.list().then(r => setCategories(r.data.data || [])).finally(() => setLoading(false))
+
+    // Check geolocation support
+    const geoStatus = getGeolocationStatus()
+    if (!geoStatus.supported) {
+      setGeoError(geoStatus.reason)
+    }
   }, [])
 
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
@@ -83,14 +92,55 @@ export default function NewRequest() {
     if (form.category_id) fetchEstimate()
   }, [fetchEstimate])
 
+  const handleGeolocation = async () => {
+    setGeoLoading(true)
+    setGeoError('')
+    try {
+      const position = await getCurrentPosition()
+      const { latitude, longitude } = position.coords
+      setForm(p => ({ ...p, latitude, longitude }))
+      toast.success('Position capturée. Le trajet pourra être suivi en temps réel.')
+    } catch (error) {
+      setGeoError(error.message)
+    } finally {
+      setGeoLoading(false)
+    }
+  }
+
+  const captureLocation = async () => {
+    try {
+      const position = await getCurrentPosition()
+      const { latitude, longitude } = position.coords
+      setForm(p => ({ ...p, latitude, longitude }))
+      toast.success('Position capturée. Le trajet pourra être suivi en temps réel.')
+      return true
+    } catch (error) {
+      setGeoError(error.message)
+      return false
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+<<<<<<< HEAD
     if (!form.category_id || !form.address)
       return toast.error(isEn ? 'Category and address are required' : 'Catégorie et adresse sont obligatoires')
     if (form.service_type !== 'immediate' && !form.scheduled_at)
       return toast.error(isEn ? 'Please choose a collection date' : 'Veuillez choisir une date de collecte')
     if (!form.latitude || !form.longitude)
       return toast.error(isEn ? 'Please enable geolocation for auto-assignment' : 'Veuillez activer la géolocalisation pour une attribution automatique')
+=======
+    if (!form.category_id || !form.address) return toast.error('Catégorie et adresse sont obligatoires')
+    if (form.service_type !== 'immediate' && !form.scheduled_at) return toast.error('Veuillez choisir une date de collecte')
+
+    if (!form.latitude || !form.longitude) {
+      const success = await captureLocation()
+      if (!success) {
+        return toast.error('Impossible de capturer la position. Autorisez la géolocalisation et réessayez.')
+      }
+    }
+
+>>>>>>> a2e4304 (......./.)
     setSubmitting(true)
     try {
       const res = await requestApi.create(form)
@@ -161,8 +211,9 @@ export default function NewRequest() {
     <div className="fade-up max-w-2xl mx-auto">
       <PageHeader title={t('user.newRequest.title')} subtitle={t('user.newRequest.subtitle')} />
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
         {/* Service type */}
+<<<<<<< HEAD
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.serviceType')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -171,12 +222,24 @@ export default function NewRequest() {
                 className={`p-3.5 rounded-xl border-2 text-left transition-all ${form.service_type === s.value ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-semibold text-gray-800">{s.label}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{s.desc}</p>
+=======
+        <div className="card p-4 md:p-6">
+          <h3 className="font-display font-bold mb-3 md:mb-4 text-base md:text-lg">Type de service</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+            {SERVICE_TYPES.map(s => (
+              <button key={s.value} type="button"
+                onClick={() => set('service_type', s.value)}
+                className={`p-2.5 md:p-3.5 rounded-xl border-2 text-left transition-all text-xs md:text-sm ${form.service_type === s.value ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
+                <p className="font-semibold text-gray-800">{s.label}</p>
+                <p className="text-[11px] md:text-xs text-gray-400 mt-0.5">{s.desc}</p>
+>>>>>>> a2e4304 (......./.)
               </button>
             ))}
           </div>
         </div>
 
         {/* Category */}
+<<<<<<< HEAD
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.category')} <span className="text-red-500">*</span></h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -186,6 +249,18 @@ export default function NewRequest() {
                 <p className="text-sm font-semibold text-gray-800">{cat.name}</p>
                 <p className="text-xs text-[#1A8A3C] mt-0.5 font-medium">{parseFloat(cat.base_price).toLocaleString()} FCFA</p>
                 {cat.is_hazardous && <span className="text-[10px] text-red-500 font-bold">⚠️ {isEn ? 'Hazardous' : 'Dangereux'}</span>}
+=======
+        <div className="card p-4 md:p-6">
+          <h3 className="font-display font-bold mb-3 md:mb-4 text-base md:text-lg">Type de déchet <span className="text-red-500">*</span></h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
+            {categories.map(cat => (
+              <button key={cat.id} type="button"
+                onClick={() => set('category_id', cat.id)}
+                className={`p-2.5 md:p-3.5 rounded-xl border-2 text-left transition-all text-xs md:text-sm ${form.category_id == cat.id ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
+                <p className="font-semibold text-gray-800">{cat.name}</p>
+                <p className="text-[11px] md:text-xs text-[#1A8A3C] mt-0.5 font-medium">{parseFloat(cat.base_price).toLocaleString()} FCFA</p>
+                {cat.is_hazardous && <span className="text-[9px] md:text-[10px] text-red-500 font-bold">⚠️ Dangereux</span>}
+>>>>>>> a2e4304 (......./.)
               </button>
             ))}
           </div>
@@ -213,8 +288,13 @@ export default function NewRequest() {
         </div>
 
         {/* Details */}
+<<<<<<< HEAD
         <div className="card p-6 flex flex-col gap-5">
           <h3 className="font-display font-bold">{isEn ? 'Collection details' : 'Détails de la collecte'}</h3>
+=======
+        <div className="card p-4 md:p-6 flex flex-col gap-4 md:gap-5">
+          <h3 className="font-display font-bold text-base md:text-lg">Détails de la collecte</h3>
+>>>>>>> a2e4304 (......./.)
 
           <div>
             <label className="label">{isEn ? 'Your GPS position' : 'Votre position GPS'} <span className="text-red-500">*</span></label>
@@ -233,6 +313,18 @@ export default function NewRequest() {
             <label className="label">{t('user.newRequest.address')} <span className="text-red-500">*</span></label>
             <textarea className="input min-h-[80px] resize-none" placeholder={t('user.newRequest.addressPlaceholder')}
               value={form.address} onChange={e => set('address', e.target.value)} />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <button type="button" onClick={handleGeolocation}
+              disabled={geoLoading}
+              className="btn-outline w-full justify-center">
+              {geoLoading ? 'Recherche de position...' : 'Utiliser ma position actuelle'}
+            </button>
+            {geoError && <p className="text-sm text-red-500">{geoError}</p>}
+            {form.latitude && form.longitude && (
+              <p className="text-sm text-gray-500">Position capturée : {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</p>
+            )}
           </div>
 
           <div>

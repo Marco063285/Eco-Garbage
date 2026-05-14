@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 ﻿import { useState, useEffect } from 'react'
 import { Search, UserCheck, UserX, Users, Plus, Trash2 } from 'lucide-react'
+=======
+import { useState, useEffect } from 'react'
+import { Search, UserCheck, UserX, Users, Plus, Trash2, Eye } from 'lucide-react'
+import { Link } from 'react-router-dom'
+>>>>>>> a2e4304 (......./.)
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { adminApi } from '../../services/api'
@@ -140,6 +146,7 @@ export default function AdminUsers() {
                       {format(new Date(u.created_at), 'dd MMM yyyy', { locale: dateLocale })}
                     </td>
                     <td className="px-4 py-3">
+<<<<<<< HEAD
                       {u.role !== 'admin' && (
                         <div className="flex items-center gap-2">
                           <button
@@ -158,6 +165,37 @@ export default function AdminUsers() {
                           </button>
                         </div>
                       )}
+=======
+                      <div className="flex items-center gap-2">
+                        {u.role === 'collector' && (
+                          <Link
+                            to={`/admin/collectors/${u._id}`}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all"
+                          >
+                            <Eye size={13} />
+                            Détails
+                          </Link>
+                        )}
+                        {u.role !== 'admin' && (
+                          <>
+                            <button
+                              onClick={() => setConfirmDialog({ userId: u._id, is_active: u.is_active, name: u.name })}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                u.is_active
+                                  ? 'bg-red-50 text-red-500 hover:bg-red-100'
+                                  : 'bg-green-50 text-green-600 hover:bg-green-100'
+                              }`}>
+                              {u.is_active ? <><UserX size={13} />Suspendre</> : <><UserCheck size={13} />Activer</>}
+                            </button>
+                            <button
+                              onClick={() => setDeleteDialog({ userId: u._id, name: u.name })}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all">
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+>>>>>>> a2e4304 (......./.)
                     </td>
                   </tr>
                 ))}

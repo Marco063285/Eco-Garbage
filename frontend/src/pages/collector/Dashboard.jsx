@@ -171,6 +171,21 @@ export default function CollectorDashboard() {
         {/* Performance */}
         <div className="flex flex-col gap-5">
           <div className="card p-6">
+            <h3 className="font-display font-bold mb-4">Actions rapides</h3>
+            <div className="flex flex-col gap-2.5">
+              {[
+                { to: '/collector/tasks', icon: '📋', label: 'Mes tâches' },
+                { to: '/collector/archived', icon: '📁', label: 'Tâches archivées' },
+              ].map(a => (
+                <Link key={a.to} to={a.to}
+                  className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:border-[#1A8A3C] hover:text-[#1A8A3C] hover:bg-[#E8F5EE] transition-all">
+                  <span className="text-lg">{a.icon}</span>{a.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="card p-6">
             <h3 className="font-display font-bold mb-4">Performance</h3>
             <div className="flex flex-col gap-4">
               <div>

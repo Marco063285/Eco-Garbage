@@ -37,10 +37,10 @@ export function StatCard({ icon: Icon, label, value, sub, color = 'green', trend
   }
   const c = colors[color] || colors.green
   return (
-    <div className="card p-5">
-      <div className="flex items-start justify-between mb-3">
-        <div className={`w-11 h-11 ${c.bg} rounded-xl flex items-center justify-center`}>
-          <Icon size={20} className={c.text} />
+    <div className="card p-3 md:p-5">
+      <div className="flex items-start justify-between mb-2 md:mb-3">
+        <div className={`w-9 md:w-11 h-9 md:h-11 ${c.bg} rounded-xl flex items-center justify-center flex-shrink-0`}>
+          <Icon size={16} className={`${c.text} md:w-[20px] md:h-[20px]`} />
         </div>
         {trend !== undefined && (
           <span className={`text-xs font-semibold ${trend >= 0 ? 'text-green-600' : 'text-red-500'}`}>
@@ -48,8 +48,8 @@ export function StatCard({ icon: Icon, label, value, sub, color = 'green', trend
           </span>
         )}
       </div>
-      <p className="text-2xl font-display font-bold text-gray-900">{value}</p>
-      <p className="text-sm font-medium text-gray-500 mt-0.5">{label}</p>
+      <p className="text-lg md:text-2xl font-display font-bold text-gray-900">{value}</p>
+      <p className="text-xs md:text-sm font-medium text-gray-500 mt-0.5">{label}</p>
       {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
     </div>
   )
@@ -58,13 +58,13 @@ export function StatCard({ icon: Icon, label, value, sub, color = 'green', trend
 // ── Empty State ───────────────────────────────────
 export function EmptyState({ icon: Icon = Leaf, title, description, action }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="w-16 h-16 bg-[#E8F5EE] rounded-2xl flex items-center justify-center mb-4">
-        <Icon size={28} className="text-[#1A8A3C]" />
+    <div className="flex flex-col items-center justify-center py-8 md:py-16 text-center">
+      <div className="w-12 md:w-16 h-12 md:h-16 bg-[#E8F5EE] rounded-2xl flex items-center justify-center mb-3 md:mb-4">
+        <Icon size={24} className={`text-[#1A8A3C] md:w-[28px] md:h-[28px]`} />
       </div>
-      <h3 className="text-lg font-semibold text-gray-700 mb-2">{title}</h3>
-      <p className="text-sm text-gray-400 max-w-xs">{description}</p>
-      {action && <div className="mt-6">{action}</div>}
+      <h3 className="text-base md:text-lg font-semibold text-gray-700 mb-1 md:mb-2">{title}</h3>
+      <p className="text-xs md:text-sm text-gray-400 max-w-xs">{description}</p>
+      {action && <div className="mt-4 md:mt-6">{action}</div>}
     </div>
   )
 }

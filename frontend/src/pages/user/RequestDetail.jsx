@@ -1,10 +1,11 @@
 ﻿import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, X, Star } from 'lucide-react'
+import { ArrowLeft, X, Star, Archive } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { requestApi, ratingApi } from '../../services/api'
 import { StatusBadge, PageLoader, ConfirmDialog, Modal } from '../../components/common'
+import LiveRouteMap from '../../components/common/LiveRouteMap'
 import { format } from 'date-fns'
 import { fr, enUS } from 'date-fns/locale'
 
@@ -20,6 +21,7 @@ export default function RequestDetail() {
   const [ratingModal, setRatingModal] = useState(false)
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
+<<<<<<< HEAD
 
   const TIMELINE = [
     { status: 'pending',     label: isEn ? 'Request received'  : 'Demande reçue',       icon: '📨' },
@@ -30,6 +32,10 @@ export default function RequestDetail() {
     { status: 'completed',   label: isEn ? 'Collection done'   : 'Collecte terminée',    icon: '🎉' },
   ]
 
+=======
+  const [polling, setPolling] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+>>>>>>> a2e4304 (......./.)
   const fetchReq = async () => {
     try {
       const { data } = await requestApi.get(uuid)
@@ -42,6 +48,20 @@ export default function RequestDetail() {
     }
   }
   useEffect(() => { fetchReq() }, [uuid])
+
+  useEffect(() => {
+    if (!req) return
+    if (['on_way', 'in_progress'].includes(req.status)) {
+      if (polling) return
+      setPolling(true)
+      const timer = setInterval(fetchReq, 10000)
+      return () => {
+        clearInterval(timer)
+        setPolling(false)
+      }
+    }
+    return undefined
+  }, [req])
 
   const handleCancel = async () => {
     try {
@@ -61,6 +81,19 @@ export default function RequestDetail() {
       fetchReq()
     } catch (err) {
       toast.error(err.response?.data?.message || t('common.serverError'))
+    }
+  }
+
+  const handleArchive = async () => {
+    setArchiving(true)
+    try {
+      await requestApi.archive(uuid)
+      toast.success('Demande archivée avec succès')
+      navigate('/dashboard/archived')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
+    } finally {
+      setArchiving(false)
     }
   }
 
@@ -117,6 +150,45 @@ export default function RequestDetail() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {['assigned','on_way','in_progress'].includes(req.status) && (
+        <div className="card p-6 mb-5">
+          <h3 className="font-display font-bold mb-5">Trajet en temps réel</h3>
+          <LiveRouteMap
+            userLocation={req.latitude && req.longitude ? { latitude: req.latitude, longitude: req.longitude } : null}
+            collectorLocation={req.collector_location}
+            userLabel="Adresse de collecte"
+            collectorLabel="Collecteur"
+          />
+          <p className="text-xs text-gray-500 mt-3">
+            Si le collecteur est en route, votre position de collecte et sa position actuelle sont affichées.
+          </p>
+        </div>
+      )}
+
+      {/* Collector Info Card */}
+      {req.collector_id && ['assigned','on_way','in_progress','completed'].includes(req.status) && (
+        <div className="card p-6 mb-5 border-2 border-[#1A8A3C] bg-gradient-to-br from-[#F0FBF7] to-white">
+          <h3 className="font-display font-bold mb-4 text-[#1A8A3C]">👤 Votre collecteur</h3>
+          <div className="flex gap-4 items-start">
+            <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border-2 border-[#1A8A3C]">
+              {req.collector_avatar_url ? (
+                <img src={req.collector_avatar_url} alt={req.collector_name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-4xl">👤</div>
+              )}
+            </div>
+            <div className="flex-1">
+              <p className="text-lg font-bold text-gray-800 mb-1">{req.collector_name}</p>
+              {req.collector_phone && <p className="text-sm text-gray-600 mb-2">📞 {req.collector_phone}</p>}
+              <div className="bg-white rounded-lg p-3 mt-3 text-xs text-gray-700 border border-[#1A8A3C]">
+                <p className="font-semibold text-[#1A8A3C] mb-1">🔒 Mesure de sécurité</p>
+                <p>Veuillez vérifier que cette photo correspond bien à la personne venant à votre domicile.</p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -185,9 +257,19 @@ export default function RequestDetail() {
             <X size={16} /> {isEn ? 'Cancel request' : 'Annuler la demande'}
           </button>
         )}
+<<<<<<< HEAD
         <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">
           💬 {isEn ? 'Report a problem' : 'Signaler un problème'}
         </Link>
+=======
+        <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">💬 Signaler un problème</Link>
+        {['completed', 'cancelled', 'failed'].includes(req.status) && (
+          <button onClick={handleArchive} disabled={archiving} className="btn-primary flex-1 justify-center bg-[#1A8A3C] hover:bg-[#0F6B2C]">
+            <Archive size={16} />
+            {archiving ? 'Archivage...' : 'Archiver cette demande'}
+          </button>
+        )}
+>>>>>>> a2e4304 (......./.)
       </div>
 
       <ConfirmDialog isOpen={cancelDialog} onClose={() => setCancelDialog(false)} onConfirm={handleCancel}

@@ -11,8 +11,13 @@ export default function RegisterPage() {
   const { t, i18n } = useTranslation()
   const isEn = i18n.language?.startsWith('en')
   const navigate = useNavigate()
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '', role: 'user' })
+  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '', confirm: '', role: 'user', national_id_number: '' })
+  const [idFront, setIdFront] = useState(null)
+  const [idBack, setIdBack] = useState(null)
+  const [selfiePhoto, setSelfiePhoto] = useState(null)
+  const [selfieVideo, setSelfieVideo] = useState(null)
   const [phoneError, setPhoneError] = useState('')
+  const [idError, setIdError] = useState('')
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [registered, setRegistered] = useState(false)
@@ -32,7 +37,29 @@ export default function RegisterPage() {
       return toast.error(isEn ? "Passwords don't match" : 'Les mots de passe ne correspondent pas')
     setLoading(true)
     try {
-      const res = await authApi.register({ name: form.name, email: form.email, phone: normalizeCmPhone(form.phone), password: form.password, role: form.role })
+      let res
+      if (form.role === 'collector') {
+        if (!idFront || !idBack || !selfiePhoto) {
+          throw new Error('Les collecteurs doivent fournir les pièces d identité et un selfie.')
+        }
+        if (!form.national_id_number || idError) {
+          throw new Error('Numéro de carte d\'identité requis et valide.')
+        }
+        const formData = new FormData()
+        formData.append('name', form.name)
+        formData.append('email', form.email)
+        formData.append('phone', normalizeCmPhone(form.phone))
+        formData.append('password', form.password)
+        formData.append('role', form.role)
+        formData.append('national_id_number', form.national_id_number)
+        formData.append('id_front', idFront)
+        formData.append('id_back', idBack)
+        formData.append('selfie_photo', selfiePhoto)
+        if (selfieVideo) formData.append('selfie_video', selfieVideo)
+        res = await authApi.register(formData)
+      } else {
+        res = await authApi.register({ name: form.name, email: form.email, phone: normalizeCmPhone(form.phone), password: form.password, role: form.role })
+      }
       if (res.data?.autoVerified) {
         setAutoVerified(true)
         toast.success(t('auth.register.success'))
@@ -40,7 +67,11 @@ export default function RegisterPage() {
       }
       setRegistered(true)
     } catch (err) {
+<<<<<<< HEAD
       toast.error(err.response?.data?.message || t('common.serverError'))
+=======
+      toast.error(err.response?.data?.message || err.message || 'Erreur lors de l inscription')
+>>>>>>> a2e4304 (......./.)
     } finally {
       setLoading(false)
     }
@@ -136,12 +167,100 @@ export default function RegisterPage() {
                 <Link to="/login" className="text-[#1A8A3C] font-semibold hover:underline">{t('auth.register.login')}</Link>
               </p>
 
+<<<<<<< HEAD
               <div className="grid grid-cols-2 gap-3 mb-6">
                 {roles.map(r => (
                   <button key={r.value} type="button" onClick={() => set('role', r.value)}
                     className={`p-4 rounded-xl border-2 text-center transition-all text-sm font-medium ${form.role === r.value ? 'border-[#1A8A3C] bg-[#E8F5EE] text-[#1A8A3C]' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
                     <div className="text-2xl mb-1">{r.emoji}</div>
                     {r.label}
+=======
+            {/* Role selector */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {[
+                { value: 'user', emoji: '👤', label: 'Particulier / Entreprise' },
+                { value: 'collector', emoji: '🚛', label: 'Collecteur' },
+              ].map(r => (
+                <button key={r.value} type="button"
+                  onClick={() => set('role', r.value)}
+                  className={`p-4 rounded-xl border-2 text-center transition-all text-sm font-medium ${form.role === r.value ? 'border-[#1A8A3C] bg-[#E8F5EE] text-[#1A8A3C]' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                  <div className="text-2xl mb-1">{r.emoji}</div>
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="label">Nom complet <span className="text-red-500">*</span></label>
+                <input className="input" placeholder="Jean Dupont" value={form.name} onChange={e => set('name', e.target.value)} />
+              </div>
+              <div>
+                <label className="label">Email <span className="text-red-500">*</span></label>
+                <input type="email" className="input" placeholder="votre@email.com" value={form.email} onChange={e => set('email', e.target.value)} />
+              </div>
+              <div>
+                <label className="label">Téléphone</label>
+                <input type="tel" className={`input ${phoneError ? 'border-red-400 focus:ring-red-200' : ''}`}
+                  placeholder="+237 6 XX XX XX XX"
+                  value={form.phone}
+                  onChange={e => {
+                    const formatted = formatCmPhone(e.target.value)
+                    set('phone', formatted)
+                    setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'Numéro invalide (ex: +237 6 XX XX XX XX)' : '')
+                  }} />
+                {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
+                <p className="text-xs text-gray-400 mt-1">Format : +237 suivi de 9 chiffres (6... ou 2...)</p>
+              </div>
+              {form.role === 'collector' && (
+                <div>
+                  <label className="label">Numéro de carte d'identité nationale <span className="text-red-500">*</span></label>
+                  <input type="text" className={`input ${idError ? 'border-red-400 focus:ring-red-200' : ''}`}
+                    placeholder="Ex: ABC123456789"
+                    value={form.national_id_number}
+                    onChange={e => {
+                      const value = e.target.value.toUpperCase()
+                      set('national_id_number', value)
+                      if (value && (value.length < 8 || value.length > 20 || !/^[A-Z0-9]+$/.test(value))) {
+                        setIdError('Format invalide (8-20 caractères, lettres et chiffres uniquement)')
+                      } else {
+                        setIdError('')
+                      }
+                    }} />
+                  {idError && <p className="text-xs text-red-500 mt-1">{idError}</p>}
+                  <p className="text-xs text-gray-400 mt-1">Entrez le numéro exact de votre carte d'identité ou passeport</p>
+                </div>
+              )}
+              {form.role === 'collector' && (
+                <div className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <p className="text-sm font-semibold text-gray-800">Documents collecteur</p>
+                  <p className="text-xs text-gray-500">Téléchargez les deux faces de votre pièce d'identité et un selfie clair.</p>
+                  <div>
+                    <label className="label">Carte d'identité - Recto <span className="text-red-500">*</span></label>
+                    <input type="file" accept="image/*" className="input" onChange={e => setIdFront(e.target.files?.[0] || null)} />
+                  </div>
+                  <div>
+                    <label className="label">Carte d'identité - Verso <span className="text-red-500">*</span></label>
+                    <input type="file" accept="image/*" className="input" onChange={e => setIdBack(e.target.files?.[0] || null)} />
+                  </div>
+                  <div>
+                    <label className="label">Selfie (photo de présence) <span className="text-red-500">*</span></label>
+                    <input type="file" accept="image/*" className="input" onChange={e => setSelfiePhoto(e.target.files?.[0] || null)} />
+                  </div>
+                  <div>
+                    <label className="label">Vidéo du visage (optionnel)</label>
+                    <input type="file" accept="video/*" className="input" onChange={e => setSelfieVideo(e.target.files?.[0] || null)} />
+                  </div>
+                </div>
+              )}
+              <div>
+                <label className="label">Mot de passe <span className="text-red-500">*</span></label>
+                <div className="relative">
+                  <input type={showPw ? 'text' : 'password'} className="input pr-10" placeholder="Minimum 6 caractères"
+                    value={form.password} onChange={e => set('password', e.target.value)} />
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" onClick={() => setShowPw(!showPw)}>
+                    {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+>>>>>>> a2e4304 (......./.)
                   </button>
                 ))}
               </div>
