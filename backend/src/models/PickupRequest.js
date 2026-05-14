@@ -13,6 +13,11 @@ const pickupRequestSchema = new mongoose.Schema({
   address: { type: String, required: true },
   latitude: Number,
   longitude: Number,
+  collector_location: {
+    latitude: Number,
+    longitude: Number,
+    updated_at: Date,
+  },
   quantity_estimate: String,
   notes: String,
   image_url: String,
@@ -26,6 +31,10 @@ const pickupRequestSchema = new mongoose.Schema({
     enum: ['immediate', 'scheduled', 'recurring', 'business', 'bulk', 'recyclable'],
     default: 'immediate',
   },
+  is_archived: { type: Boolean, default: false },
+  archived_at: Date,
+  rating_score: Number,
+  rating_comment: String,
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
   toJSON: { virtuals: true },

@@ -257,4 +257,35 @@ const deleteUser = async (req, res) => {
   }
 };
 
-module.exports = { getDashboard, getUsers, toggleUserStatus, createUser, deleteUser, getComplaints, respondComplaint, getReports, getCategories, createCategory, updateCategory };
+// GET /api/admin/collectors/:id
+const getCollectorDetails = async (req, res) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id))
+      return res.status(400).json({ success: false, message: 'ID collecteur invalide' });
+    
+    const user = await User.findById(req.params.id).select('-password_hash').lean();
+    if (!user)
+      return res.status(404).json({ success: false, message: 'Collecteur non trouvé' });
+    if (user.role !== 'collector')
+      return res.status(400).json({ success: false, message: 'Cet utilisateur n\'est pas un collecteur' });
+    
+    // Get collector stats
+    const totalRequests = await PickupRequest.countDocuments({ collector_id: user._id });
+    const completedRequests = await PickupRequest.countDocuments({ collector_id: user._id, status: 'completed' });
+    const ratings = await require('../models/Rating').countDocuments({ collector_id: user._id });
+    
+    res.json({ 
+      success: true, 
+      data: { 
+        ...user, 
+        id: user._id.toString(),
+        stats: { totalRequests, completedRequests, ratings }
+      } 
+    });
+  } catch (err) {
+    console.error('getCollectorDetails error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+module.exports = { getDashboard, getUsers, toggleUserStatus, createUser, deleteUser, getComplaints, respondComplaint, getReports, getCategories, createCategory, updateCategory, getCollectorDetails };

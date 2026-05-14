@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const PickupRequest = require('../models/PickupRequest');
 const Payment = require('../models/Payment');
 const Notification = require('../models/Notification');
+const User = require('../models/User');
 const WasteCategory = require('../models/WasteCategory');
 
 const flattenRequest = (r, payment) => ({
@@ -15,6 +16,7 @@ const flattenRequest = (r, payment) => ({
   collector_id: r.collector_id?._id?.toString() || r.collector_id?.toString(),
   collector_name: r.collector_id?.name,
   collector_phone: r.collector_id?.phone,
+  collector_avatar_url: r.collector_id?.avatar_url,
   category_id: r.category_id?._id?.toString() || r.category_id?.toString(),
   category_name: r.category_id?.name,
   category_icon: r.category_id?.icon,
@@ -22,6 +24,7 @@ const flattenRequest = (r, payment) => ({
   payment_status: payment?.status,
   payment_amount: payment?.amount,
   payment_method: payment?.method,
+  collector_location: r.collector_location || null,
   rating_score: r.rating_score,
   rating_comment: r.rating_comment,
 });
@@ -29,22 +32,23 @@ const flattenRequest = (r, payment) => ({
 // GET /api/requests
 const getRequests = async (req, res) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, page = 1, limit = 10, archived = 'false' } = req.query;
     const filter = {};
 
     if (req.user.role === 'user') filter.user_id = req.user.id;
     else if (req.user.role === 'collector') filter.collector_id = req.user.id;
     if (status) filter.status = status;
+    filter.is_archived = archived === 'true';
 
     const [reqs, total] = await Promise.all([
       PickupRequest.find(filter)
         .populate('user_id', 'name phone')
-        .populate('collector_id', 'name')
+        .populate('collector_id', 'name phone avatar_url')
         .populate('category_id', 'name icon')
         .sort({ created_at: -1 })
         .skip((page - 1) * parseInt(limit))
         .limit(parseInt(limit))
-        .lean(),
+        .lean({ virtuals: false, getters: true }),
       PickupRequest.countDocuments(filter),
     ]);
 
@@ -66,9 +70,9 @@ const getRequestById = async (req, res) => {
   try {
     const r = await PickupRequest.findOne({ uuid: req.params.uuid })
       .populate('user_id', 'name phone email')
-      .populate('collector_id', 'name phone')
+      .populate('collector_id')
       .populate('category_id', 'name icon base_price')
-      .lean();
+      .lean({ virtuals: false, getters: true });
     if (!r) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
     if (req.user.role === 'user' && r.user_id?._id?.toString() !== req.user.id)
       return res.status(403).json({ success: false, message: 'Acces interdit' });
@@ -83,7 +87,7 @@ const getRequestById = async (req, res) => {
 // POST /api/requests
 const createRequest = async (req, res) => {
   try {
-    const { category_id, address, quantity_estimate, notes, scheduled_at, service_type = 'immediate' } = req.body;
+    const { category_id, address, quantity_estimate, notes, scheduled_at, service_type = 'immediate', latitude, longitude } = req.body;
     if (!category_id || !address)
       return res.status(400).json({ success: false, message: 'Categorie et adresse requis' });
 
@@ -91,19 +95,35 @@ const createRequest = async (req, res) => {
     if (!cat) return res.status(404).json({ success: false, message: 'Categorie non trouvee' });
 
     const uuid = uuidv4();
-    await PickupRequest.create({
+    const requestData = {
       uuid, user_id: req.user.id, category_id,
       address, quantity_estimate, notes,
       scheduled_at: scheduled_at || undefined,
       service_type, estimated_price: cat.base_price,
-    });
+    };
+    if (latitude && longitude && !isNaN(latitude) && !isNaN(longitude)) {
+      requestData.latitude = parseFloat(latitude);
+      requestData.longitude = parseFloat(longitude);
+    }
+    await PickupRequest.create(requestData);
 
     await Notification.create({
       user_id: req.user.id,
       title: 'Demande recue',
-      message: 'Votre demande de collecte a ete enregistree. Nous vous assignons un collecteur.',
+      message: 'Votre demande de collecte a ete enregistree. Les collecteurs disponibles en sont informes.',
       type: 'request',
     });
+
+    const availableCollectors = await User.find({ role: 'collector', 'collector_profile.is_available': true }).select('_id');
+    if (availableCollectors.length > 0) {
+      const collectorNotifications = availableCollectors.map((collector) => ({
+        user_id: collector._id,
+        title: 'Nouvelle demande de collecte disponible',
+        message: `Une nouvelle demande de collecte est disponible pour ${cat.name} à ${address}. Acceptez-la rapidement !`,
+        type: 'collector_request',
+      }));
+      await Notification.insertMany(collectorNotifications);
+    }
 
     res.status(201).json({ success: true, message: 'Demande creee', data: { uuid } });
   } catch (err) {
@@ -122,8 +142,29 @@ const updateStatus = async (req, res) => {
 
     const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid });
     if (!pickupReq) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
-    if (req.user.role === 'collector' && pickupReq.collector_id?.toString() !== req.user.id)
-      return res.status(403).json({ success: false, message: 'Acces interdit' });
+
+    if (req.user.role === 'collector') {
+      if (status === 'assigned' && !pickupReq.collector_id) {
+        const acceptedRequest = await PickupRequest.findOneAndUpdate(
+          { uuid: req.params.uuid, status: 'pending', collector_id: null },
+          { $set: { status: 'assigned', collector_id: req.user.id } },
+          { new: true }
+        );
+        if (!acceptedRequest) {
+          return res.status(409).json({ success: false, message: 'Cette demande a deja ete acceptee ou n est plus disponible.' });
+        }
+        await Notification.create({
+          user_id: pickupReq.user_id,
+          title: 'Collecteur assigne',
+          message: 'Un collecteur a accepte votre demande et se prepare a venir a votre adresse.',
+          type: 'update',
+        });
+        return res.json({ success: true, message: 'Demande acceptee. Vous etes desormais assigne.' });
+      }
+
+      if (!pickupReq.collector_id || pickupReq.collector_id.toString() !== req.user.id)
+        return res.status(403).json({ success: false, message: 'Acces interdit' });
+    }
 
     const updates = { status };
     if (status === 'completed') {
@@ -196,4 +237,91 @@ const cancelRequest = async (req, res) => {
   }
 };
 
-module.exports = { getRequests, getRequestById, createRequest, updateStatus, assignCollector, cancelRequest };
+const updateLocation = async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+    if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+      return res.status(400).json({ success: false, message: 'Latitude et longitude valides requis' });
+    }
+
+    const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid });
+    if (!pickupReq) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
+    if (!pickupReq.collector_id || pickupReq.collector_id.toString() !== req.user.id)
+      return res.status(403).json({ success: false, message: 'Acces interdit' });
+
+    await PickupRequest.findByIdAndUpdate(pickupReq._id, {
+      $set: {
+        collector_location: {
+          latitude,
+          longitude,
+          updated_at: new Date(),
+        },
+      },
+    });
+
+    res.json({ success: true, message: 'Position actualisee' });
+  } catch (err) {
+    console.error('updateLocation error:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+// PUT /api/requests/:uuid/archive
+const archiveRequest = async (req, res) => {
+  try {
+    const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid });
+    if (!pickupReq) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
+
+    // Vérifier les permissions
+    if (req.user.role === 'user' && pickupReq.user_id.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Acces interdit' });
+    }
+    if (req.user.role === 'collector' && pickupReq.collector_id?.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Acces interdit - Vous ne pouvez archiver que vos propres collectes' });
+    }
+
+    if (!['completed', 'cancelled', 'failed'].includes(pickupReq.status)) {
+      return res.status(400).json({ success: false, message: 'Seules les demandes completes, annulees ou echouees peuvent etre archivees' });
+    }
+
+    await PickupRequest.findByIdAndUpdate(pickupReq._id, {
+      $set: { is_archived: true, archived_at: new Date() }
+    });
+
+    res.json({ success: true, message: 'Demande archivee avec succes' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+// PUT /api/requests/:uuid/restore
+const restoreRequest = async (req, res) => {
+  try {
+    const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid });
+    if (!pickupReq) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
+
+    // Vérifier les permissions
+    if (req.user.role === 'user' && pickupReq.user_id.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Acces interdit' });
+    }
+    if (req.user.role === 'collector' && pickupReq.collector_id?.toString() !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Acces interdit - Vous ne pouvez restaurer que vos propres collectes' });
+    }
+
+    if (!pickupReq.is_archived) {
+      return res.status(400).json({ success: false, message: 'Cette demande n est pas archivee' });
+    }
+
+    await PickupRequest.findByIdAndUpdate(pickupReq._id, {
+      $set: { is_archived: false, archived_at: null }
+    });
+
+    res.json({ success: true, message: 'Demande restauree avec succes' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Erreur serveur' });
+  }
+};
+
+module.exports = { getRequests, getRequestById, createRequest, updateStatus, assignCollector, cancelRequest, updateLocation, archiveRequest, restoreRequest };

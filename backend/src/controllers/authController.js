@@ -30,7 +30,7 @@ const generateToken = (user) =>
 // POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, phone, password, role = 'user' } = req.body;
+    const { name, email, phone, password, role = 'user', national_id_number } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ success: false, message: 'Champs requis manquants' });
     const pwError = validatePassword(password);
@@ -42,6 +42,18 @@ const register = async (req, res) => {
     if (!['user', 'collector'].includes(role))
       return res.status(400).json({ success: false, message: 'Role invalide' });
 
+    // Validate national ID number for collectors
+    if (role === 'collector') {
+      if (!national_id_number || national_id_number.length < 8 || national_id_number.length > 20) {
+        return res.status(400).json({ success: false, message: 'Numéro de carte d\'identité national requis (8-20 caractères)' });
+      }
+      // Basic validation for Cameroonian ID format (can be enhanced)
+      const idRegex = /^[A-Z0-9]+$/;
+      if (!idRegex.test(national_id_number.toUpperCase())) {
+        return res.status(400).json({ success: false, message: 'Format de numéro de carte d\'identité invalide' });
+      }
+    }
+
     const existing = await User.findOne({ email: email.toLowerCase() });
     if (existing)
       return res.status(409).json({ success: false, message: 'Email deja utilise' });
@@ -52,6 +64,16 @@ const register = async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString('hex');
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
+    const fileUrl = (fileArray) => fileArray && fileArray[0] ? `/uploads/collectors/${fileArray[0].filename}` : undefined;
+    const idFrontUrl = fileUrl(req.files?.id_front);
+    const idBackUrl = fileUrl(req.files?.id_back);
+    const selfieUrl = fileUrl(req.files?.selfie_photo);
+    const selfieVideoUrl = fileUrl(req.files?.selfie_video);
+
+    if (role === 'collector' && (!idFrontUrl || !idBackUrl || !selfieUrl)) {
+      return res.status(400).json({ success: false, message: 'Les collecteurs doivent fournir une photo de la carte d identité (recto/verso) et un selfie.' });
+    }
+
     const userData = {
       uuid, name, email, phone: phone || undefined, password_hash: hash, role,
       is_verified: !smtpConfigured, // auto-verify when SMTP not configured
@@ -59,7 +81,17 @@ const register = async (req, res) => {
       email_verification_expires: smtpConfigured ? verificationExpires : null,
     };
     if (role === 'collector') {
-      userData.collector_profile = { is_available: false, rating_avg: 0, total_collections: 0 };
+      userData.collector_profile = {
+        is_available: false,
+        rating_avg: 0,
+        total_collections: 0,
+        national_id_number: national_id_number.toUpperCase(),
+        id_front_url: idFrontUrl,
+        id_back_url: idBackUrl,
+        selfie_url: selfieUrl,
+        selfie_video_url: selfieVideoUrl,
+        verification_status: 'submitted',
+      };
     }
 
     const userDoc = await User.create(userData);

@@ -7,6 +7,13 @@ const collectorProfileSchema = new mongoose.Schema({
   is_available: { type: Boolean, default: false },
   rating_avg: { type: Number, default: 0 },
   total_collections: { type: Number, default: 0 },
+  national_id_number: { type: String, required: function() { return this.parent().role === 'collector'; } },
+  id_front_url: String,
+  id_back_url: String,
+  selfie_url: String,
+  selfie_video_url: String,
+  verification_status: { type: String, enum: ['pending', 'submitted', 'verified', 'rejected'], default: 'pending' },
+  verification_notes: String,
 }, { _id: false });
 
 const userSchema = new mongoose.Schema({
