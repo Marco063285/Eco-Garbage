@@ -19,6 +19,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Database
+mongo-data/
+mongo.log
+
 # OS files
 .DS_Store
 Thumbs.db
