@@ -1,12 +1,9 @@
-ï»¿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-<<<<<<< HEAD
 import { Plus, Search, Filter } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-=======
 import { Plus, Search, Filter, Archive, ArchiveRestore } from 'lucide-react'
 import toast from 'react-hot-toast'
->>>>>>> a2e4304 (......./.)
 import { requestApi } from '../../services/api'
 import { PageHeader, StatusBadge, PageLoader, EmptyState, Pagination } from '../../components/common'
 import { format } from 'date-fns'
@@ -59,7 +56,7 @@ export default function MyRequests() {
     setArchiving(uuid)
     try {
       await requestApi.archive(uuid)
-      toast.success('Demande archivÃ©e avec succÃ¨s')
+      toast.success('Demande archivée avec succès')
       fetchRequests(statusFilter, page) // Refresh the list
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
@@ -77,11 +74,9 @@ export default function MyRequests() {
   return (
     <div className="fade-up">
       <PageHeader
-<<<<<<< HEAD
         title={t('user.requests.title')}
         subtitle={`${total} ${i18n.language?.startsWith('en') ? 'request(s)' : 'demande(s)'}`}
         action={<Link to="/dashboard/new-request" className="btn-primary"><Plus size={16} />{t('user.requests.newRequest')}</Link>}
-=======
         title="Mes demandes"
         subtitle={`${total} demande(s) au total`}
         action={
@@ -94,7 +89,6 @@ export default function MyRequests() {
             </Link>
           </div>
         }
->>>>>>> a2e4304 (......./.)
       />
 
       {/* Filters */}
@@ -122,7 +116,6 @@ export default function MyRequests() {
       ) : (
         <div className="flex flex-col gap-3">
           {filtered.map(r => (
-<<<<<<< HEAD
             <Link key={r.uuid} to={`/dashboard/requests/${r.uuid}`}
               className="card p-4 flex items-center gap-4 hover:border-[#1A8A3C]/30 hover:-translate-y-0.5 transition-all">
               <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">
@@ -135,8 +128,8 @@ export default function MyRequests() {
                 </div>
                 <p className="text-sm text-gray-400 mt-1 truncate">{r.address}</p>
                 <p className="text-xs text-gray-300 mt-0.5">
-                  {format(new Date(r.created_at), "dd MMM yyyy Â· HH:mm", { locale: dateLocale })}
-                  {r.collector_name && ` Â· ${r.collector_name}`}
+                  {format(new Date(r.created_at), "dd MMM yyyy · HH:mm", { locale: dateLocale })}
+                  {r.collector_name && ` · ${r.collector_name}`}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
@@ -148,7 +141,6 @@ export default function MyRequests() {
                 <p className="text-xs text-gray-300 mt-0.5 uppercase tracking-wide">{r.service_type}</p>
               </div>
             </Link>
-=======
             <div key={r.uuid} className="card p-4 flex items-center gap-4 hover:border-[#1A8A3C]/30 hover:-translate-y-0.5 transition-all">
               <Link to={`/dashboard/requests/${r.uuid}`} className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">{getCategoryIcon(r.category_icon)}</div>
@@ -159,8 +151,8 @@ export default function MyRequests() {
                   </div>
                   <p className="text-sm text-gray-400 mt-1 truncate">{r.address}</p>
                   <p className="text-xs text-gray-300 mt-0.5">
-                    {format(new Date(r.created_at), "dd MMM yyyy 'Ã ' HH:mm", { locale: fr })}
-                    {r.collector_name && ` Â· Collecteur: ${r.collector_name}`}
+                    {format(new Date(r.created_at), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
+                    {r.collector_name && ` · Collecteur: ${r.collector_name}`}
                   </p>
                 </div>
                 <div className="text-right flex-shrink-0">
@@ -179,7 +171,6 @@ export default function MyRequests() {
                 </button>
               )}
             </div>
->>>>>>> a2e4304 (......./.)
           ))}
         </div>
       )}

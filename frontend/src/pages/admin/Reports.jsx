@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { adminApi } from '../../services/api'
 import { PageHeader, PageLoader } from '../../components/common'
@@ -109,7 +109,7 @@ export default function AdminReports() {
           {/* Revenue by category table */}
           {data.byCategory?.length > 0 && (
             <div className="card p-6">
-              <h3 className="font-display font-bold mb-4">{t('admin.reports.revenueLabel')} {isEn ? 'by category' : 'par catÃ©gorie'}</h3>
+              <h3 className="font-display font-bold mb-4">{t('admin.reports.revenueLabel')} {isEn ? 'by category' : 'par catégorie'}</h3>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead className="border-b border-gray-100">
@@ -135,9 +135,9 @@ export default function AdminReports() {
 
           {data.byCategory?.length === 0 && data.byStatus?.length === 0 && (
             <div className="card p-12 text-center text-gray-400">
-              <p className="text-4xl mb-3">ðŸ“Š</p>
+              <p className="text-4xl mb-3">??</p>
               <p className="font-semibold">{t('admin.reports.noData')}</p>
-              <p className="text-sm mt-1">{isEn ? 'Charts will appear once collections are completed.' : 'Les graphiques apparaÃ®tront dÃ¨s que des collectes seront complÃ©tÃ©es.'}</p>
+              <p className="text-sm mt-1">{isEn ? 'Charts will appear once collections are completed.' : 'Les graphiques apparaîtront dès que des collectes seront complétées.'}</p>
             </div>
           )}
         </div>

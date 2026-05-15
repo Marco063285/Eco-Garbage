@@ -1,4 +1,4 @@
-Ôªøimport { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { ArrowLeft, X, Star, Archive } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -21,21 +21,18 @@ export default function RequestDetail() {
   const [ratingModal, setRatingModal] = useState(false)
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
-<<<<<<< HEAD
 
   const TIMELINE = [
-    { status: 'pending',     label: isEn ? 'Request received'  : 'Demande re√ßue',       icon: 'üì®' },
-    { status: 'approved',    label: isEn ? 'Request approved'  : 'Demande approuv√©e',    icon: '‚úÖ' },
-    { status: 'assigned',    label: isEn ? 'Collector assigned': 'Collecteur assign√©',   icon: 'üë§' },
-    { status: 'on_way',      label: isEn ? 'Collector en route': 'Collecteur en route',  icon: 'üöõ' },
-    { status: 'in_progress', label: isEn ? 'Collection ongoing': 'Collecte en cours',    icon: '‚öôÔ∏è' },
-    { status: 'completed',   label: isEn ? 'Collection done'   : 'Collecte termin√©e',    icon: 'üéâ' },
+    { status: 'pending',     label: isEn ? 'Request received'  : 'Demande reÁue',       icon: '??' },
+    { status: 'approved',    label: isEn ? 'Request approved'  : 'Demande approuvÈe',    icon: '?' },
+    { status: 'assigned',    label: isEn ? 'Collector assigned': 'Collecteur assignÈ',   icon: '??' },
+    { status: 'on_way',      label: isEn ? 'Collector en route': 'Collecteur en route',  icon: '??' },
+    { status: 'in_progress', label: isEn ? 'Collection ongoing': 'Collecte en cours',    icon: '??' },
+    { status: 'completed',   label: isEn ? 'Collection done'   : 'Collecte terminÈe',    icon: '??' },
   ]
 
-=======
   const [polling, setPolling] = useState(false)
   const [archiving, setArchiving] = useState(false)
->>>>>>> a2e4304 (......./.)
   const fetchReq = async () => {
     try {
       const { data } = await requestApi.get(uuid)
@@ -76,7 +73,7 @@ export default function RequestDetail() {
   const handleRating = async () => {
     try {
       await ratingApi.create({ request_uuid: uuid, score, comment })
-      toast.success(isEn ? 'Rating saved!' : 'Note enregistr√©e !')
+      toast.success(isEn ? 'Rating saved!' : 'Note enregistrÈe !')
       setRatingModal(false)
       fetchReq()
     } catch (err) {
@@ -88,7 +85,7 @@ export default function RequestDetail() {
     setArchiving(true)
     try {
       await requestApi.archive(uuid)
-      toast.success('Demande archiv√©e avec succ√®s')
+      toast.success('Demande archivÈe avec succËs')
       navigate('/dashboard/archived')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
@@ -107,16 +104,16 @@ export default function RequestDetail() {
   const currentIdx = ORDER.indexOf(req.status)
 
   const details = [
-    [isEn ? 'Waste type'       : 'Type de d√©chet',   req.category_name],
+    [isEn ? 'Waste type'       : 'Type de dÈchet',   req.category_name],
     [isEn ? 'Service type'     : 'Type de service',   req.service_type],
     [isEn ? 'Address'          : 'Adresse',            req.address],
-    [isEn ? 'Quantity'         : 'Quantit√©',           req.quantity_number ? `${req.quantity_number} ${isEn ? 'unit(s)' : 'unit√©(s)'}` : req.quantity_estimate || '‚Äî'],
-    [isEn ? 'Distance'         : 'Distance',           req.distance_km ? `${req.distance_km} km` : '‚Äî'],
-    [isEn ? 'Estimated price'  : 'Prix estim√©',        req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : '‚Äî'],
-    [isEn ? 'Final price'      : 'Prix final',         req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : '‚Äî'],
-    [isEn ? 'Created on'       : 'Cr√©√©e le',           format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
-    [isEn ? 'Collector'        : 'Collecteur',         req.collector_name || (isEn ? 'Not assigned' : 'Non assign√©')],
-    [isEn ? 'Collector phone'  : 'T√©l. collecteur',    req.collector_phone || '‚Äî'],
+    [isEn ? 'Quantity'         : 'QuantitÈ',           req.quantity_number ? `${req.quantity_number} ${isEn ? 'unit(s)' : 'unitÈ(s)'}` : req.quantity_estimate || 'ó'],
+    [isEn ? 'Distance'         : 'Distance',           req.distance_km ? `${req.distance_km} km` : 'ó'],
+    [isEn ? 'Estimated price'  : 'Prix estimÈ',        req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : 'ó'],
+    [isEn ? 'Final price'      : 'Prix final',         req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : 'ó'],
+    [isEn ? 'Created on'       : 'CrÈÈe le',           format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
+    [isEn ? 'Collector'        : 'Collecteur',         req.collector_name || (isEn ? 'Not assigned' : 'Non assignÈ')],
+    [isEn ? 'Collector phone'  : 'TÈl. collecteur',    req.collector_phone || 'ó'],
   ]
 
   return (
@@ -124,7 +121,7 @@ export default function RequestDetail() {
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate(-1)} className="btn-ghost p-2"><ArrowLeft size={18} /></button>
         <div>
-          <h1 className="text-xl font-display font-bold">{isEn ? 'Collection detail' : 'D√©tail de la collecte'}</h1>
+          <h1 className="text-xl font-display font-bold">{isEn ? 'Collection detail' : 'DÈtail de la collecte'}</h1>
           <p className="text-sm text-gray-400">#{req.uuid?.slice(0,8).toUpperCase()}</p>
         </div>
         <div className="ml-auto"><StatusBadge status={req.status} /></div>
@@ -156,7 +153,7 @@ export default function RequestDetail() {
 
       {['assigned','on_way','in_progress'].includes(req.status) && (
         <div className="card p-6 mb-5">
-          <h3 className="font-display font-bold mb-5">Trajet en temps r√©el</h3>
+          <h3 className="font-display font-bold mb-5">Trajet en temps rÈel</h3>
           <LiveRouteMap
             userLocation={req.latitude && req.longitude ? { latitude: req.latitude, longitude: req.longitude } : null}
             collectorLocation={req.collector_location}
@@ -164,7 +161,7 @@ export default function RequestDetail() {
             collectorLabel="Collecteur"
           />
           <p className="text-xs text-gray-500 mt-3">
-            Si le collecteur est en route, votre position de collecte et sa position actuelle sont affich√©es.
+            Si le collecteur est en route, votre position de collecte et sa position actuelle sont affichÈes.
           </p>
         </div>
       )}
@@ -172,21 +169,21 @@ export default function RequestDetail() {
       {/* Collector Info Card */}
       {req.collector_id && ['assigned','on_way','in_progress','completed'].includes(req.status) && (
         <div className="card p-6 mb-5 border-2 border-[#1A8A3C] bg-gradient-to-br from-[#F0FBF7] to-white">
-          <h3 className="font-display font-bold mb-4 text-[#1A8A3C]">üë§ Votre collecteur</h3>
+          <h3 className="font-display font-bold mb-4 text-[#1A8A3C]">?? Votre collecteur</h3>
           <div className="flex gap-4 items-start">
             <div className="w-24 h-24 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border-2 border-[#1A8A3C]">
               {req.collector_avatar_url ? (
                 <img src={req.collector_avatar_url} alt={req.collector_name} className="w-full h-full object-cover" />
               ) : (
-                <div className="text-4xl">üë§</div>
+                <div className="text-4xl">??</div>
               )}
             </div>
             <div className="flex-1">
               <p className="text-lg font-bold text-gray-800 mb-1">{req.collector_name}</p>
-              {req.collector_phone && <p className="text-sm text-gray-600 mb-2">üìû {req.collector_phone}</p>}
+              {req.collector_phone && <p className="text-sm text-gray-600 mb-2">?? {req.collector_phone}</p>}
               <div className="bg-white rounded-lg p-3 mt-3 text-xs text-gray-700 border border-[#1A8A3C]">
-                <p className="font-semibold text-[#1A8A3C] mb-1">üîí Mesure de s√©curit√©</p>
-                <p>Veuillez v√©rifier que cette photo correspond bien √† la personne venant √† votre domicile.</p>
+                <p className="font-semibold text-[#1A8A3C] mb-1">?? Mesure de sÈcuritÈ</p>
+                <p>Veuillez vÈrifier que cette photo correspond bien ‡ la personne venant ‡ votre domicile.</p>
               </div>
             </div>
           </div>
@@ -218,8 +215,8 @@ export default function RequestDetail() {
           <div>
             <p className="text-sm font-semibold">
               {req.payment_status === 'completed'
-                ? (isEn ? '‚úÖ Payment completed' : '‚úÖ Paiement effectu√©')
-                : (isEn ? '‚è≥ Payment pending'   : '‚è≥ Paiement en attente')}
+                ? (isEn ? '? Payment completed' : '? Paiement effectuÈ')
+                : (isEn ? '? Payment pending'   : '? Paiement en attente')}
             </p>
             {(req.payment_amount || req.final_price) && (
               <p className="text-xs text-gray-500 mt-0.5">
@@ -238,8 +235,8 @@ export default function RequestDetail() {
       {/* Rating */}
       {req.rating_score && (
         <div className="card p-4 mb-5">
-          <p className="text-sm font-semibold mb-1">{isEn ? 'Your rating' : 'Votre √©valuation'}</p>
-          <div className="flex gap-0.5 text-yellow-400">{'‚òÖ'.repeat(req.rating_score)}{'‚òÜ'.repeat(5-req.rating_score)}</div>
+          <p className="text-sm font-semibold mb-1">{isEn ? 'Your rating' : 'Votre Èvaluation'}</p>
+          <div className="flex gap-0.5 text-yellow-400">{'?'.repeat(req.rating_score)}{'?'.repeat(5-req.rating_score)}</div>
           {req.rating_comment && <p className="text-xs text-gray-400 mt-1 italic">"{req.rating_comment}"</p>}
         </div>
       )}
@@ -257,27 +254,24 @@ export default function RequestDetail() {
             <X size={16} /> {isEn ? 'Cancel request' : 'Annuler la demande'}
           </button>
         )}
-<<<<<<< HEAD
         <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">
-          üí¨ {isEn ? 'Report a problem' : 'Signaler un probl√®me'}
+          ?? {isEn ? 'Report a problem' : 'Signaler un problËme'}
         </Link>
-=======
-        <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">üí¨ Signaler un probl√®me</Link>
+        <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">?? Signaler un problËme</Link>
         {['completed', 'cancelled', 'failed'].includes(req.status) && (
           <button onClick={handleArchive} disabled={archiving} className="btn-primary flex-1 justify-center bg-[#1A8A3C] hover:bg-[#0F6B2C]">
             <Archive size={16} />
             {archiving ? 'Archivage...' : 'Archiver cette demande'}
           </button>
         )}
->>>>>>> a2e4304 (......./.)
       </div>
 
       <ConfirmDialog isOpen={cancelDialog} onClose={() => setCancelDialog(false)} onConfirm={handleCancel}
         title={isEn ? 'Cancel request' : 'Annuler la demande'}
-        message={isEn ? 'Are you sure you want to cancel this request? This action is irreversible.' : '√ätes-vous s√ªr de vouloir annuler cette demande ? Cette action est irr√©versible.'}
+        message={isEn ? 'Are you sure you want to cancel this request? This action is irreversible.' : ' tes-vous s˚r de vouloir annuler cette demande ? Cette action est irrÈversible.'}
         confirmLabel={isEn ? 'Yes, cancel' : 'Oui, annuler'} danger />
 
-      <Modal isOpen={ratingModal} onClose={() => setRatingModal(false)} title={isEn ? 'Rate the collector' : '√âvaluer le collecteur'}>
+      <Modal isOpen={ratingModal} onClose={() => setRatingModal(false)} title={isEn ? 'Rate the collector' : '…valuer le collecteur'}>
         <div className="flex flex-col gap-4">
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-3">
@@ -286,7 +280,7 @@ export default function RequestDetail() {
             <div className="flex justify-center gap-2">
               {[1,2,3,4,5].map(n => (
                 <button key={n} type="button" onClick={() => setScore(n)}
-                  className={`text-3xl transition-transform hover:scale-125 ${n <= score ? 'text-yellow-400' : 'text-gray-300'}`}>‚òÖ</button>
+                  className={`text-3xl transition-transform hover:scale-125 ${n <= score ? 'text-yellow-400' : 'text-gray-300'}`}>?</button>
               ))}
             </div>
             <p className="text-xs text-gray-400 mt-1">{score}/5</p>

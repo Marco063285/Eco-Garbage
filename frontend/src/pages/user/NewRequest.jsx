@@ -1,4 +1,4 @@
-Ôªøimport { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Send, Loader2, MapPin, Navigation, User, Phone, TrendingUp, Minus, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -33,12 +33,12 @@ export default function NewRequest() {
   const [geoError, setGeoError] = useState('')
 
   const SERVICE_TYPES = [
-    { value: 'immediate',  label: isEn ? '‚ö° Immediate'  : '‚ö° Imm√©diate',  desc: isEn ? 'As soon as possible'    : 'Dans les plus brefs d√©lais' },
-    { value: 'scheduled',  label: isEn ? 'üìÖ Scheduled'  : 'üìÖ Planifi√©e',  desc: isEn ? 'On chosen date'         : '√Ä la date choisie' },
-    { value: 'recurring',  label: isEn ? 'üîÑ Recurring'  : 'üîÑ R√©currente', desc: isEn ? 'Regular service'        : 'Service r√©gulier' },
-    { value: 'business',   label: isEn ? 'üè¢ Business'   : 'üè¢ Entreprise', desc: isEn ? 'For professionals'      : 'Pour les professionnels' },
-    { value: 'bulk',       label: isEn ? 'üì¶ Bulk'       : 'üì¶ Gros volume',desc: isEn ? 'Bulky, construction'   : 'Encombrants, chantier' },
-    { value: 'recyclable', label: isEn ? '‚ôªÔ∏è Recyclables': '‚ôªÔ∏è Recyclables',desc: isEn ? 'Recyclable materials'  : 'Mati√®res recyclables' },
+    { value: 'immediate',  label: isEn ? '? Immediate'  : '? ImmÈdiate',  desc: isEn ? 'As soon as possible'    : 'Dans les plus brefs dÈlais' },
+    { value: 'scheduled',  label: isEn ? '?? Scheduled'  : '?? PlanifiÈe',  desc: isEn ? 'On chosen date'         : '¿ la date choisie' },
+    { value: 'recurring',  label: isEn ? '?? Recurring'  : '?? RÈcurrente', desc: isEn ? 'Regular service'        : 'Service rÈgulier' },
+    { value: 'business',   label: isEn ? '?? Business'   : '?? Entreprise', desc: isEn ? 'For professionals'      : 'Pour les professionnels' },
+    { value: 'bulk',       label: isEn ? '?? Bulk'       : '?? Gros volume',desc: isEn ? 'Bulky, construction'   : 'Encombrants, chantier' },
+    { value: 'recyclable', label: isEn ? '?? Recyclables': '?? Recyclables',desc: isEn ? 'Recyclable materials'  : 'MatiËres recyclables' },
   ]
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export default function NewRequest() {
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }))
 
   const getLocation = () => {
-    if (!navigator.geolocation) return toast.error(isEn ? 'Geolocation not supported' : 'G√©olocalisation non support√©e')
+    if (!navigator.geolocation) return toast.error(isEn ? 'Geolocation not supported' : 'GÈolocalisation non supportÈe')
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -63,7 +63,7 @@ export default function NewRequest() {
         setLocating(false)
       },
       () => {
-        toast.error(isEn ? 'Unable to get location. Check permissions.' : "Impossible d'obtenir votre position. V√©rifiez les permissions.")
+        toast.error(isEn ? 'Unable to get location. Check permissions.' : "Impossible d'obtenir votre position. VÈrifiez les permissions.")
         setLocating(false)
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -99,7 +99,7 @@ export default function NewRequest() {
       const position = await getCurrentPosition()
       const { latitude, longitude } = position.coords
       setForm(p => ({ ...p, latitude, longitude }))
-      toast.success('Position captur√©e. Le trajet pourra √™tre suivi en temps r√©el.')
+      toast.success('Position capturÈe. Le trajet pourra Ítre suivi en temps rÈel.')
     } catch (error) {
       setGeoError(error.message)
     } finally {
@@ -112,7 +112,7 @@ export default function NewRequest() {
       const position = await getCurrentPosition()
       const { latitude, longitude } = position.coords
       setForm(p => ({ ...p, latitude, longitude }))
-      toast.success('Position captur√©e. Le trajet pourra √™tre suivi en temps r√©el.')
+      toast.success('Position capturÈe. Le trajet pourra Ítre suivi en temps rÈel.')
       return true
     } catch (error) {
       setGeoError(error.message)
@@ -122,34 +122,31 @@ export default function NewRequest() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-<<<<<<< HEAD
     if (!form.category_id || !form.address)
-      return toast.error(isEn ? 'Category and address are required' : 'Cat√©gorie et adresse sont obligatoires')
+      return toast.error(isEn ? 'Category and address are required' : 'CatÈgorie et adresse sont obligatoires')
     if (form.service_type !== 'immediate' && !form.scheduled_at)
       return toast.error(isEn ? 'Please choose a collection date' : 'Veuillez choisir une date de collecte')
     if (!form.latitude || !form.longitude)
-      return toast.error(isEn ? 'Please enable geolocation for auto-assignment' : 'Veuillez activer la g√©olocalisation pour une attribution automatique')
-=======
-    if (!form.category_id || !form.address) return toast.error('Cat√©gorie et adresse sont obligatoires')
+      return toast.error(isEn ? 'Please enable geolocation for auto-assignment' : 'Veuillez activer la gÈolocalisation pour une attribution automatique')
+    if (!form.category_id || !form.address) return toast.error('CatÈgorie et adresse sont obligatoires')
     if (form.service_type !== 'immediate' && !form.scheduled_at) return toast.error('Veuillez choisir une date de collecte')
 
     if (!form.latitude || !form.longitude) {
       const success = await captureLocation()
       if (!success) {
-        return toast.error('Impossible de capturer la position. Autorisez la g√©olocalisation et r√©essayez.')
+        return toast.error('Impossible de capturer la position. Autorisez la gÈolocalisation et rÈessayez.')
       }
     }
 
->>>>>>> a2e4304 (......./.)
     setSubmitting(true)
     try {
       const res = await requestApi.create(form)
       const data = res.data.data
       if (data.collector_name) {
         setAssignResult(data)
-        toast.success(isEn ? 'Collector automatically assigned!' : 'Collecteur assign√© automatiquement !')
+        toast.success(isEn ? 'Collector automatically assigned!' : 'Collecteur assignÈ automatiquement !')
       } else {
-        toast.success(isEn ? 'Request created! Looking for a collector.' : 'Demande cr√©√©e ! Nous recherchons un collecteur.')
+        toast.success(isEn ? 'Request created! Looking for a collector.' : 'Demande crÈÈe ! Nous recherchons un collecteur.')
         navigate('/dashboard/requests')
       }
     } catch (err) {
@@ -172,7 +169,7 @@ export default function NewRequest() {
             {isEn ? 'Collector on the way!' : 'Collecteur en route !'}
           </h2>
           <p className="text-gray-500 mb-6">
-            {isEn ? 'A collector has been automatically assigned to your request.' : 'Un collecteur a √©t√© assign√© automatiquement √† votre demande.'}
+            {isEn ? 'A collector has been automatically assigned to your request.' : 'Un collecteur a ÈtÈ assignÈ automatiquement ‡ votre demande.'}
           </p>
 
           <div className="bg-[#E8F5EE] rounded-2xl p-5 mb-6 text-left">
@@ -213,7 +210,6 @@ export default function NewRequest() {
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
         {/* Service type */}
-<<<<<<< HEAD
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.serviceType')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -222,7 +218,6 @@ export default function NewRequest() {
                 className={`p-3.5 rounded-xl border-2 text-left transition-all ${form.service_type === s.value ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-semibold text-gray-800">{s.label}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{s.desc}</p>
-=======
         <div className="card p-4 md:p-6">
           <h3 className="font-display font-bold mb-3 md:mb-4 text-base md:text-lg">Type de service</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
@@ -232,14 +227,12 @@ export default function NewRequest() {
                 className={`p-2.5 md:p-3.5 rounded-xl border-2 text-left transition-all text-xs md:text-sm ${form.service_type === s.value ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="font-semibold text-gray-800">{s.label}</p>
                 <p className="text-[11px] md:text-xs text-gray-400 mt-0.5">{s.desc}</p>
->>>>>>> a2e4304 (......./.)
               </button>
             ))}
           </div>
         </div>
 
         {/* Category */}
-<<<<<<< HEAD
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.category')} <span className="text-red-500">*</span></h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -248,10 +241,9 @@ export default function NewRequest() {
                 className={`p-3.5 rounded-xl border-2 text-left transition-all ${form.category_id == cat.id ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="text-sm font-semibold text-gray-800">{cat.name}</p>
                 <p className="text-xs text-[#1A8A3C] mt-0.5 font-medium">{parseFloat(cat.base_price).toLocaleString()} FCFA</p>
-                {cat.is_hazardous && <span className="text-[10px] text-red-500 font-bold">‚ö†Ô∏è {isEn ? 'Hazardous' : 'Dangereux'}</span>}
-=======
+                {cat.is_hazardous && <span className="text-[10px] text-red-500 font-bold">?? {isEn ? 'Hazardous' : 'Dangereux'}</span>}
         <div className="card p-4 md:p-6">
-          <h3 className="font-display font-bold mb-3 md:mb-4 text-base md:text-lg">Type de d√©chet <span className="text-red-500">*</span></h3>
+          <h3 className="font-display font-bold mb-3 md:mb-4 text-base md:text-lg">Type de dÈchet <span className="text-red-500">*</span></h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
             {categories.map(cat => (
               <button key={cat.id} type="button"
@@ -259,8 +251,7 @@ export default function NewRequest() {
                 className={`p-2.5 md:p-3.5 rounded-xl border-2 text-left transition-all text-xs md:text-sm ${form.category_id == cat.id ? 'border-[#1A8A3C] bg-[#E8F5EE]' : 'border-gray-200 hover:border-gray-300'}`}>
                 <p className="font-semibold text-gray-800">{cat.name}</p>
                 <p className="text-[11px] md:text-xs text-[#1A8A3C] mt-0.5 font-medium">{parseFloat(cat.base_price).toLocaleString()} FCFA</p>
-                {cat.is_hazardous && <span className="text-[9px] md:text-[10px] text-red-500 font-bold">‚ö†Ô∏è Dangereux</span>}
->>>>>>> a2e4304 (......./.)
+                {cat.is_hazardous && <span className="text-[9px] md:text-[10px] text-red-500 font-bold">?? Dangereux</span>}
               </button>
             ))}
           </div>
@@ -277,7 +268,7 @@ export default function NewRequest() {
             </button>
             <div className="text-center">
               <span className="text-4xl font-bold text-[#1A8A3C]">{form.quantity_number}</span>
-              <p className="text-xs text-gray-400 mt-1">{isEn ? 'unit(s) / bag(s)' : 'unit√©(s) / sac(s)'}</p>
+              <p className="text-xs text-gray-400 mt-1">{isEn ? 'unit(s) / bag(s)' : 'unitÈ(s) / sac(s)'}</p>
             </div>
             <button type="button"
               onClick={() => set('quantity_number', Math.min(20, form.quantity_number + 1))}
@@ -288,13 +279,10 @@ export default function NewRequest() {
         </div>
 
         {/* Details */}
-<<<<<<< HEAD
         <div className="card p-6 flex flex-col gap-5">
-          <h3 className="font-display font-bold">{isEn ? 'Collection details' : 'D√©tails de la collecte'}</h3>
-=======
+          <h3 className="font-display font-bold">{isEn ? 'Collection details' : 'DÈtails de la collecte'}</h3>
         <div className="card p-4 md:p-6 flex flex-col gap-4 md:gap-5">
-          <h3 className="font-display font-bold text-base md:text-lg">D√©tails de la collecte</h3>
->>>>>>> a2e4304 (......./.)
+          <h3 className="font-display font-bold text-base md:text-lg">DÈtails de la collecte</h3>
 
           <div>
             <label className="label">{isEn ? 'Your GPS position' : 'Votre position GPS'} <span className="text-red-500">*</span></label>
@@ -304,8 +292,8 @@ export default function NewRequest() {
               {locating
                 ? (isEn ? 'Locating...' : 'Localisation...')
                 : form.latitude
-                  ? `üìç ${isEn ? 'Position obtained' : 'Position obtenue'} (${form.latitude.toFixed(4)}, ${form.longitude.toFixed(4)})`
-                  : (isEn ? 'Enable geolocation' : 'Activer la g√©olocalisation')}
+                  ? `?? ${isEn ? 'Position obtained' : 'Position obtenue'} (${form.latitude.toFixed(4)}, ${form.longitude.toFixed(4)})`
+                  : (isEn ? 'Enable geolocation' : 'Activer la gÈolocalisation')}
             </button>
           </div>
 
@@ -323,19 +311,19 @@ export default function NewRequest() {
             </button>
             {geoError && <p className="text-sm text-red-500">{geoError}</p>}
             {form.latitude && form.longitude && (
-              <p className="text-sm text-gray-500">Position captur√©e : {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</p>
+              <p className="text-sm text-gray-500">Position capturÈe : {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</p>
             )}
           </div>
 
           <div>
-            <label className="label">{isEn ? 'Estimated quantity (description)' : 'Quantit√© estim√©e (description)'}</label>
-            <input className="input" placeholder={isEn ? 'e.g. 3 bags, 2m¬≥, 1 sofa...' : 'Ex: 3 sacs, 2m¬≥, 1 canap√©...'} value={form.quantity_estimate}
+            <label className="label">{isEn ? 'Estimated quantity (description)' : 'QuantitÈ estimÈe (description)'}</label>
+            <input className="input" placeholder={isEn ? 'e.g. 3 bags, 2m≥, 1 sofa...' : 'Ex: 3 sacs, 2m≥, 1 canapÈ...'} value={form.quantity_estimate}
               onChange={e => set('quantity_estimate', e.target.value)} />
           </div>
 
           {form.service_type !== 'immediate' && (
             <div>
-              <label className="label">{isEn ? 'Desired date and time' : 'Date et heure souhait√©es'} <span className="text-red-500">*</span></label>
+              <label className="label">{isEn ? 'Desired date and time' : 'Date et heure souhaitÈes'} <span className="text-red-500">*</span></label>
               <input type="datetime-local" className="input" value={form.scheduled_at}
                 min={new Date().toISOString().slice(0, 16)}
                 onChange={e => set('scheduled_at', e.target.value)} />
@@ -359,16 +347,16 @@ export default function NewRequest() {
             {estimate ? (
               <div className="flex flex-col gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-500">{isEn ? 'Waste type' : 'Type de d√©chet'}</span>
+                  <span className="text-gray-500">{isEn ? 'Waste type' : 'Type de dÈchet'}</span>
                   <span className="font-medium">{categories.find(c => c.id == form.category_id)?.name}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">{isEn ? 'Base price / unit' : 'Prix de base / unit√©'}</span>
+                  <span className="text-gray-500">{isEn ? 'Base price / unit' : 'Prix de base / unitÈ'}</span>
                   <span className="font-medium">{estimate.base_price?.toLocaleString()} FCFA</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">{isEn ? 'Quantity' : 'Quantit√©'}</span>
-                  <span className="font-medium">{estimate.quantity} {isEn ? 'unit(s)' : 'unit√©(s)'}</span>
+                  <span className="text-gray-500">{isEn ? 'Quantity' : 'QuantitÈ'}</span>
+                  <span className="font-medium">{estimate.quantity} {isEn ? 'unit(s)' : 'unitÈ(s)'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">{isEn ? 'Collector distance' : 'Distance collecteur'}</span>
@@ -377,7 +365,7 @@ export default function NewRequest() {
                 <div className="flex justify-between">
                   <span className="text-gray-500">{isEn ? 'Available collector' : 'Collecteur disponible'}</span>
                   <span className={`font-medium ${estimate.collector_found ? 'text-[#1A8A3C]' : 'text-orange-500'}`}>
-                    {estimate.collector_found ? `‚úÖ ${estimate.collector_name}` : (isEn ? '‚è≥ Searching...' : '‚è≥ Recherche...')}
+                    {estimate.collector_found ? `? ${estimate.collector_name}` : (isEn ? '? Searching...' : '? Recherche...')}
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-[#C8EDDA] pt-2 mt-1">
@@ -387,7 +375,7 @@ export default function NewRequest() {
               </div>
             ) : (
               <p className="text-sm text-gray-500">
-                {isEn ? 'Select a category and enable geolocation to see the estimate.' : 'S√©lectionnez une cat√©gorie et activez la g√©olocalisation pour voir l\'estimation.'}
+                {isEn ? 'Select a category and enable geolocation to see the estimate.' : 'SÈlectionnez une catÈgorie et activez la gÈolocalisation pour voir l\'estimation.'}
               </p>
             )}
           </div>

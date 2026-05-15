@@ -1,4 +1,4 @@
-ï»¿import { useState } from 'react'
+import { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import { Leaf, Lock, CheckCircle, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -20,7 +20,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!password || password.length < 8)
-      return toast.error(isEn ? 'Password must be at least 8 characters' : 'Le mot de passe doit contenir au moins 8 caractÃ¨res')
+      return toast.error(isEn ? 'Password must be at least 8 characters' : 'Le mot de passe doit contenir au moins 8 caractères')
     if (password !== confirm)
       return toast.error(isEn ? "Passwords don't match" : 'Les mots de passe ne correspondent pas')
     setLoading(true)
@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
               {isEn ? 'Invalid link' : 'Lien invalide'}
             </h2>
             <p className="text-gray-500 text-sm mb-6">
-              {isEn ? 'This reset link is invalid or has expired.' : 'Ce lien de rÃ©initialisation est invalide ou a expirÃ©.'}
+              {isEn ? 'This reset link is invalid or has expired.' : 'Ce lien de réinitialisation est invalide ou a expiré.'}
             </p>
             <Link to="/forgot-password" className="btn-primary w-full justify-center py-3">
               {isEn ? 'Request a new link' : 'Demander un nouveau lien'}
@@ -85,12 +85,12 @@ export default function ResetPasswordPage() {
           <>
             <h2 className="text-2xl font-display font-bold mb-2">{t('auth.resetPassword.title')}</h2>
             <p className="text-gray-500 text-sm mb-6">
-              {isEn ? 'Choose a strong new password.' : 'Choisissez un nouveau mot de passe sÃ©curisÃ©.'}
+              {isEn ? 'Choose a strong new password.' : 'Choisissez un nouveau mot de passe sécurisé.'}
             </p>
             <form onSubmit={handleSubmit} className="space-y-5 text-left">
               <div>
                 <label className="label">{t('user.profile.newPassword')}</label>
-                <input type="password" className="input" placeholder={isEn ? 'Min. 8 characters' : 'Min. 8 caractÃ¨res'}
+                <input type="password" className="input" placeholder={isEn ? 'Min. 8 characters' : 'Min. 8 caractères'}
                   value={password} onChange={e => setPassword(e.target.value)} />
                 <p className="text-xs text-gray-400 mt-1">
                   {isEn ? 'Must contain uppercase, lowercase and a digit' : 'Doit contenir une majuscule, une minuscule et un chiffre'}
@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3.5">
                 {loading ? <Spinner size="sm" /> : <Lock size={16} />}
-                {loading ? (isEn ? 'Resetting...' : 'RÃ©initialisation...') : t('auth.resetPassword.submit')}
+                {loading ? (isEn ? 'Resetting...' : 'Réinitialisation...') : t('auth.resetPassword.submit')}
               </button>
             </form>
           </>

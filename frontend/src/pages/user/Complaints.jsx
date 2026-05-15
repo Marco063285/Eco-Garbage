@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageSquare, Plus } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
@@ -18,10 +18,10 @@ export default function Complaints() {
   const [submitting, setSubmitting] = useState(false)
 
   const TYPES = [
-    { value: 'missed_pickup',        label: isEn ? 'Missed pickup'        : 'Collecte manquÃ©e' },
+    { value: 'missed_pickup',        label: isEn ? 'Missed pickup'        : 'Collecte manquée' },
     { value: 'incorrect_pricing',    label: isEn ? 'Incorrect pricing'    : 'Tarif incorrect' },
     { value: 'collector_misconduct', label: isEn ? 'Collector misconduct' : 'Comportement du collecteur' },
-    { value: 'service_quality',      label: isEn ? 'Service quality'      : 'QualitÃ© du service' },
+    { value: 'service_quality',      label: isEn ? 'Service quality'      : 'Qualité du service' },
     { value: 'other',                label: isEn ? 'Other'                : 'Autre' },
   ]
 

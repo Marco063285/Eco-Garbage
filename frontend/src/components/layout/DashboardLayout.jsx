@@ -1,13 +1,9 @@
-﻿import { useState, useEffect, useMemo, useCallback, memo } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import {
   Leaf, LayoutDashboard, Plus, ListOrdered, CreditCard,
   MessageSquare, Bell, Settings, LogOut, Truck, Users,
-<<<<<<< HEAD
-  BarChart3, Tag, ChevronLeft, ChevronRight, Menu, Languages,
-=======
-  BarChart3, Tag, ChevronLeft, ChevronRight, Menu, X, Archive
->>>>>>> a2e4304 (......./.)
+  BarChart3, Tag, ChevronLeft, ChevronRight, Menu, Languages, X, Archive
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { notifApi } from '../../services/api'
@@ -16,24 +12,14 @@ import toast from 'react-hot-toast'
 
 const NAV = {
   user: [
-<<<<<<< HEAD
     { to: '/dashboard', icon: LayoutDashboard, key: 'nav.dashboard', exact: true },
     { to: '/dashboard/new-request', icon: Plus, key: 'nav.newRequest' },
     { to: '/dashboard/requests', icon: ListOrdered, key: 'nav.myRequests' },
+    { to: '/dashboard/archived', icon: Archive, key: 'nav.archived' },
     { to: '/dashboard/payments', icon: CreditCard, key: 'nav.payments' },
     { to: '/dashboard/complaints', icon: MessageSquare, key: 'nav.complaints' },
     { to: '/dashboard/notifications', icon: Bell, key: 'nav.notifications', badge: true },
     { to: '/dashboard/profile', icon: Settings, key: 'nav.profile' },
-=======
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Tableau de bord', exact: true },
-    { to: '/dashboard/new-request', icon: Plus, label: 'Nouvelle collecte' },
-    { to: '/dashboard/requests', icon: ListOrdered, label: 'Mes demandes' },
-    { to: '/dashboard/archived', icon: Archive, label: 'Archives' },
-    { to: '/dashboard/payments', icon: CreditCard, label: 'Paiements' },
-    { to: '/dashboard/complaints', icon: MessageSquare, label: 'Réclamations' },
-    { to: '/dashboard/notifications', icon: Bell, label: 'Notifications', badge: true },
-    { to: '/dashboard/profile', icon: Settings, label: 'Profil' },
->>>>>>> a2e4304 (......./.)
   ],
   collector: [
     { to: '/collector', icon: LayoutDashboard, key: 'nav.dashboard', exact: true },
@@ -168,8 +154,8 @@ function LangToggle() {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
             {[
-              { code: 'fr', label: '🇫🇷 Français' },
-              { code: 'en', label: '🇬🇧 English' },
+              { code: 'fr', label: '???? Fran�ais' },
+              { code: 'en', label: '???? English' },
             ].map(({ code, label }) => (
               <button
                 key={code}
@@ -207,7 +193,7 @@ export default function DashboardLayout({ role }) {
 
   const handleLogout = useCallback(() => {
     logout()
-    toast.success(t('nav.logout') + ' ✓')
+    toast.success(t('nav.logout') + ' ?')
     navigate('/login')
   }, [logout, navigate, t])
 

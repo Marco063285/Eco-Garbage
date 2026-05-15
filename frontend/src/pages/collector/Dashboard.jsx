@@ -1,4 +1,4 @@
-Ôªøimport { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { Truck, CheckCircle, Star, ToggleLeft, ToggleRight, ArrowRight, MapPin } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -67,7 +67,7 @@ export default function CollectorDashboard() {
       }
       await collectorApi.setAvailability({ is_available: newState })
       setAvailable(newState)
-      if (newState) { startLocationTracking(); toast.success(t('collector.dashboard.available') + ' üìç') }
+      if (newState) { startLocationTracking(); toast.success(t('collector.dashboard.available') + ' ??') }
       else { stopLocationTracking(); toast.success(t('collector.dashboard.unavailable')) }
     } catch {
       toast.error(t('common.serverError'))
@@ -93,7 +93,7 @@ export default function CollectorDashboard() {
             {initials}
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold">{greeting}, {user?.name?.split(' ')[0]} üöõ</h1>
+            <h1 className="text-2xl font-display font-bold">{greeting}, {user?.name?.split(' ')[0]} ??</h1>
             <p className="text-sm text-gray-400 mt-0.5">{t('collector.dashboard.subtitle')}</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function CollectorDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={Truck}       label={t('collector.dashboard.totalCollections')} value={stats?.completed ?? 0} color="green" />
         <StatCard icon={CheckCircle} label={t('common.active')}                        value={tasks.filter(tk => tk.status === 'completed').length} color="blue" />
-        <StatCard icon={Star}        label={t('collector.dashboard.rating')}            value={stats?.profile?.rating_avg ? parseFloat(stats.profile.rating_avg).toFixed(1) : '‚Äî'} color="yellow" />
+        <StatCard icon={Star}        label={t('collector.dashboard.rating')}            value={stats?.profile?.rating_avg ? parseFloat(stats.profile.rating_avg).toFixed(1) : 'ó'} color="yellow" />
         <StatCard icon={Truck}       label={t('collector.dashboard.earnings')}          value={`${(stats?.earnings || 0).toLocaleString()} FCFA`} color="purple" />
       </div>
 
@@ -158,7 +158,7 @@ export default function CollectorDashboard() {
                     <p className="text-sm font-semibold text-gray-800 truncate">{tk.category_name}</p>
                     <p className="text-xs text-gray-400 mt-0.5 truncate">{tk.address}</p>
                     <p className="text-xs text-gray-300 mt-0.5">
-                      {tk.user_name} ¬∑ {format(new Date(tk.created_at), 'dd MMM', { locale: dateLocale })}
+                      {tk.user_name} ∑ {format(new Date(tk.created_at), 'dd MMM', { locale: dateLocale })}
                     </p>
                   </div>
                   <StatusBadge status={tk.status} />
@@ -174,8 +174,8 @@ export default function CollectorDashboard() {
             <h3 className="font-display font-bold mb-4">Actions rapides</h3>
             <div className="flex flex-col gap-2.5">
               {[
-                { to: '/collector/tasks', icon: 'üìã', label: 'Mes t√¢ches' },
-                { to: '/collector/archived', icon: 'üìÅ', label: 'T√¢ches archiv√©es' },
+                { to: '/collector/tasks', icon: '??', label: 'Mes t‚ches' },
+                { to: '/collector/archived', icon: '??', label: 'T‚ches archivÈes' },
               ].map(a => (
                 <Link key={a.to} to={a.to}
                   className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:border-[#1A8A3C] hover:text-[#1A8A3C] hover:bg-[#E8F5EE] transition-all">
@@ -190,7 +190,7 @@ export default function CollectorDashboard() {
             <div className="flex flex-col gap-4">
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-gray-500">Taux de compl√©tion</span>
+                  <span className="text-gray-500">Taux de complÈtion</span>
                   <span className="font-semibold text-[#1A8A3C]">92%</span>
                 </div>
                 <div className="bg-gray-100 rounded-full h-2">
@@ -201,7 +201,7 @@ export default function CollectorDashboard() {
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-gray-500">Satisfaction</span>
                   <span className="font-semibold text-yellow-500">
-                    {stats?.profile?.rating_avg ? `${parseFloat(stats.profile.rating_avg).toFixed(1)}/5` : '‚Äî'}
+                    {stats?.profile?.rating_avg ? `${parseFloat(stats.profile.rating_avg).toFixed(1)}/5` : 'ó'}
                   </span>
                 </div>
                 <div className="bg-gray-100 rounded-full h-2">

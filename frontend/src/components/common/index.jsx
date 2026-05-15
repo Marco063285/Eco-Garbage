@@ -1,7 +1,7 @@
-﻿import { Leaf } from 'lucide-react'
+import { Leaf } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-// ── Spinner ───────────────────────────────────────
+// -- Spinner ---------------------------------------
 export function Spinner({ size = 'md', className = '' }) {
   const s = size === 'sm' ? 'w-5 h-5 border-2' : size === 'lg' ? 'w-10 h-10 border-4' : 'w-8 h-8 border-4'
   return <span className={`${s} border-[#1A8A3C] border-t-transparent rounded-full spinner inline-block ${className}`} />
@@ -19,14 +19,14 @@ export function PageLoader() {
   )
 }
 
-// ── Status Badge ──────────────────────────────────
+// -- Status Badge ----------------------------------
 export function StatusBadge({ status }) {
   const { t } = useTranslation()
   const label = t(`status.${status}`, { defaultValue: status })
   return <span className={`badge-${status} badge`}>{label}</span>
 }
 
-// ── Stat Card ─────────────────────────────────────
+// -- Stat Card -------------------------------------
 export function StatCard({ icon: Icon, label, value, sub, color = 'green', trend }) {
   const colors = {
     green:  { bg: 'bg-[#E8F5EE]',  text: 'text-[#1A8A3C]' },
@@ -55,7 +55,7 @@ export function StatCard({ icon: Icon, label, value, sub, color = 'green', trend
   )
 }
 
-// ── Empty State ───────────────────────────────────
+// -- Empty State -----------------------------------
 export function EmptyState({ icon: Icon = Leaf, title, description, action }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 md:py-16 text-center">
@@ -69,7 +69,7 @@ export function EmptyState({ icon: Icon = Leaf, title, description, action }) {
   )
 }
 
-// ── Modal ─────────────────────────────────────────
+// -- Modal -----------------------------------------
 export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   if (!isOpen) return null
   const sizes = { sm: 'max-w-sm', md: 'max-w-md', lg: 'max-w-lg', xl: 'max-w-2xl' }
@@ -79,7 +79,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       <div className={`relative bg-white rounded-2xl shadow-xl w-full ${sizes[size]} fade-up`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-display font-bold">{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">✕</button>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">?</button>
         </div>
         <div className="p-6">{children}</div>
       </div>
@@ -87,7 +87,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
   )
 }
 
-// ── Confirm Dialog ────────────────────────────────
+// -- Confirm Dialog --------------------------------
 export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, confirmLabel, danger = false }) {
   const { t } = useTranslation()
   return (
@@ -106,7 +106,7 @@ export function ConfirmDialog({ isOpen, onClose, onConfirm, title, message, conf
   )
 }
 
-// ── Page Header ───────────────────────────────────
+// -- Page Header -----------------------------------
 export function PageHeader({ title, subtitle, action }) {
   return (
     <div className="flex items-start justify-between mb-8 gap-4 flex-wrap">
@@ -119,7 +119,7 @@ export function PageHeader({ title, subtitle, action }) {
   )
 }
 
-// ── Form Field ────────────────────────────────────
+// -- Form Field ------------------------------------
 export function Field({ label, error, required, children }) {
   return (
     <div className="form-group">
@@ -134,7 +134,7 @@ export function Field({ label, error, required, children }) {
   )
 }
 
-// ── Table ─────────────────────────────────────────
+// -- Table -----------------------------------------
 export function Table({ columns, data, emptyMessage }) {
   const { t } = useTranslation()
   const msg = emptyMessage || t('common.noData')
@@ -163,7 +163,7 @@ export function Table({ columns, data, emptyMessage }) {
               <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                 {columns.map(col => (
                   <td key={col.key} className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                    {col.render ? col.render(row) : row[col.key] ?? '—'}
+                    {col.render ? col.render(row) : row[col.key] ?? '�'}
                   </td>
                 ))}
               </tr>
@@ -175,7 +175,7 @@ export function Table({ columns, data, emptyMessage }) {
   )
 }
 
-// ── Select ────────────────────────────────────────
+// -- Select ----------------------------------------
 export function Select({ options, value, onChange, placeholder, className = '' }) {
   return (
     <select value={value} onChange={e => onChange(e.target.value)} className={`input ${className}`}>
@@ -187,7 +187,7 @@ export function Select({ options, value, onChange, placeholder, className = '' }
   )
 }
 
-// ── Pagination ────────────────────────────────────
+// -- Pagination ------------------------------------
 export function Pagination({ page, total, limit, onChange }) {
   const { t } = useTranslation()
   const totalPages = Math.ceil(total / limit)

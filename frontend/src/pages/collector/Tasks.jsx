@@ -1,33 +1,23 @@
-Ôªøimport { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-<<<<<<< HEAD
-import { Truck } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { collectorApi } from '../../services/api'
-=======
 import { Truck, Filter, CheckCircle2, Archive } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { collectorApi, requestApi } from '../../services/api'
->>>>>>> a2e4304 (......./.)
-import { PageHeader, StatusBadge, PageLoader, EmptyState, Pagination } from '../../components/common'
 import { format } from 'date-fns'
 import { fr, enUS } from 'date-fns/locale'
 import getCategoryIcon from '../../utils/categoryIcons'
 
 const VIEWS = [
-  { value: 'tasks', label: 'Mes t√¢ches' },
+  { value: 'tasks', label: 'Mes t‚ches' },
   { value: 'available', label: 'Demandes disponibles' },
 ]
 
 export default function CollectorTasks() {
-<<<<<<< HEAD
   const { t, i18n } = useTranslation()
   const dateLocale = i18n.language?.startsWith('en') ? enUS : fr
   const isEn = i18n.language?.startsWith('en')
-=======
   const [view, setView] = useState('tasks')
->>>>>>> a2e4304 (......./.)
-  const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
   const [page, setPage] = useState(1)
@@ -36,7 +26,6 @@ export default function CollectorTasks() {
   const [archiving, setArchiving] = useState(null)
   const LIMIT = 10
 
-<<<<<<< HEAD
   const FILTERS = [
     { value: '',            label: isEn ? 'All'         : 'Toutes' },
     { value: 'assigned',    label: t('status.assigned') },
@@ -45,11 +34,7 @@ export default function CollectorTasks() {
     { value: 'completed',   label: t('status.completed') },
   ]
 
-  const loadData = (status = '', p = 1) => {
-=======
   const loadData = (mode = 'tasks', status = '', p = 1) => {
->>>>>>> a2e4304 (......./.)
-    setLoading(true)
     const params = { limit: LIMIT, page: p }
     if (mode === 'tasks') {
       if (status) params.status = status
@@ -78,7 +63,7 @@ export default function CollectorTasks() {
     setAccepting(true)
     try {
       await requestApi.updateStatus(uuid, { status: 'assigned' })
-      toast.success('Vous avez accept√© cette demande.')
+      toast.success('Vous avez acceptÈ cette demande.')
       loadData('available', '', page)
     } catch (err) {
       toast.error(err.response?.data?.message || 'Impossible d accepter la demande.')
@@ -93,7 +78,7 @@ export default function CollectorTasks() {
     setArchiving(uuid)
     try {
       await requestApi.archive(uuid)
-      toast.success('T√¢che archiv√©e avec succ√®s')
+      toast.success('T‚che archivÈe avec succËs')
       loadData(view, filter, page) // Refresh the list
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
@@ -102,35 +87,24 @@ export default function CollectorTasks() {
     }
   }
 
-  const title = view === 'tasks' ? 'Mes t√¢ches' : 'Demandes disponibles'
-  const subtitle = view === 'tasks' ? `${total} t√¢che(s)` : `${total} demande(s) disponibles`
+  const title = view === 'tasks' ? 'Mes t‚ches' : 'Demandes disponibles'
+  const subtitle = view === 'tasks' ? `${total} t‚che(s)` : `${total} demande(s) disponibles`
 
   return (
     <div className="fade-up">
-<<<<<<< HEAD
-      <PageHeader title={t('collector.tasks.title')} subtitle={`${total} ${isEn ? 'task(s)' : 't√¢che(s)'}`} />
-=======
+      <PageHeader title={t('collector.tasks.title')} subtitle={`${total} ${isEn ? 'task(s)' : 't‚che(s)'}`} />
       <PageHeader title={title} subtitle={subtitle} />
->>>>>>> a2e4304 (......./.)
 
       <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
         {VIEWS.map(v => (
           <button key={v.value} onClick={() => setView(v.value)}
             className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex-shrink-0 ${
-<<<<<<< HEAD
-              filter === f.value
-                ? 'bg-[#1A8A3C] text-white'
-                : 'bg-white text-gray-500 border border-gray-200 hover:border-[#1A8A3C]'
-=======
               view === v.value ? 'bg-[#1A8A3C] text-white' : 'bg-white text-gray-500 border border-gray-200 hover:border-[#1A8A3C]'
->>>>>>> a2e4304 (......./.)
-            }`}>
             {v.label}
           </button>
         ))}
       </div>
 
-<<<<<<< HEAD
       {loading ? <PageLoader /> : tasks.length === 0 ? (
         <EmptyState icon={Truck} title={t('collector.tasks.noTasks')} description={t('collector.tasks.noTasksDesc')} />
       ) : (
@@ -146,11 +120,11 @@ export default function CollectorTasks() {
                   <p className="font-semibold text-gray-800">{tk.category_name}</p>
                   <StatusBadge status={tk.status} />
                 </div>
-                <p className="text-sm text-gray-400 mt-1 truncate">üìç {tk.address}</p>
+                <p className="text-sm text-gray-400 mt-1 truncate">?? {tk.address}</p>
                 <p className="text-xs text-gray-300 mt-0.5">
-                  üë§ {tk.user_name}
-                  {tk.user_phone && ` ¬∑ üìû ${tk.user_phone}`}
-                  {' ¬∑ '}{format(new Date(tk.created_at), 'dd MMM yyyy', { locale: dateLocale })}
+                  ?? {tk.user_name}
+                  {tk.user_phone && ` ∑ ?? ${tk.user_phone}`}
+                  {' ∑ '}{format(new Date(tk.created_at), 'dd MMM yyyy', { locale: dateLocale })}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
@@ -159,7 +133,6 @@ export default function CollectorTasks() {
                 )}
               </div>
             </Link>
-=======
       {view === 'tasks' && (
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
           {FILTERS.map(f => (
@@ -169,7 +142,6 @@ export default function CollectorTasks() {
               }`}>
               {f.label}
             </button>
->>>>>>> a2e4304 (......./.)
           ))}
         </div>
       )}
@@ -177,8 +149,8 @@ export default function CollectorTasks() {
       {loading ? <PageLoader /> : tasks.length === 0 ? (
         <EmptyState
           icon={Truck}
-          title={view === 'tasks' ? 'Aucune t√¢che' : 'Aucune demande disponible'}
-          description={view === 'tasks' ? 'Aucune t√¢che ne correspond √† ce filtre.' : 'Aucune collecte en attente pour le moment.'}
+          title={view === 'tasks' ? 'Aucune t‚che' : 'Aucune demande disponible'}
+          description={view === 'tasks' ? 'Aucune t‚che ne correspond ‡ ce filtre.' : 'Aucune collecte en attente pour le moment.'}
         />
       ) : (
         <div className="flex flex-col gap-3">
@@ -192,11 +164,11 @@ export default function CollectorTasks() {
                       <p className="font-semibold text-gray-800">{t.category_name}</p>
                       <StatusBadge status={t.status} />
                     </div>
-                    <p className="text-sm text-gray-400 mt-1 truncate">üìç {t.address}</p>
+                    <p className="text-sm text-gray-400 mt-1 truncate">?? {t.address}</p>
                     <p className="text-xs text-gray-300 mt-0.5">
-                      üë§ {t.user_name}
-                      {t.user_phone && ` ¬∑ üìû ${t.user_phone}`}
-                      {' ¬∑ '}{format(new Date(t.created_at), 'dd MMM yyyy', { locale: fr })}
+                      ?? {t.user_name}
+                      {t.user_phone && ` ∑ ?? ${t.user_phone}`}
+                      {' ∑ '}{format(new Date(t.created_at), 'dd MMM yyyy', { locale: fr })}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -210,7 +182,7 @@ export default function CollectorTasks() {
                     onClick={(e) => handleArchive(t.uuid, e)}
                     disabled={archiving === t.uuid}
                     className="btn-outline p-2 ml-2 flex-shrink-0"
-                    title="Archiver cette t√¢che"
+                    title="Archiver cette t‚che"
                   >
                     <Archive size={16} />
                   </button>
@@ -225,18 +197,18 @@ export default function CollectorTasks() {
                       <p className="font-semibold text-gray-800">{t.category_name}</p>
                       <StatusBadge status={t.status} />
                     </div>
-                    <p className="text-sm text-gray-400 mt-1 truncate">üìç {t.address}</p>
+                    <p className="text-sm text-gray-400 mt-1 truncate">?? {t.address}</p>
                     <p className="text-xs text-gray-300 mt-0.5">
-                      üë§ {t.user_name}
-                      {t.user_phone && ` ¬∑ üìû ${t.user_phone}`}
-                      {' ¬∑ '}{format(new Date(t.created_at), 'dd MMM yyyy', { locale: fr })}
+                      ?? {t.user_name}
+                      {t.user_phone && ` ∑ ?? ${t.user_phone}`}
+                      {' ∑ '}{format(new Date(t.created_at), 'dd MMM yyyy', { locale: fr })}
                     </p>
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 justify-between">
                   <div className="text-sm text-gray-700">
-                    <p>Prix estim√© : <span className="font-semibold text-[#1A8A3C]">{t.estimated_price ? `${parseFloat(t.estimated_price).toLocaleString()} FCFA` : '‚Äî'}</span></p>
-                    <p>Demande cr√©√©e : {format(new Date(t.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}</p>
+                    <p>Prix estimÈ : <span className="font-semibold text-[#1A8A3C]">{t.estimated_price ? `${parseFloat(t.estimated_price).toLocaleString()} FCFA` : 'ó'}</span></p>
+                    <p>Demande crÈÈe : {format(new Date(t.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}</p>
                   </div>
                   <button
                     onClick={() => handleAccept(t.uuid)}

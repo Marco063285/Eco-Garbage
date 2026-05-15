@@ -15,7 +15,6 @@ const ResetPasswordPage  = lazy(() => import('./pages/auth/ResetPasswordPage'))
 
 const LandingPage        = lazy(() => import('./pages/LandingPage'))
 
-<<<<<<< HEAD
 const UserDashboard      = lazy(() => import('./pages/user/Dashboard'))
 const NewRequest         = lazy(() => import('./pages/user/NewRequest'))
 const MyRequests         = lazy(() => import('./pages/user/MyRequests'))
@@ -24,24 +23,12 @@ const Payments           = lazy(() => import('./pages/user/Payments'))
 const Complaints         = lazy(() => import('./pages/user/Complaints'))
 const Profile            = lazy(() => import('./pages/user/Profile'))
 const Notifications      = lazy(() => import('./pages/user/Notifications'))
-=======
 // User Pages
-import UserDashboard from './pages/user/Dashboard'
-import NewRequest from './pages/user/NewRequest'
-import MyRequests from './pages/user/MyRequests'
-import RequestDetail from './pages/user/RequestDetail'
-import ArchivedRequests from './pages/user/ArchivedRequests'
-import Payments from './pages/user/Payments'
-import Complaints from './pages/user/Complaints'
-import Profile from './pages/user/Profile'
-import Notifications from './pages/user/Notifications'
->>>>>>> a2e4304 (......./.)
 
 const CollectorDashboard = lazy(() => import('./pages/collector/Dashboard'))
 const CollectorTasks     = lazy(() => import('./pages/collector/Tasks'))
 const TaskDetail         = lazy(() => import('./pages/collector/TaskDetail'))
 
-<<<<<<< HEAD
 const AdminDashboard     = lazy(() => import('./pages/admin/Dashboard'))
 const AdminUsers         = lazy(() => import('./pages/admin/Users'))
 const AdminRequests      = lazy(() => import('./pages/admin/Requests'))
@@ -56,16 +43,9 @@ function PageFallback() {
     </div>
   )
 }
-=======
-// Admin Pages
-import AdminDashboard from './pages/admin/Dashboard'
-import AdminUsers from './pages/admin/Users'
-import AdminRequests from './pages/admin/Requests'
-import AdminCategories from './pages/admin/Categories'
-import AdminComplaints from './pages/admin/Complaints'
-import AdminReports from './pages/admin/Reports'
-import CollectorDetail from './pages/admin/CollectorDetail'
->>>>>>> a2e4304 (......./.)
+const CollectorDetail    = lazy(() => import('./pages/admin/CollectorDetail'))
+
+const ArchivedRequests   = lazy(() => import('./pages/user/ArchivedRequests'))
 
 // Guards
 function PrivateRoute({ children, roles }) {
