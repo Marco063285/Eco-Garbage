@@ -60,7 +60,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         <div className="relative z-10 text-center max-w-sm">
-          <div className="text-7xl mb-8">??</div>
+          <div className="text-7xl mb-8">‚ôªÔ∏è</div>
           <Link to="/" className="flex items-center justify-center gap-2.5 font-display font-bold text-2xl text-white mb-6">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <Leaf size={20} className="text-white" />
@@ -72,7 +72,7 @@ export default function LoginPage() {
           <div className="mt-8 flex flex-col gap-3">
             {t('auth.login.features', { returnObjects: true }).map(f => (
               <div key={f} className="flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl text-sm text-white">
-                <span className="text-green-300">?</span>{f}
+                <span className="text-green-300">‚úì</span>{f}
               </div>
             ))}
           </div>
@@ -123,7 +123,7 @@ export default function LoginPage() {
                   </Link>
                 </label>
                 <div className="relative">
-                  <input type={showPw ? 'text' : 'password'} className="input pr-10" placeholder="ïïïïïïïï"
+                  <input type={showPw ? 'text' : 'password'} className="input pr-10" placeholder="‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢"
                     value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
                   <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
                     onClick={() => setShowPw(!showPw)}>

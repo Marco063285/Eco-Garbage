@@ -17,7 +17,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     if (!token) {
       setStatus('error')
-      setMessage(isEn ? 'Invalid verification link.' : 'Lien de vérification invalide.')
+      setMessage(isEn ? 'Invalid verification link.' : 'Lien de vÃ©rification invalide.')
       return
     }
 
@@ -57,7 +57,7 @@ export default function VerifyEmailPage() {
               </div>
             </div>
             <h2 className="text-2xl font-display font-bold mb-2">
-              {isEn ? 'Email verified!' : 'Email vérifié !'}
+              {isEn ? 'Email verified!' : 'Email vÃ©rifiÃ© !'}
             </h2>
             <p className="text-gray-500 text-sm mb-6">{message}</p>
             <Link to="/login" className="btn-primary w-full justify-center py-3">
@@ -78,7 +78,7 @@ export default function VerifyEmailPage() {
             </h2>
             <p className="text-gray-500 text-sm mb-6">{message}</p>
             <Link to="/register" className="btn-primary w-full justify-center py-3">
-              {isEn ? 'Create a new account' : 'Créer un nouveau compte'}
+              {isEn ? 'Create a new account' : 'CrÃ©er un nouveau compte'}
             </Link>
           </>
         )}

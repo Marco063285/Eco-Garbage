@@ -32,14 +32,14 @@ export default function Payments() {
           <div className="flex flex-col gap-3">
             {payments.map(p => (
               <div key={p.uuid} className="card p-4 flex items-center gap-4">
-                <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center flex-shrink-0">??</div>
+                <div className="w-10 h-10 bg-[#E8F5EE] rounded-xl flex items-center justify-center flex-shrink-0">💳</div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold">{p.category_name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {p.paid_at
                       ? format(new Date(p.paid_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })
                       : t('status.pending')}
-                    {p.method && ` � ${p.method}`}
+                    {p.method && ` · ${p.method}`}
                   </p>
                 </div>
                 <div className="text-right">

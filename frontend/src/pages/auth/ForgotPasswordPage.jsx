@@ -46,12 +46,12 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
               <h2 className="text-2xl font-display font-bold mb-2">
-                {isEn ? 'Email sent' : 'Email envoyé'}
+                {isEn ? 'Email sent' : 'Email envoyÃ©'}
               </h2>
               <p className="text-gray-500 text-sm leading-relaxed mb-6">
                 {isEn
                   ? `If an account exists with ${email}, you will receive a reset link. Check your spam.`
-                  : `Si un compte existe avec ${email}, vous recevrez un lien de réinitialisation. Vérifiez vos spams.`}
+                  : `Si un compte existe avec ${email}, vous recevrez un lien de rÃ©initialisation. VÃ©rifiez vos spams.`}
               </p>
               <Link to="/login" className="btn-primary w-full justify-center py-3">
                 {t('auth.forgotPassword.backToLogin')}

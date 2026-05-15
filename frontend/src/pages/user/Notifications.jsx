@@ -50,7 +50,7 @@ export default function Notifications() {
               ${!n.is_read ? 'border-[#1A8A3C]/20 bg-[#f0fdf4]' : ''}`}>
               <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base
                 ${!n.is_read ? 'bg-[#1A8A3C] text-white' : 'bg-gray-100'}`}>
-                {n.type === 'welcome' ? '??' : n.type === 'request' ? '??' : n.type === 'update' ? '??' : '??'}
+                {n.type === 'welcome' ? '🎉' : n.type === 'request' ? '🗑️' : n.type === 'update' ? '🔔' : '📩'}
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-semibold ${!n.is_read ? 'text-gray-900' : 'text-gray-600'}`}>

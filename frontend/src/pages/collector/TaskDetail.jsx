@@ -2,18 +2,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Phone, MapPin, CheckCircle, Navigation, Play, AlertCircle, Archive } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import toast from 'react-hot-toast'
 import { requestApi } from '../../services/api'
 import { StatusBadge, PageLoader, Modal } from '../../components/common'
 import { format } from 'date-fns'
 import { fr, enUS } from 'date-fns/locale'
 import LiveRouteMap from '../../components/common/LiveRouteMap'
 import { watchPosition, getGeolocationStatus } from '../../utils/geolocation'
-
-const STATUS_FLOW = {
-  assigned: { next: 'on_way', label: '?? Démarrer le trajet', icon: Navigation, color: 'bg-blue-500' },
-  on_way: { next: 'in_progress', label: '?? Arrivé sur place', icon: MapPin, color: 'bg-orange-500' },
-  in_progress: { next: 'completed', label: '? Marquer comme complété', icon: CheckCircle, color: 'bg-[#1A8A3C]' },
-}
 
 export default function TaskDetail() {
   const { t, i18n } = useTranslation()
@@ -31,9 +26,9 @@ export default function TaskDetail() {
   const [archiving, setArchiving] = useState(false)
 
   const STATUS_FLOW = {
-    assigned:    { next: 'on_way',      label: isEn ? '?? Start trip'        : '?? Démarrer le trajet', icon: Navigation,   color: 'bg-blue-500' },
-    on_way:      { next: 'in_progress', label: isEn ? '?? Arrived on site'   : '?? Arrivé sur place',  icon: MapPin,       color: 'bg-orange-500' },
-    in_progress: { next: 'completed',   label: isEn ? '? Mark as completed' : '? Marquer comme complété', icon: CheckCircle, color: 'bg-[#1A8A3C]' },
+    assigned:    { next: 'on_way',      label: isEn ? 'ðŸ—ºï¸ Start trip'        : 'ðŸ—ºï¸ DÃ©marrer le trajet', icon: Navigation,   color: 'bg-blue-500' },
+    on_way:      { next: 'in_progress', label: isEn ? 'ðŸ“ Arrived on site'   : 'ðŸ“ ArrivÃ© sur place',  icon: MapPin,       color: 'bg-orange-500' },
+    in_progress: { next: 'completed',   label: isEn ? 'âœ… Mark as completed' : 'âœ… Marquer comme complÃ©tÃ©', icon: CheckCircle, color: 'bg-[#1A8A3C]' },
   }
 
   const fetchTask = async () => {
@@ -41,7 +36,7 @@ export default function TaskDetail() {
       const { data } = await requestApi.get(uuid)
       setTask(data.data)
     } catch {
-      toast.error(isEn ? 'Task not found' : 'Tâche introuvable')
+      toast.error(isEn ? 'Task not found' : 'TÃ¢che introuvable')
       navigate('/collector/tasks')
     } finally {
       setLoading(false)
@@ -85,7 +80,7 @@ export default function TaskDetail() {
     setUpdating(true)
     try {
       await requestApi.updateStatus(uuid, { status: newStatus })
-      toast.success(`${isEn ? 'Status updated:' : 'Statut mis à jour :'} ${t(`status.${newStatus}`)}`)
+      toast.success(`${isEn ? 'Status updated:' : 'Statut mis Ã  jour :'} ${t(`status.${newStatus}`)}`)
       fetchTask()
     } catch (err) {
       toast.error(err.response?.data?.message || t('common.serverError'))
@@ -98,7 +93,7 @@ export default function TaskDetail() {
     setUpdating(true)
     try {
       await requestApi.updateStatus(uuid, { status: 'failed' })
-      toast.error(isEn ? 'Issue reported' : 'Problème signalé')
+      toast.error(isEn ? 'Issue reported' : 'ProblÃ¨me signalÃ©')
       setIssueModal(false)
       navigate('/collector/tasks')
     } catch (err) {
@@ -142,7 +137,7 @@ export default function TaskDetail() {
     setArchiving(true)
     try {
       await requestApi.archive(uuid)
-      toast.success('Tâche archivée avec succès')
+      toast.success('TÃ¢che archivÃ©e avec succÃ¨s')
       navigate('/collector/archived')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
@@ -157,12 +152,12 @@ export default function TaskDetail() {
   const nextAction = STATUS_FLOW[task.status]
 
   const details = [
-    [isEn ? 'Waste type'      : 'Type de déchet',    task.category_name],
+    [isEn ? 'Waste type'      : 'Type de dÃ©chet',    task.category_name],
     [isEn ? 'Service type'    : 'Type de service',    task.service_type],
-    [isEn ? 'Est. quantity'   : 'Quantité estimée',   task.quantity_estimate || '—'],
-    [isEn ? 'Price'           : 'Prix',               task.estimated_price ? `${parseFloat(task.estimated_price).toLocaleString()} FCFA` : '—'],
-    [isEn ? 'Created'         : 'Date de création',   format(new Date(task.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
-    [isEn ? 'Scheduled'       : 'Date planifiée',     task.scheduled_at ? format(new Date(task.scheduled_at), 'dd MMM yyyy HH:mm', { locale: dateLocale }) : '—'],
+    [isEn ? 'Est. quantity'   : 'QuantitÃ© estimÃ©e',   task.quantity_estimate || 'â€”'],
+    [isEn ? 'Price'           : 'Prix',               task.estimated_price ? `${parseFloat(task.estimated_price).toLocaleString()} FCFA` : 'â€”'],
+    [isEn ? 'Created'         : 'Date de crÃ©ation',   format(new Date(task.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
+    [isEn ? 'Scheduled'       : 'Date planifiÃ©e',     task.scheduled_at ? format(new Date(task.scheduled_at), 'dd MMM yyyy HH:mm', { locale: dateLocale }) : 'â€”'],
   ]
 
   return (
@@ -170,7 +165,7 @@ export default function TaskDetail() {
       <div className="flex items-center gap-3 mb-6">
         <button onClick={() => navigate(-1)} className="btn-ghost p-2"><ArrowLeft size={18} /></button>
         <div>
-          <h1 className="text-xl font-display font-bold">{isEn ? 'Task detail' : 'Détail de la tâche'}</h1>
+          <h1 className="text-xl font-display font-bold">{isEn ? 'Task detail' : 'DÃ©tail de la tÃ¢che'}</h1>
           <p className="text-sm text-gray-400">#{task.uuid?.slice(0, 8).toUpperCase()}</p>
         </div>
         <div className="ml-auto"><StatusBadge status={task.status} /></div>
@@ -206,7 +201,7 @@ export default function TaskDetail() {
 
       {/* Task details */}
       <div className="card p-6 mb-5">
-        <h3 className="font-display font-bold mb-4">{isEn ? 'Collection details' : 'Détails de la collecte'}</h3>
+        <h3 className="font-display font-bold mb-4">{isEn ? 'Collection details' : 'DÃ©tails de la collecte'}</h3>
         <div className="grid grid-cols-2 gap-4">
           {details.map(([k, v]) => (
             <div key={k}>
@@ -226,7 +221,7 @@ export default function TaskDetail() {
       {/* Live Route Map */}
       {['assigned', 'on_way', 'in_progress'].includes(task.status) && (
         <div className="card p-6 mb-5">
-          <h3 className="font-display font-bold mb-5">Trajet en temps réel</h3>
+          <h3 className="font-display font-bold mb-5">Trajet en temps rÃ©el</h3>
           <LiveRouteMap
             userLocation={task.latitude && task.longitude ? { latitude: task.latitude, longitude: task.longitude } : null}
             collectorLocation={task.collector_location}
@@ -234,14 +229,14 @@ export default function TaskDetail() {
             collectorLabel="Ma position"
           />
           <p className="text-xs text-gray-500 mt-3">
-            Votre position actuelle et l'adresse de collecte sont affichées. Partagez votre position pour guider le client.
+            Votre position actuelle et l'adresse de collecte sont affichÃ©es. Partagez votre position pour guider le client.
           </p>
           {locationError && (
             <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <p className="font-semibold">Erreur de partage de position :</p>
               <p>{locationError}</p>
               <button onClick={handleRetryLocation} className="mt-3 btn-outline">
-                Réessayer la localisation
+                RÃ©essayer la localisation
               </button>
             </div>
           )}
@@ -256,7 +251,7 @@ export default function TaskDetail() {
             disabled={updating}
             className={`w-full flex items-center justify-center gap-2 py-4 rounded-xl text-white font-bold text-base transition-all ${nextAction.color} hover:opacity-90 disabled:opacity-60`}>
             <nextAction.icon size={20} />
-            {updating ? (isEn ? 'Updating...' : 'Mise à jour...') : nextAction.label}
+            {updating ? (isEn ? 'Updating...' : 'Mise Ã  jour...') : nextAction.label}
           </button>
         </div>
       )}
@@ -264,14 +259,14 @@ export default function TaskDetail() {
       {['assigned', 'on_way', 'in_progress'].includes(task.status) && (
         <button onClick={() => setIssueModal(true)}
           className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-red-500 font-semibold text-sm border-2 border-red-200 hover:bg-red-50 transition-all">
-          <AlertCircle size={16} /> {isEn ? 'Report an issue' : 'Signaler un problème'}
+          <AlertCircle size={16} /> {isEn ? 'Report an issue' : 'Signaler un problÃ¨me'}
         </button>
       )}
 
       {task.status === 'completed' && (
         <div className="bg-green-50 border border-green-200 rounded-2xl p-4 text-center mb-4">
-          <p className="text-lg">??</p>
-          <p className="font-semibold text-green-700 mt-1">{isEn ? 'Collection completed successfully!' : 'Collecte complétée avec succès !'}</p>
+          <p className="text-lg">ðŸŽ‰</p>
+          <p className="font-semibold text-green-700 mt-1">{isEn ? 'Collection completed successfully!' : 'Collecte complÃ©tÃ©e avec succÃ¨s !'}</p>
           {task.collected_at && (
             <p className="text-sm text-green-600 mt-0.5">{format(new Date(task.collected_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })}</p>
           )}
@@ -282,16 +277,16 @@ export default function TaskDetail() {
       {['completed', 'cancelled', 'failed'].includes(task.status) && (
         <button onClick={handleArchive} disabled={archiving} className="btn-primary w-full justify-center mb-4">
           <Archive size={16} />
-          {archiving ? 'Archivage...' : 'Archiver cette tâche'}
+          {archiving ? 'Archivage...' : 'Archiver cette tÃ¢che'}
         </button>
       )}
 
-      <Modal isOpen={issueModal} onClose={() => setIssueModal(false)} title={isEn ? 'Report an issue' : 'Signaler un problème'} size="sm">
+      <Modal isOpen={issueModal} onClose={() => setIssueModal(false)} title={isEn ? 'Report an issue' : 'Signaler un problÃ¨me'} size="sm">
           <p className="text-sm text-gray-500">
-            {isEn ? 'Describe the issue. The collection will be marked as failed.' : 'Décrivez le problème rencontré. La collecte sera marquée comme échouée.'}
+            {isEn ? 'Describe the issue. The collection will be marked as failed.' : 'DÃ©crivez le problÃ¨me rencontrÃ©. La collecte sera marquÃ©e comme Ã©chouÃ©e.'}
           </p>
           <textarea className="input resize-none min-h-[100px]"
-            placeholder={isEn ? 'Client absent, incorrect address, undeclared hazardous waste...' : 'Client absent, adresse incorrecte, déchets dangereux non déclarés...'}
+            placeholder={isEn ? 'Client absent, incorrect address, undeclared hazardous waste...' : 'Client absent, adresse incorrecte, dÃ©chets dangereux non dÃ©clarÃ©s...'}
             value={issueNote} onChange={e => setIssueNote(e.target.value)} />
           <div className="flex gap-3">
             <button onClick={() => setIssueModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">{t('common.cancel')}</button>
@@ -300,7 +295,6 @@ export default function TaskDetail() {
               {isEn ? 'Report' : 'Signaler'}
             </button>
           </div>
-        </div>
       </Modal>
     </div>
   )

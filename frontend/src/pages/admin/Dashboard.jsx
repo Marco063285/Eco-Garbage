@@ -39,17 +39,17 @@ export default function AdminDashboard() {
   const ad = t('admin.dashboard', { returnObjects: true })
 
   const quickLinks = [
-    { to: '/admin/users',      emoji: '??', label: ad.manageUsers },
-    { to: '/admin/requests',   emoji: '??', label: ad.manageCollections },
-    { to: '/admin/categories', emoji: '???', label: ad.wasteCategories },
-    { to: '/admin/complaints', emoji: '??', label: ad.complaints },
-    { to: '/admin/reports',    emoji: '??', label: ad.reportsAnalytics },
+    { to: '/admin/users',      emoji: '👥', label: ad.manageUsers },
+    { to: '/admin/requests',   emoji: '📦', label: ad.manageCollections },
+    { to: '/admin/categories', emoji: '🏷️', label: ad.wasteCategories },
+    { to: '/admin/complaints', emoji: '💬', label: ad.complaints },
+    { to: '/admin/reports',    emoji: '📊', label: ad.reportsAnalytics },
   ]
 
   return (
     <div className="fade-up">
       <div className="mb-8">
-        <h1 className="text-2xl font-display font-bold">{ad.title} ???</h1>
+        <h1 className="text-2xl font-display font-bold">{ad.title} ⚙️</h1>
         <p className="text-gray-400 text-sm mt-0.5">{ad.subtitle}</p>
       </div>
 
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
                   {getCategoryIcon(r.category_icon)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate">{r.user_name} � {r.category_name}</p>
+                  <p className="text-sm font-semibold truncate">{r.user_name} · {r.category_name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">
                     {format(new Date(r.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })}
                   </p>
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
                       <p className="text-xs text-gray-400">{c.total_collections} collectes</p>
                     </div>
                     {c.rating_avg > 0 && (
-                      <span className="text-xs font-semibold text-yellow-500">? {parseFloat(c.rating_avg).toFixed(1)}</span>
+                      <span className="text-xs font-semibold text-yellow-500">⭐ {parseFloat(c.rating_avg).toFixed(1)}</span>
                     )}
                   </div>
                 ))}

@@ -42,10 +42,10 @@ export default function AdminRequests() {
   }, [])
 
   const handleAssign = async () => {
-    if (!selectedCollector) return toast.error(isEn ? 'Select a collector' : 'Sélectionnez un collecteur')
+    if (!selectedCollector) return toast.error(isEn ? 'Select a collector' : 'SÃ©lectionnez un collecteur')
     try {
       await requestApi.assign(assignModal.uuid, { collector_id: selectedCollector })
-      toast.success(isEn ? 'Collector assigned!' : 'Collecteur assigné !')
+      toast.success(isEn ? 'Collector assigned!' : 'Collecteur assignÃ© !')
       setAssignModal(null)
       loadData()
     } catch (err) {
@@ -56,7 +56,7 @@ export default function AdminRequests() {
   const handleApprove = async (uuid) => {
     try {
       await requestApi.updateStatus(uuid, { status: 'approved' })
-      toast.success(isEn ? 'Request approved' : 'Demande approuvée')
+      toast.success(isEn ? 'Request approved' : 'Demande approuvÃ©e')
       loadData()
     } catch (err) {
       toast.error(err.response?.data?.message || t('common.serverError'))
@@ -66,7 +66,7 @@ export default function AdminRequests() {
   const handleReject = async (uuid) => {
     try {
       await requestApi.updateStatus(uuid, { status: 'cancelled' })
-      toast.success(isEn ? 'Request rejected' : 'Demande rejetée')
+      toast.success(isEn ? 'Request rejected' : 'Demande rejetÃ©e')
       loadData()
     } catch (err) {
       toast.error(err.response?.data?.message || t('common.serverError'))
@@ -122,12 +122,12 @@ export default function AdminRequests() {
                     <td className="px-4 py-3 text-gray-500 max-w-[180px] truncate">{r.address}</td>
                     <td className="px-4 py-3"><StatusBadge status={r.status} /></td>
                     <td className="px-4 py-3 text-[#1A8A3C] font-semibold whitespace-nowrap">
-                      {r.estimated_price ? `${parseFloat(r.estimated_price).toLocaleString()} FCFA` : '—'}
+                      {r.estimated_price ? `${parseFloat(r.estimated_price).toLocaleString()} FCFA` : 'â€”'}
                     </td>
                     <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
                       {format(new Date(r.created_at), 'dd MMM', { locale: dateLocale })}
                     </td>
-                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{r.collector_name || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{r.collector_name || 'â€”'}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {r.status === 'pending' && (
@@ -162,12 +162,12 @@ export default function AdminRequests() {
       <Modal isOpen={!!assignModal} onClose={() => setAssignModal(null)} title={isEn ? 'Assign a collector' : 'Assigner un collecteur'}>
         <div className="flex flex-col gap-4">
           <p className="text-sm text-gray-500">
-            {isEn ? 'Request from:' : 'Demande de :'} <strong className="">{assignModal?.user_name}</strong> — {assignModal?.category_name}
+            {isEn ? 'Request from:' : 'Demande de :'} <strong className="">{assignModal?.user_name}</strong> â€” {assignModal?.category_name}
           </p>
           <div>
             <label className="label">{t('roles.collector')}</label>
             <select className="input" value={selectedCollector} onChange={e => setSelectedCollector(e.target.value)}>
-              <option value="">{isEn ? 'Select a collector...' : 'Sélectionnez un collecteur...'}</option>
+              <option value="">{isEn ? 'Select a collector...' : 'SÃ©lectionnez un collecteur...'}</option>
               {collectors.map(c => <option key={c.id} value={c.id}>{c.name} ({c.email})</option>)}
             </select>
           </div>

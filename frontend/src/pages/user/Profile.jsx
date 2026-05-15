@@ -19,7 +19,7 @@ export default function Profile() {
   const handleSaveInfo = async (e) => {
     e.preventDefault()
     if (!info.name) return toast.error(t('user.profile.name') + ' requis')
-    if (info.phone && !isValidCmPhone(info.phone)) return toast.error('Numéro de téléphone camerounais invalide')
+    if (info.phone && !isValidCmPhone(info.phone)) return toast.error('NumÃ©ro de tÃ©lÃ©phone camerounais invalide')
     setSaving(true)
     try {
       const normalized = normalizeCmPhone(info.phone)
@@ -102,7 +102,7 @@ export default function Profile() {
               onChange={e => {
                 const formatted = formatCmPhone(e.target.value)
                 setInfo(p => ({ ...p, phone: formatted }))
-                setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'Numéro invalide' : '')
+                setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'NumÃ©ro invalide' : '')
               }} />
             {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
           </div>

@@ -154,8 +154,8 @@ function LangToggle() {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
             {[
-              { code: 'fr', label: '???? Fran�ais' },
-              { code: 'en', label: '???? English' },
+              { code: 'fr', label: '🇫🇷 Français' },
+              { code: 'en', label: '🇬🇧 English' },
             ].map(({ code, label }) => (
               <button
                 key={code}
@@ -193,7 +193,7 @@ export default function DashboardLayout({ role }) {
 
   const handleLogout = useCallback(() => {
     logout()
-    toast.success(t('nav.logout') + ' ?')
+    toast.success(t('nav.logout') + ' 👋')
     navigate('/login')
   }, [logout, navigate, t])
 

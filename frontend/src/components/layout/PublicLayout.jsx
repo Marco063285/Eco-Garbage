@@ -26,7 +26,7 @@ export default function PublicLayout() {
     { label: i18n.language?.startsWith('en') ? 'Home' : 'Accueil',    hash: null },
     { label: i18n.language?.startsWith('en') ? 'Services' : 'Services', hash: 'services' },
     { label: i18n.language?.startsWith('en') ? 'Pricing' : 'Tarifs',  hash: 'pricing' },
-    { label: i18n.language?.startsWith('en') ? 'About' : 'À propos',  hash: 'about' },
+    { label: i18n.language?.startsWith('en') ? 'About' : 'Ã€ propos',  hash: 'about' },
   ]
 
   const handleNavClick = (e, hash) => {
@@ -81,7 +81,7 @@ export default function PublicLayout() {
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
                   <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
-                    {[{ code: 'fr', label: '???? Français' }, { code: 'en', label: '???? English' }].map(({ code, label }) => (
+                    {[{ code: 'fr', label: 'ðŸ‡«ðŸ‡· FranÃ§ais' }, { code: 'en', label: 'ðŸ‡¬ðŸ‡§ English' }].map(({ code, label }) => (
                       <button key={code} onClick={() => { i18n.changeLanguage(code); setLangOpen(false) }}
                         className={`w-full text-left px-4 py-2.5 text-sm font-medium transition-colors
                           ${i18n.language?.startsWith(code) ? 'bg-[#E8F5EE] text-[#1A8A3C]' : 'text-gray-700 hover:bg-gray-50'}`}>
@@ -155,8 +155,8 @@ export default function PublicLayout() {
               </p>
             </div>
             {[
-              { title: 'Services', links: ['Collecte immédiate','Collecte planifiée','Abonnement','Entreprises'] },
-              { title: 'Plateforme', links: ['À propos','Tarifs','Contact','FAQ'] },
+              { title: 'Services', links: ['Collecte immÃ©diate','Collecte planifiÃ©e','Abonnement','Entreprises'] },
+              { title: 'Plateforme', links: ['Ã€ propos','Tarifs','Contact','FAQ'] },
               { title: 'Contact', links: ['hello@eco-garbage.com','+237 6XX XXX XXX','Douala, Cameroun'] },
             ].map(col => (
               <div key={col.title}>
@@ -170,7 +170,7 @@ export default function PublicLayout() {
             ))}
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 text-xs text-white/30">
-            <p>© 2026 EcoGarbage. {i18n.language?.startsWith('en') ? 'All rights reserved.' : 'Tous droits réservés.'}</p>
+            <p>Â© 2026 EcoGarbage. {i18n.language?.startsWith('en') ? 'All rights reserved.' : 'Tous droits rÃ©servÃ©s.'}</p>
           </div>
         </div>
       </footer>

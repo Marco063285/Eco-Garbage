@@ -79,7 +79,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }) {
       <div className={`relative bg-white rounded-2xl shadow-xl w-full ${sizes[size]} fade-up`}>
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h2 className="text-lg font-display font-bold">{title}</h2>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">?</button>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400">✕</button>
         </div>
         <div className="p-6">{children}</div>
       </div>
@@ -163,7 +163,7 @@ export function Table({ columns, data, emptyMessage }) {
               <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                 {columns.map(col => (
                   <td key={col.key} className="px-4 py-3 text-gray-700 whitespace-nowrap">
-                    {col.render ? col.render(row) : row[col.key] ?? '�'}
+                    {col.render ? col.render(row) : row[col.key] ?? '—'}
                   </td>
                 ))}
               </tr>
