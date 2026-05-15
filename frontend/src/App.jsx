@@ -2,11 +2,9 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 
-// Layouts — loaded eagerly because every authenticated page needs them
 import PublicLayout from './components/layout/PublicLayout'
 import DashboardLayout from './components/layout/DashboardLayout'
 
-// Route-level code splitting: each chunk is only fetched when the route is visited
 const LoginPage          = lazy(() => import('./pages/auth/LoginPage'))
 const RegisterPage       = lazy(() => import('./pages/auth/RegisterPage'))
 const VerifyEmailPage    = lazy(() => import('./pages/auth/VerifyEmailPage'))
@@ -19,6 +17,7 @@ const UserDashboard      = lazy(() => import('./pages/user/Dashboard'))
 const NewRequest         = lazy(() => import('./pages/user/NewRequest'))
 const MyRequests         = lazy(() => import('./pages/user/MyRequests'))
 const RequestDetail      = lazy(() => import('./pages/user/RequestDetail'))
+const ArchivedRequests   = lazy(() => import('./pages/user/ArchivedRequests'))
 const Payments           = lazy(() => import('./pages/user/Payments'))
 const Complaints         = lazy(() => import('./pages/user/Complaints'))
 const Profile            = lazy(() => import('./pages/user/Profile'))
@@ -28,13 +27,13 @@ const CollectorDashboard = lazy(() => import('./pages/collector/Dashboard'))
 const CollectorTasks     = lazy(() => import('./pages/collector/Tasks'))
 const TaskDetail         = lazy(() => import('./pages/collector/TaskDetail'))
 
-const AdminDashboard      = lazy(() => import('./pages/admin/Dashboard'))
-const AdminUsers          = lazy(() => import('./pages/admin/Users'))
-const AdminRequests       = lazy(() => import('./pages/admin/Requests'))
-const AdminCategories     = lazy(() => import('./pages/admin/Categories'))
-const AdminComplaints     = lazy(() => import('./pages/admin/Complaints'))
-const AdminReports        = lazy(() => import('./pages/admin/Reports'))
-const CollectorDetail     = lazy(() => import('./pages/admin/CollectorDetail'))
+const AdminDashboard     = lazy(() => import('./pages/admin/Dashboard'))
+const AdminUsers         = lazy(() => import('./pages/admin/Users'))
+const AdminRequests      = lazy(() => import('./pages/admin/Requests'))
+const AdminCategories    = lazy(() => import('./pages/admin/Categories'))
+const AdminComplaints    = lazy(() => import('./pages/admin/Complaints'))
+const AdminReports       = lazy(() => import('./pages/admin/Reports'))
+const CollectorDetail    = lazy(() => import('./pages/admin/CollectorDetail'))
 
 function PageFallback() {
   return (
@@ -44,7 +43,6 @@ function PageFallback() {
   )
 }
 
-// Guards
 function PrivateRoute({ children, roles }) {
   const { user, loading } = useAuth()
   if (loading) return <div className="min-h-screen flex items-center justify-center"><span className="w-8 h-8 border-4 border-[#1A8A3C] border-t-transparent rounded-full spinner" /></div>
@@ -86,6 +84,7 @@ export default function App() {
         <Route path="new-request" element={<NewRequest />} />
         <Route path="requests" element={<MyRequests />} />
         <Route path="requests/:uuid" element={<RequestDetail />} />
+        <Route path="archived" element={<ArchivedRequests />} />
         <Route path="payments" element={<Payments />} />
         <Route path="complaints" element={<Complaints />} />
         <Route path="notifications" element={<Notifications />} />
@@ -97,6 +96,7 @@ export default function App() {
         <Route index element={<CollectorDashboard />} />
         <Route path="tasks" element={<CollectorTasks />} />
         <Route path="tasks/:uuid" element={<TaskDetail />} />
+        <Route path="archived" element={<ArchivedRequests />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
       </Route>

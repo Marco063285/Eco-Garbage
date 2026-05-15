@@ -1,7 +1,9 @@
-ï»¿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Search, Filter } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Plus, Search, Filter, Archive, ArchiveRestore } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { requestApi } from '../../services/api'
 import { PageHeader, StatusBadge, PageLoader, EmptyState, Pagination } from '../../components/common'
 import { format } from 'date-fns'
@@ -28,6 +30,7 @@ export default function MyRequests() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
+  const [archiving, setArchiving] = useState(null)
   const LIMIT = 10
 
   const fetchRequests = async (status = '', p = 1) => {
@@ -47,6 +50,21 @@ export default function MyRequests() {
 
   const handlePageChange = (p) => { setPage(p); fetchRequests(statusFilter, p) }
 
+  const handleArchive = async (uuid, e) => {
+    e.preventDefault() // Prevent navigation to detail page
+    e.stopPropagation()
+    setArchiving(uuid)
+    try {
+      await requestApi.archive(uuid)
+      toast.success('Demande archivée avec succès')
+      fetchRequests(statusFilter, page) // Refresh the list
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de l\'archivage')
+    } finally {
+      setArchiving(null)
+    }
+  }
+
   const filtered = requests.filter(r =>
     search === '' ||
     r.category_name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,6 +77,18 @@ export default function MyRequests() {
         title={t('user.requests.title')}
         subtitle={`${total} ${i18n.language?.startsWith('en') ? 'request(s)' : 'demande(s)'}`}
         action={<Link to="/dashboard/new-request" className="btn-primary"><Plus size={16} />{t('user.requests.newRequest')}</Link>}
+        title="Mes demandes"
+        subtitle={`${total} demande(s) au total`}
+        action={
+          <div className="flex gap-3">
+            <Link to="/dashboard/archived" className="btn-ghost">
+              <ArchiveRestore size={16} /> Archives
+            </Link>
+            <Link to="/dashboard/new-request" className="btn-primary">
+              <Plus size={16} />Nouvelle collecte
+            </Link>
+          </div>
+        }
       />
 
       {/* Filters */}
@@ -98,8 +128,8 @@ export default function MyRequests() {
                 </div>
                 <p className="text-sm text-gray-400 mt-1 truncate">{r.address}</p>
                 <p className="text-xs text-gray-300 mt-0.5">
-                  {format(new Date(r.created_at), "dd MMM yyyy Â· HH:mm", { locale: dateLocale })}
-                  {r.collector_name && ` Â· ${r.collector_name}`}
+                  {format(new Date(r.created_at), "dd MMM yyyy · HH:mm", { locale: dateLocale })}
+                  {r.collector_name && ` · ${r.collector_name}`}
                 </p>
               </div>
               <div className="text-right flex-shrink-0">
@@ -111,6 +141,36 @@ export default function MyRequests() {
                 <p className="text-xs text-gray-300 mt-0.5 uppercase tracking-wide">{r.service_type}</p>
               </div>
             </Link>
+            <div key={r.uuid} className="card p-4 flex items-center gap-4 hover:border-[#1A8A3C]/30 hover:-translate-y-0.5 transition-all">
+              <Link to={`/dashboard/requests/${r.uuid}`} className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="w-12 h-12 bg-[#E8F5EE] rounded-xl flex items-center justify-center text-xl flex-shrink-0">{getCategoryIcon(r.category_icon)}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <p className="font-semibold text-gray-800">{r.category_name}</p>
+                    <StatusBadge status={r.status} />
+                  </div>
+                  <p className="text-sm text-gray-400 mt-1 truncate">{r.address}</p>
+                  <p className="text-xs text-gray-300 mt-0.5">
+                    {format(new Date(r.created_at), "dd MMM yyyy 'à' HH:mm", { locale: fr })}
+                    {r.collector_name && ` · Collecteur: ${r.collector_name}`}
+                  </p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  {r.estimated_price && <p className="text-sm font-semibold text-[#1A8A3C]">{parseFloat(r.estimated_price).toLocaleString()} FCFA</p>}
+                  <p className="text-xs text-gray-300 mt-0.5 uppercase tracking-wide text-right">{r.service_type}</p>
+                </div>
+              </Link>
+              {['completed', 'cancelled', 'failed'].includes(r.status) && (
+                <button
+                  onClick={(e) => handleArchive(r.uuid, e)}
+                  disabled={archiving === r.uuid}
+                  className="btn-outline p-2 ml-2 flex-shrink-0"
+                  title="Archiver cette demande"
+                >
+                  <Archive size={16} />
+                </button>
+              )}
+            </div>
           ))}
         </div>
       )}

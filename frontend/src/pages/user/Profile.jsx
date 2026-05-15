@@ -1,4 +1,4 @@
-ï»¿import { useState } from 'react'
+import { useState } from 'react'
 import { User, Lock, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +19,7 @@ export default function Profile() {
   const handleSaveInfo = async (e) => {
     e.preventDefault()
     if (!info.name) return toast.error(t('user.profile.name') + ' requis')
-    if (info.phone && !isValidCmPhone(info.phone)) return toast.error('NumÃ©ro de tÃ©lÃ©phone camerounais invalide')
+    if (info.phone && !isValidCmPhone(info.phone)) return toast.error('Numéro de téléphone camerounais invalide')
     setSaving(true)
     try {
       const normalized = normalizeCmPhone(info.phone)
@@ -102,7 +102,7 @@ export default function Profile() {
               onChange={e => {
                 const formatted = formatCmPhone(e.target.value)
                 setInfo(p => ({ ...p, phone: formatted }))
-                setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'NumÃ©ro invalide' : '')
+                setPhoneError(formatted.replace(/[\s]/g, '').length > 4 && !isValidCmPhone(formatted) ? 'Numéro invalide' : '')
               }} />
             {phoneError && <p className="text-xs text-red-500 mt-1">{phoneError}</p>}
           </div>

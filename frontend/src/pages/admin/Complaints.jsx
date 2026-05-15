@@ -1,4 +1,4 @@
-ï»¿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { MessageSquare } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
@@ -19,10 +19,10 @@ export default function AdminComplaints() {
   const [saving, setSaving] = useState(false)
 
   const TYPE_LABELS = {
-    missed_pickup:       isEn ? 'Missed pickup'        : 'Collecte manquÃ©e',
+    missed_pickup:       isEn ? 'Missed pickup'        : 'Collecte manquée',
     incorrect_pricing:   isEn ? 'Incorrect pricing'    : 'Tarif incorrect',
     collector_misconduct:isEn ? 'Collector misconduct' : 'Comportement collecteur',
-    service_quality:     isEn ? 'Service quality'      : 'QualitÃ© service',
+    service_quality:     isEn ? 'Service quality'      : 'Qualité service',
     other:               isEn ? 'Other'                : 'Autre',
   }
 
@@ -38,7 +38,7 @@ export default function AdminComplaints() {
   }
 
   const handleRespond = async () => {
-    if (!response.trim()) return toast.error(isEn ? 'Response required' : 'RÃ©ponse requise')
+    if (!response.trim()) return toast.error(isEn ? 'Response required' : 'Réponse requise')
     setSaving(true)
     try {
       await adminApi.respondComplaint(selected.uuid, { status, admin_response: response })
@@ -62,7 +62,7 @@ export default function AdminComplaints() {
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
           <MessageSquare size={18} className="text-red-500" />
           <p className="text-sm font-semibold text-red-700">
-            {open} {isEn ? 'complaint(s) awaiting response' : 'rÃ©clamation(s) en attente de rÃ©ponse'}
+            {open} {isEn ? 'complaint(s) awaiting response' : 'réclamation(s) en attente de réponse'}
           </p>
         </div>
       )}
@@ -78,7 +78,7 @@ export default function AdminComplaints() {
               <div className="flex items-start justify-between gap-4 mb-2">
                 <div>
                   <span className="text-sm font-semibold text-gray-800">{TYPE_LABELS[c.type] || c.type}</span>
-                  <span className="text-xs text-gray-400 ml-2">â€” {c.user_name}</span>
+                  <span className="text-xs text-gray-400 ml-2">— {c.user_name}</span>
                 </div>
                 <StatusBadge status={c.status} />
               </div>
@@ -89,12 +89,12 @@ export default function AdminComplaints() {
         </div>
       )}
 
-      <Modal isOpen={!!selected} onClose={() => setSelected(null)} title={isEn ? 'Respond to complaint' : 'RÃ©pondre Ã  la rÃ©clamation'} size="lg">
+      <Modal isOpen={!!selected} onClose={() => setSelected(null)} title={isEn ? 'Respond to complaint' : 'Répondre à la réclamation'} size="lg">
         {selected && (
           <div className="flex flex-col gap-4">
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-semibold text-gray-500 mb-1">
-                {isEn ? 'Complaint from' : 'RÃ©clamation de'} {selected.user_name}
+                {isEn ? 'Complaint from' : 'Réclamation de'} {selected.user_name}
               </p>
               <p className="text-sm text-gray-700">{selected.description}</p>
             </div>

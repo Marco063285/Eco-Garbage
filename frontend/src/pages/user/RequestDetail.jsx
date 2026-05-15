@@ -1,10 +1,11 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { ArrowLeft, X, Star, ShieldCheck, User } from 'lucide-react'
+import { ArrowLeft, X, Star, ShieldCheck, User, Archive } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
 import { requestApi, ratingApi } from '../../services/api'
 import { StatusBadge, PageLoader, ConfirmDialog, Modal } from '../../components/common'
+import LiveRouteMap from '../../components/common/LiveRouteMap'
 import { format } from 'date-fns'
 import { fr, enUS } from 'date-fns/locale'
 
@@ -20,14 +21,15 @@ export default function RequestDetail() {
   const [ratingModal, setRatingModal] = useState(false)
   const [score, setScore] = useState(5)
   const [comment, setComment] = useState('')
+  const [archiving, setArchiving] = useState(false)
 
   const TIMELINE = [
-    { status: 'pending',     label: isEn ? 'Request received'  : 'Demande reçue',       icon: '📨' },
-    { status: 'approved',    label: isEn ? 'Request approved'  : 'Demande approuvée',    icon: '✅' },
-    { status: 'assigned',    label: isEn ? 'Collector assigned': 'Collecteur assigné',   icon: '👤' },
-    { status: 'on_way',      label: isEn ? 'Collector en route': 'Collecteur en route',  icon: '🚛' },
-    { status: 'in_progress', label: isEn ? 'Collection ongoing': 'Collecte en cours',    icon: '⚙️' },
-    { status: 'completed',   label: isEn ? 'Collection done'   : 'Collecte terminée',    icon: '🎉' },
+    { status: 'pending',     label: isEn ? 'Request received'   : 'Demande reçue',       icon: '📨' },
+    { status: 'approved',    label: isEn ? 'Request approved'   : 'Demande approuvée',    icon: '✅' },
+    { status: 'assigned',    label: isEn ? 'Collector assigned' : 'Collecteur assigné',   icon: '👤' },
+    { status: 'on_way',      label: isEn ? 'Collector en route' : 'Collecteur en route',  icon: '🚛' },
+    { status: 'in_progress', label: isEn ? 'Collection ongoing' : 'Collecte en cours',    icon: '⚙️' },
+    { status: 'completed',   label: isEn ? 'Collection done'    : 'Collecte terminée',    icon: '🎉' },
   ]
 
   const fetchReq = async () => {
@@ -41,7 +43,16 @@ export default function RequestDetail() {
       setLoading(false)
     }
   }
+
   useEffect(() => { fetchReq() }, [uuid])
+
+  // Auto-refresh every 10s when collector is on the way
+  useEffect(() => {
+    if (!req) return
+    if (!['on_way', 'in_progress'].includes(req.status)) return
+    const timer = setInterval(fetchReq, 10000)
+    return () => clearInterval(timer)
+  }, [req?.status])
 
   const handleCancel = async () => {
     try {
@@ -64,26 +75,40 @@ export default function RequestDetail() {
     }
   }
 
+  const handleArchive = async () => {
+    setArchiving(true)
+    try {
+      await requestApi.archive(uuid)
+      toast.success(isEn ? 'Request archived' : 'Demande archivée')
+      navigate('/dashboard/archived')
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('common.serverError'))
+    } finally {
+      setArchiving(false)
+    }
+  }
+
   if (loading) return <PageLoader />
   if (!req) return null
 
   const canCancel = !['completed','cancelled','in_progress'].includes(req.status)
   const canRate = req.status === 'completed' && !req.rating_score
+  const canArchive = ['completed','cancelled','failed'].includes(req.status)
 
   const ORDER = ['pending','approved','assigned','on_way','in_progress','completed']
   const currentIdx = ORDER.indexOf(req.status)
 
   const details = [
-    [isEn ? 'Waste type'       : 'Type de déchet',   req.category_name],
-    [isEn ? 'Service type'     : 'Type de service',   req.service_type],
-    [isEn ? 'Address'          : 'Adresse',            req.address],
-    [isEn ? 'Quantity'         : 'Quantité',           req.quantity_number ? `${req.quantity_number} ${isEn ? 'unit(s)' : 'unité(s)'}` : req.quantity_estimate || '—'],
-    [isEn ? 'Distance'         : 'Distance',           req.distance_km ? `${req.distance_km} km` : '—'],
-    [isEn ? 'Estimated price'  : 'Prix estimé',        req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : '—'],
-    [isEn ? 'Final price'      : 'Prix final',         req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : '—'],
-    [isEn ? 'Created on'       : 'Créée le',           format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
-    [isEn ? 'Collector'        : 'Collecteur',         req.collector_name || (isEn ? 'Not assigned' : 'Non assigné')],
-    [isEn ? 'Collector phone'  : 'Tél. collecteur',    req.collector_phone || '—'],
+    [isEn ? 'Waste type'      : 'Type de déchet',  req.category_name],
+    [isEn ? 'Service type'    : 'Type de service',  req.service_type],
+    [isEn ? 'Address'         : 'Adresse',           req.address],
+    [isEn ? 'Quantity'        : 'Quantité',          req.quantity_number ? `${req.quantity_number} ${isEn ? 'unit(s)' : 'unité(s)'}` : req.quantity_estimate || '—'],
+    [isEn ? 'Distance'        : 'Distance',          req.distance_km ? `${req.distance_km} km` : '—'],
+    [isEn ? 'Estimated price' : 'Prix estimé',       req.estimated_price ? `${parseFloat(req.estimated_price).toLocaleString()} FCFA` : '—'],
+    [isEn ? 'Final price'     : 'Prix final',        req.final_price ? `${parseFloat(req.final_price).toLocaleString()} FCFA` : '—'],
+    [isEn ? 'Created on'      : 'Créée le',          format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: dateLocale })],
+    [isEn ? 'Collector'       : 'Collecteur',        req.collector_name || (isEn ? 'Not assigned' : 'Non assigné')],
+    [isEn ? 'Collector phone' : 'Tél. collecteur',   req.collector_phone || '—'],
   ]
 
   return (
@@ -121,31 +146,54 @@ export default function RequestDetail() {
         </div>
       )}
 
-      {/* Collector security card — shown when a collector is assigned */}
+      {/* Live route map — shown when collector is on the way */}
+      {['assigned','on_way','in_progress'].includes(req.status) && (
+        <div className="card p-6 mb-5">
+          <h3 className="font-display font-bold mb-4">
+            {isEn ? '🗺️ Live route' : '🗺️ Trajet en temps réel'}
+          </h3>
+          <LiveRouteMap
+            userLocation={req.latitude && req.longitude ? { latitude: req.latitude, longitude: req.longitude } : null}
+            collectorLocation={req.collector_location}
+            userLabel={isEn ? 'Collection address' : 'Adresse de collecte'}
+            collectorLabel={isEn ? 'Collector' : 'Collecteur'}
+          />
+          <p className="text-xs text-gray-400 mt-3">
+            {isEn
+              ? 'Updates every 10 seconds while the collector is on the way.'
+              : 'Mise à jour toutes les 10 secondes pendant le trajet du collecteur.'}
+          </p>
+        </div>
+      )}
+
+      {/* Collector security card */}
       {req.collector_name && ['assigned','on_way','in_progress','completed'].includes(req.status) && (
-        <div className="card p-5 mb-5 border-[#C8EDDA]">
+        <div className="card p-5 mb-5 border-2 border-[#C8EDDA] bg-gradient-to-br from-[#F0FBF7] to-white">
           <div className="flex items-center gap-2 mb-4">
             <ShieldCheck size={16} className="text-[#1A8A3C]" />
-            <h3 className="font-display font-bold text-[#1A8A3C]">{isEn ? 'Your collector — security verification' : 'Votre collecteur — vérification sécurité'}</h3>
+            <h3 className="font-display font-bold text-[#1A8A3C]">
+              {isEn ? 'Your collector — security verification' : 'Votre collecteur — vérification sécurité'}
+            </h3>
           </div>
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl overflow-hidden bg-[#E8F5EE] flex-shrink-0 flex items-center justify-center">
-              {req.collector_avatar_url ? (
-                <img src={req.collector_avatar_url} alt={req.collector_name} className="w-full h-full object-cover" />
-              ) : (
-                <User size={28} className="text-[#1A8A3C]" />
-              )}
+            <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#E8F5EE] flex-shrink-0 flex items-center justify-center border-2 border-[#1A8A3C]">
+              {req.collector_avatar_url
+                ? <img src={req.collector_avatar_url} alt={req.collector_name} className="w-full h-full object-cover" />
+                : <User size={32} className="text-[#1A8A3C]" />}
             </div>
             <div className="flex-1">
               <p className="font-bold text-gray-900 text-lg">{req.collector_name}</p>
               {req.collector_phone && (
-                <a href={`tel:${req.collector_phone}`} className="text-sm text-[#1A8A3C] font-medium hover:underline">
+                <a href={`tel:${req.collector_phone}`} className="text-sm text-[#1A8A3C] font-medium hover:underline block">
                   📞 {req.collector_phone}
                 </a>
               )}
-              <p className="text-xs text-gray-400 mt-1">
-                {isEn ? '✅ Identity verified by EcoGarbage' : '✅ Identité vérifiée par EcoGarbage'}
-              </p>
+              <div className="mt-2 p-2 bg-white rounded-lg border border-[#C8EDDA] text-xs text-gray-600">
+                <p className="font-semibold text-[#1A8A3C] mb-0.5">🔒 {isEn ? 'Security measure' : 'Mesure de sécurité'}</p>
+                <p>{isEn
+                  ? 'Please verify this photo matches the person coming to your home.'
+                  : 'Vérifiez que cette photo correspond à la personne venant à votre domicile.'}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -215,6 +263,12 @@ export default function RequestDetail() {
             <X size={16} /> {isEn ? 'Cancel request' : 'Annuler la demande'}
           </button>
         )}
+        {canArchive && (
+          <button onClick={handleArchive} disabled={archiving}
+            className="flex-1 justify-center inline-flex items-center gap-2 border-2 border-gray-300 text-gray-600 px-6 py-3 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-all disabled:opacity-50">
+            <Archive size={16} /> {archiving ? (isEn ? 'Archiving...' : 'Archivage...') : (isEn ? 'Archive' : 'Archiver')}
+          </button>
+        )}
         <Link to="/dashboard/complaints" className="btn-ghost flex-1 justify-center border border-gray-200">
           💬 {isEn ? 'Report a problem' : 'Signaler un problème'}
         </Link>
@@ -229,7 +283,7 @@ export default function RequestDetail() {
         <div className="flex flex-col gap-4">
           <div className="text-center">
             <p className="text-sm text-gray-500 mb-3">
-              {isEn ? 'Collector:' : 'Collecteur :'} <strong className="">{req.collector_name}</strong>
+              {isEn ? 'Collector:' : 'Collecteur :'} <strong>{req.collector_name}</strong>
             </p>
             <div className="flex justify-center gap-2">
               {[1,2,3,4,5].map(n => (

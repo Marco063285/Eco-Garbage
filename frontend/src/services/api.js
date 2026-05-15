@@ -10,6 +10,10 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('eco_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+    delete config.headers['content-type'];
+  }
   return config;
 });
 
@@ -48,7 +52,10 @@ export const requestApi = {
   create: (data) => api.post('/requests', data),
   estimate: (data) => api.post('/requests/estimate', data),
   updateStatus: (uuid, data) => api.put(`/requests/${uuid}/status`, data),
+  updateLocation: (uuid, data) => api.put(`/requests/${uuid}/location`, data),
   assign: (uuid, data) => api.put(`/requests/${uuid}/assign`, data),
+  archive: (uuid) => api.put(`/requests/${uuid}/archive`),
+  restore: (uuid) => api.put(`/requests/${uuid}/restore`),
   cancel: (uuid) => api.delete(`/requests/${uuid}`),
 };
 
@@ -83,6 +90,7 @@ export const ratingApi = {
 // ── Collector ─────────────────────────────────────
 export const collectorApi = {
   tasks: (params) => api.get('/collector/tasks', { params }),
+  availableRequests: (params) => api.get('/collector/available-requests', { params }),
   stats: () => api.get('/collector/stats'),
   setAvailability: (data) => api.put('/collector/availability', data),
   updateLocation: (data) => api.put('/collector/location', data),

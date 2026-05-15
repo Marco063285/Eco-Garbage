@@ -1,4 +1,4 @@
-Ôªøimport { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Edit2, Tag } from 'lucide-react'
 import getCategoryIcon from '../../utils/categoryIcons'
 import toast from 'react-hot-toast'
@@ -50,11 +50,11 @@ export default function AdminCategories() {
 
   return (
     <div className="fade-up">
-      <PageHeader title={t('admin.categories.title')} subtitle={`${categories.length} ${isEn ? 'category(ies)' : 'cat√©gorie(s)'}`}
+      <PageHeader title={t('admin.categories.title')} subtitle={`${categories.length} ${isEn ? 'category(ies)' : 'catÈgorie(s)'}`}
         action={<button onClick={openCreate} className="btn-primary"><Plus size={16} />{t('admin.categories.add')}</button>} />
 
       {loading ? <PageLoader /> : categories.length === 0 ? (
-        <EmptyState icon={Tag} title={t('admin.categories.noCategories')} description={isEn ? 'Create your first waste category.' : 'Cr√©ez votre premi√®re cat√©gorie de d√©chets.'}
+        <EmptyState icon={Tag} title={t('admin.categories.noCategories')} description={isEn ? 'Create your first waste category.' : 'CrÈez votre premiËre catÈgorie de dÈchets.'}
           action={<button onClick={openCreate} className="btn-primary"><Plus size={16} />{t('common.create')}</button>} />
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -71,8 +71,8 @@ export default function AdminCategories() {
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-[#1A8A3C]">{parseFloat(cat.base_price).toLocaleString()} FCFA</span>
                 <div className="flex gap-1.5">
-                  {cat.is_hazardous && <span className="badge bg-red-100 text-red-600 text-[10px]">‚ö†Ô∏è {t('admin.categories.hazardous')}</span>}
-                  {cat.is_recyclable && <span className="badge bg-green-100 text-green-600 text-[10px]">‚ôªÔ∏è</span>}
+                  {cat.is_hazardous && <span className="badge bg-red-100 text-red-600 text-[10px]">?? {t('admin.categories.hazardous')}</span>}
+                  {cat.is_recyclable && <span className="badge bg-green-100 text-green-600 text-[10px]">??</span>}
                   {!cat.is_active && <span className="badge bg-gray-100 text-gray-500 text-[10px]">{t('common.inactive')}</span>}
                 </div>
               </div>
@@ -81,11 +81,11 @@ export default function AdminCategories() {
         </div>
       )}
 
-      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? (isEn ? 'Edit category' : 'Modifier la cat√©gorie') : t('admin.categories.add')}>
+      <Modal isOpen={modal} onClose={() => setModal(false)} title={editing ? (isEn ? 'Edit category' : 'Modifier la catÈgorie') : t('admin.categories.add')}>
         <div className="flex flex-col gap-4">
           <div>
             <label className="label">{t('admin.categories.name')} <span className="text-red-500">*</span></label>
-            <input className="input" value={form.name} onChange={e => set('name', e.target.value)} placeholder={isEn ? 'e.g. Organic waste' : 'Ex: D√©chets organiques'} />
+            <input className="input" value={form.name} onChange={e => set('name', e.target.value)} placeholder={isEn ? 'e.g. Organic waste' : 'Ex: DÈchets organiques'} />
           </div>
           <div>
             <label className="label">{isEn ? 'Description' : 'Description'}</label>

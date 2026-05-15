@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, UserCheck, UserX, Users, Plus, Trash2, Eye } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { useTranslation } from 'react-i18next'
@@ -56,7 +56,7 @@ export default function AdminUsers() {
     if (!form.name.trim() || !form.email.trim() || !form.password)
       return toast.error(t('admin.users.name') + ', ' + t('admin.users.email') + ', ' + t('admin.users.password') + ' requis')
     if (form.phone && !isValidCmPhone(form.phone))
-      return toast.error('Numéro de téléphone camerounais invalide')
+      return toast.error('Num�ro de t�l�phone camerounais invalide')
     setSaving(true)
     try {
       await adminApi.createUser({ ...form, phone: normalizeCmPhone(form.phone) })
@@ -132,10 +132,10 @@ export default function AdminUsers() {
                     <td className="px-4 py-3">
                       <span className={`badge ${ROLE_COLORS[u.role]}`}>{ROLE_LABELS[u.role]}</span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{u.phone || '—'}</td>
+                    <td className="px-4 py-3 text-gray-500">{u.phone || '�'}</td>
                     <td className="px-4 py-3">
                       <span className={`badge ${u.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                        {u.is_active ? `✓ ${t('common.active')}` : `✗ ${i18n.language?.startsWith('en') ? 'Suspended' : 'Suspendu'}`}
+                        {u.is_active ? `? ${t('common.active')}` : `? ${i18n.language?.startsWith('en') ? 'Suspended' : 'Suspendu'}`}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
@@ -168,6 +168,35 @@ export default function AdminUsers() {
                           </button>
                         </div>
                       )}
+                      <div className="flex items-center gap-2">
+                        {u.role === 'collector' && (
+                          <Link
+                            to={`/admin/collectors/${u._id}`}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all"
+                          >
+                            <Eye size={13} />
+                            D�tails
+                          </Link>
+                        )}
+                        {u.role !== 'admin' && (
+                          <>
+                            <button
+                              onClick={() => setConfirmDialog({ userId: u._id, is_active: u.is_active, name: u.name })}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                                u.is_active
+                                  ? 'bg-red-50 text-red-500 hover:bg-red-100'
+                                  : 'bg-green-50 text-green-600 hover:bg-green-100'
+                              }`}>
+                              {u.is_active ? <><UserX size={13} />Suspendre</> : <><UserCheck size={13} />Activer</>}
+                            </button>
+                            <button
+                              onClick={() => setDeleteDialog({ userId: u._id, name: u.name })}
+                              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all">
+                              <Trash2 size={13} />
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -182,7 +211,7 @@ export default function AdminUsers() {
         onClose={() => setConfirmDialog(null)}
         onConfirm={handleToggle}
         title={confirmDialog?.is_active ? (i18n.language?.startsWith('en') ? 'Suspend account' : 'Suspendre le compte') : (i18n.language?.startsWith('en') ? 'Activate account' : 'Activer le compte')}
-        message={`${i18n.language?.startsWith('en') ? 'Are you sure you want to' : 'Êtes-vous sûr de vouloir'} ${confirmDialog?.is_active ? (i18n.language?.startsWith('en') ? 'suspend' : 'suspendre') : (i18n.language?.startsWith('en') ? 'activate' : 'activer')} ${i18n.language?.startsWith('en') ? 'the account of' : 'le compte de'} ${confirmDialog?.name} ?`}
+        message={`${i18n.language?.startsWith('en') ? 'Are you sure you want to' : '�tes-vous s�r de vouloir'} ${confirmDialog?.is_active ? (i18n.language?.startsWith('en') ? 'suspend' : 'suspendre') : (i18n.language?.startsWith('en') ? 'activate' : 'activer')} ${i18n.language?.startsWith('en') ? 'the account of' : 'le compte de'} ${confirmDialog?.name} ?`}
         confirmLabel={confirmDialog?.is_active ? t('admin.users.suspend') : t('admin.users.activate')}
         danger={confirmDialog?.is_active}
       />
@@ -201,7 +230,7 @@ export default function AdminUsers() {
         <div className="flex flex-col gap-4">
           <div>
             <label className="label">{t('admin.users.name')} *</label>
-            <input className="input" placeholder={i18n.language?.startsWith('en') ? 'Full name' : 'Nom et prénom'} value={form.name}
+            <input className="input" placeholder={i18n.language?.startsWith('en') ? 'Full name' : 'Nom et pr�nom'} value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
           </div>
           <div>
@@ -224,13 +253,13 @@ export default function AdminUsers() {
           </div>
           <div>
             <label className="label">{t('admin.users.password')} *</label>
-            <input className="input" type="password" placeholder={i18n.language?.startsWith('en') ? 'Min. 8 chars, 1 uppercase, 1 digit' : 'Min. 8 caractères, 1 majuscule, 1 chiffre'} value={form.password}
+            <input className="input" type="password" placeholder={i18n.language?.startsWith('en') ? 'Min. 8 chars, 1 uppercase, 1 digit' : 'Min. 8 caract�res, 1 majuscule, 1 chiffre'} value={form.password}
               onChange={e => setForm(f => ({ ...f, password: e.target.value }))} />
           </div>
           <div className="flex gap-3 mt-2">
             <button onClick={() => setCreateModal(false)} className="btn-ghost flex-1 justify-center border border-gray-200">{t('common.cancel')}</button>
             <button onClick={handleCreateUser} disabled={saving} className="btn-primary flex-1 justify-center">
-              {saving ? (i18n.language?.startsWith('en') ? 'Creating...' : 'Création...') : (i18n.language?.startsWith('en') ? 'Create account' : 'Créer le compte')}
+              {saving ? (i18n.language?.startsWith('en') ? 'Creating...' : 'Cr�ation...') : (i18n.language?.startsWith('en') ? 'Create account' : 'Cr�er le compte')}
             </button>
           </div>
         </div>

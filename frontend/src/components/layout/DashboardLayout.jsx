@@ -1,9 +1,9 @@
-﻿import { useState, useEffect, useMemo, useCallback, memo } from 'react'
+import { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom'
 import {
   Leaf, LayoutDashboard, Plus, ListOrdered, CreditCard,
   MessageSquare, Bell, Settings, LogOut, Truck, Users,
-  BarChart3, Tag, ChevronLeft, ChevronRight, Menu, Languages,
+  BarChart3, Tag, ChevronLeft, ChevronRight, Menu, Languages, X, Archive
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { notifApi } from '../../services/api'
@@ -15,6 +15,7 @@ const NAV = {
     { to: '/dashboard', icon: LayoutDashboard, key: 'nav.dashboard', exact: true },
     { to: '/dashboard/new-request', icon: Plus, key: 'nav.newRequest' },
     { to: '/dashboard/requests', icon: ListOrdered, key: 'nav.myRequests' },
+    { to: '/dashboard/archived', icon: Archive, key: 'nav.archived' },
     { to: '/dashboard/payments', icon: CreditCard, key: 'nav.payments' },
     { to: '/dashboard/complaints', icon: MessageSquare, key: 'nav.complaints' },
     { to: '/dashboard/notifications', icon: Bell, key: 'nav.notifications', badge: true },
@@ -153,8 +154,8 @@ function LangToggle() {
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden">
             {[
-              { code: 'fr', label: '🇫🇷 Français' },
-              { code: 'en', label: '🇬🇧 English' },
+              { code: 'fr', label: '???? Fran�ais' },
+              { code: 'en', label: '???? English' },
             ].map(({ code, label }) => (
               <button
                 key={code}
@@ -192,7 +193,7 @@ export default function DashboardLayout({ role }) {
 
   const handleLogout = useCallback(() => {
     logout()
-    toast.success(t('nav.logout') + ' ✓')
+    toast.success(t('nav.logout') + ' ?')
     navigate('/login')
   }, [logout, navigate, t])
 
