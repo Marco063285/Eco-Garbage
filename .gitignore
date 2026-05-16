@@ -1,20 +1,32 @@
 # Dependencies
 node_modules/
+**/node_modules/
 .pnp
 .pnp.js
 
 # Build outputs
 dist/
 build/
+**/dist/
+**/build/
 
-# Environment variables
+# Environment variables (NEVER commit real secrets)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+**/.env
+**/.env.local
+!**/.env.example
+!**/.env.production
+
+# User uploads
+backend/uploads/
+**/uploads/
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -29,3 +41,5 @@ Thumbs.db
 
 # Editor
 .vscode/
+.idea/
+*.swp
