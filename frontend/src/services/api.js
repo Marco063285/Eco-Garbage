@@ -1,9 +1,12 @@
 import axios from 'axios';
 
 // In dev: Vite proxies /api to http://localhost:5000 (see vite.config.js)
-// In production (Vercel): set VITE_API_URL to your Render backend URL,
-//   e.g. VITE_API_URL=https://eco-garbage-backend.onrender.com/api
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+// In production (Vercel): set VITE_API_URL to your Render backend URL.
+// Both of these work — /api is auto-appended if missing:
+//   VITE_API_URL=https://eco-garbage-backend.onrender.com
+//   VITE_API_URL=https://eco-garbage-backend.onrender.com/api
+const rawBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
+const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
 const api = axios.create({
   baseURL: API_BASE,
