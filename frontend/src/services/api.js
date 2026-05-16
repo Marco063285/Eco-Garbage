@@ -1,22 +1,10 @@
 import axios from 'axios';
 
-// In development we proxy '/api' to localhost:5000 via vite.config.js.
-// In production we point directly at the deployed backend through VITE_API_URL.
-//   VITE_API_URL example: https://eco-garbage-backend.onrender.com
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL.replace(/\/$/, '')}/api`
-  : '/api';
-
 const api = axios.create({
-  baseURL: BASE_URL,
-  timeout: 20000,
+  baseURL: '/api',
+  timeout: 15000,
   headers: { 'Content-Type': 'application/json' },
 });
-
-// Expose the resolved base for any code that needs to build /uploads/* URLs
-export const API_ORIGIN = import.meta.env.VITE_API_URL
-  ? import.meta.env.VITE_API_URL.replace(/\/$/, '')
-  : '';
 
 // Attach token automatically
 api.interceptors.request.use((config) => {
