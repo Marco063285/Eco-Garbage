@@ -144,7 +144,12 @@ const getComplaints = async (req, res) => {
 const respondComplaint = async (req, res) => {
   try {
     const { status, admin_response } = req.body;
-    await Complaint.findOneAndUpdate({ uuid: req.params.uuid }, { $set: { status, admin_response } });
+    const updated = await Complaint.findOneAndUpdate(
+      { uuid: req.params.uuid },
+      { $set: { status, admin_response } }
+    );
+    if (!updated)
+      return res.status(404).json({ success: false, message: 'Réclamation non trouvée' });
     res.json({ success: true, message: 'Reclamation mise a jour' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
@@ -221,15 +226,19 @@ const updateCategory = async (req, res) => {
 // POST /api/admin/users
 const createUser = async (req, res) => {
   try {
-    const { name, email, phone, role, password } = req.body;
+    const { name, email, phone, role, password, national_id_number } = req.body;
     if (!name || !email || !password || !role)
       return res.status(400).json({ success: false, message: 'Nom, email, mot de passe et rôle requis' });
     if (!['user', 'collector', 'admin'].includes(role))
-      return res.status(400).json({ success: false, message: 'Rôle invalide' });    if (phone) {
+      return res.status(400).json({ success: false, message: 'Rôle invalide' });
+    if (role === 'collector' && !national_id_number)
+      return res.status(400).json({ success: false, message: 'Numéro de carte d\'identité requis pour un collecteur' });
+    if (phone) {
       const cleaned = phone.replace(/[\s\-().]/g, '');
       if (!CM_PHONE_REGEX.test(cleaned))
         return res.status(400).json({ success: false, message: 'Numero de telephone camerounais invalide' });
-    }    const existing = await User.findOne({ email: email.toLowerCase().trim() });
+    }
+    const existing = await User.findOne({ email: email.toLowerCase().trim() });
     if (existing)
       return res.status(409).json({ success: false, message: 'Cet email est déjà utilisé' });
     const password_hash = await bcrypt.hash(password, 10);
@@ -242,7 +251,9 @@ const createUser = async (req, res) => {
       role,
       is_verified: true,
       is_active: true,
-      collector_profile: role === 'collector' ? { is_available: true } : undefined,
+      collector_profile: role === 'collector'
+        ? { is_available: true, national_id_number: national_id_number.toUpperCase() }
+        : undefined,
     });
     res.status(201).json({ success: true, message: 'Utilisateur créé', data: { id: user._id.toString() } });
   } catch (err) {

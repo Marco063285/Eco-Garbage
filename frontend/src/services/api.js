@@ -25,11 +25,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally
+// Handle 401 globally — only redirect when a stored token was rejected by a
+// protected route, not when the login endpoint itself returns 401 (wrong password).
 api.interceptors.response.use(
   (res) => res,
   (err) => {
-    if (err.response?.status === 401) {
+    const isAuthEndpoint = err.config?.url?.startsWith('/auth/');
+    if (err.response?.status === 401 && !isAuthEndpoint) {
       localStorage.removeItem('eco_token');
       localStorage.removeItem('eco_user');
       window.location.href = '/login';

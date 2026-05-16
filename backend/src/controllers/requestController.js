@@ -300,10 +300,20 @@ const updateStatus = async (req, res) => {
 const assignCollector = async (req, res) => {
   try {
     const { collector_id } = req.body;
-    await PickupRequest.findOneAndUpdate(
+    if (!collector_id || !mongoose.isValidObjectId(collector_id))
+      return res.status(400).json({ success: false, message: 'ID collecteur invalide' });
+
+    const collector = await User.findOne({ _id: collector_id, role: 'collector' });
+    if (!collector)
+      return res.status(404).json({ success: false, message: 'Collecteur non trouvé' });
+
+    const updated = await PickupRequest.findOneAndUpdate(
       { uuid: req.params.uuid },
       { $set: { collector_id, status: 'assigned' } }
     );
+    if (!updated)
+      return res.status(404).json({ success: false, message: 'Demande non trouvee' });
+
     res.json({ success: true, message: 'Collecteur assigne' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });

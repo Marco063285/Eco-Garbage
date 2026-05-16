@@ -117,10 +117,14 @@ const getPayments = async (req, res) => {
 const payRequest = async (req, res) => {
   try {
     const { payment_uuid, method } = req.body;
-    await Payment.findOneAndUpdate(
+    if (!payment_uuid || !method)
+      return res.status(400).json({ success: false, message: 'UUID et méthode de paiement requis' });
+    const updated = await Payment.findOneAndUpdate(
       { uuid: payment_uuid, user_id: req.user.id },
       { $set: { status: 'completed', method, paid_at: new Date(), transaction_ref: `TXN-${Date.now()}` } }
     );
+    if (!updated)
+      return res.status(404).json({ success: false, message: 'Paiement non trouvé' });
     res.json({ success: true, message: 'Paiement enregistre' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Erreur serveur' });
@@ -152,8 +156,8 @@ const getCategories = async (req, res) => {
 
 const getCollectorTasks = async (req, res) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
-    const filter = { collector_id: req.user.id };
+    const { status, page = 1, limit = 10, archived = 'false' } = req.query;
+    const filter = { collector_id: req.user.id, is_archived: archived === 'true' };
     if (status) filter.status = status;
     const [raw, total] = await Promise.all([
       PickupRequest.find(filter)
@@ -218,8 +222,8 @@ const updateCollectorAvailability = async (req, res) => {
 const updateCollectorLocation = async (req, res) => {
   try {
     const { latitude, longitude } = req.body;
-    if (latitude == null || longitude == null)
-      return res.status(400).json({ success: false, message: 'Coordonnees requises' });
+    if (typeof latitude !== 'number' || typeof longitude !== 'number')
+      return res.status(400).json({ success: false, message: 'Coordonnées doivent être des nombres' });
     if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
       return res.status(400).json({ success: false, message: 'Coordonnees invalides' });
 
