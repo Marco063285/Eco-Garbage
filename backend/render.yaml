@@ -1,0 +1,42 @@
+# Render Blueprint — deploys the EcoGarbage API as a Web Service.
+# In Render: New + → Blueprint → point at this repo. Render will read this file.
+# All `sync: false` secrets must be filled in via the Render dashboard after the
+# first deploy (Render will not commit secrets to git).
+
+services:
+  - type: web
+    name: eco-garbage-backend
+    runtime: node
+    plan: free
+    region: frankfurt        # change to oregon / ohio / singapore if closer to you
+    rootDir: Eco-Garbage/backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: MAX_FILE_SIZE
+        value: "5242880"
+      # Secrets — set in Render dashboard after first deploy
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false        # e.g. https://eco-garbage.vercel.app
+      - key: MAIL_HOST
+        sync: false
+      - key: MAIL_PORT
+        sync: false
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
