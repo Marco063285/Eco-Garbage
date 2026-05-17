@@ -24,12 +24,12 @@ export default function RequestDetail() {
   const [archiving, setArchiving] = useState(false)
 
   const TIMELINE = [
-    { status: 'pending',     label: isEn ? 'Request received'   : 'Demande reçue',       icon: '📨' },
-    { status: 'approved',    label: isEn ? 'Request approved'   : 'Demande approuvée',    icon: '✅' },
-    { status: 'assigned',    label: isEn ? 'Collector assigned' : 'Collecteur assigné',   icon: '👤' },
-    { status: 'on_way',      label: isEn ? 'Collector en route' : 'Collecteur en route',  icon: '🚛' },
-    { status: 'in_progress', label: isEn ? 'Collection ongoing' : 'Collecte en cours',    icon: '⚙️' },
-    { status: 'completed',   label: isEn ? 'Collection done'    : 'Collecte terminée',    icon: '🎉' },
+    { status: 'pending',     label: isEn ? 'Received'  : 'Reçue',      icon: '📨' },
+    { status: 'approved',    label: isEn ? 'Approved'  : 'Approuvée',  icon: '✅' },
+    { status: 'assigned',    label: isEn ? 'Assigned'  : 'Assigné',    icon: '👤' },
+    { status: 'on_way',      label: isEn ? 'En route'  : 'En route',   icon: '🚛' },
+    { status: 'in_progress', label: isEn ? 'Ongoing'   : 'En cours',   icon: '⚙️' },
+    { status: 'completed',   label: isEn ? 'Done'      : 'Terminée',   icon: '🎉' },
   ]
 
   const fetchReq = async () => {
@@ -202,7 +202,7 @@ export default function RequestDetail() {
       {/* Details */}
       <div className="card p-6 mb-5">
         <h3 className="font-display font-bold mb-4">{isEn ? 'Information' : 'Informations'}</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {details.map(([k, v]) => (
             <div key={k}>
               <p className="text-xs text-gray-400 mb-0.5">{k}</p>

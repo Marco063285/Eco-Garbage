@@ -73,8 +73,8 @@ export default function CollectorDetail() {
 
       {/* Header */}
       <div className="card p-6 mb-5">
-        <div className="flex items-center gap-5">
-          <div className="w-24 h-24 rounded-2xl overflow-hidden bg-[#E8F5EE] flex-shrink-0 flex items-center justify-center border-4 border-[#1A8A3C] cursor-pointer"
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
+          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-[#E8F5EE] flex-shrink-0 flex items-center justify-center border-4 border-[#1A8A3C] cursor-pointer"
             onClick={() => collector.avatar_url && setImgModal({ src: collector.avatar_url, title: collector.name })}>
             {collector.avatar_url
               ? <img src={collector.avatar_url} alt={collector.name} className="w-full h-full object-cover" />
@@ -113,7 +113,7 @@ export default function CollectorDetail() {
           {/* Vehicle & zone */}
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">{isEn ? 'Vehicle & zone' : 'Véhicule & zone'}</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               {[
                 [isEn ? 'Vehicle type' : 'Type de véhicule', cp.vehicle_type        || '—'],
                 [isEn ? 'Plate number' : 'Immatriculation',  cp.vehicle_plate       || '—'],
@@ -138,7 +138,7 @@ export default function CollectorDetail() {
           {/* Account info */}
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">{isEn ? 'Account info' : 'Informations du compte'}</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-xs text-gray-400 mb-0.5">{isEn ? 'Registered on' : 'Inscrit le'}</p>
                 <p className="font-medium text-gray-800">{format(new Date(collector.created_at), 'dd MMM yyyy', { locale: dateLocale })}</p>

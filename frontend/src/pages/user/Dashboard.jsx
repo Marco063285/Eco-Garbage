@@ -71,7 +71,7 @@ export default function UserDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard icon={Truck}       label={t('user.dashboard.totalRequests')} value={requests.length} color="green" />
         <StatCard icon={Clock}       label={t('user.dashboard.inProgress')}    value={pending}         color="yellow" />
         <StatCard icon={CheckCircle} label={t('user.dashboard.completed')}     value={completed}       color="blue" />

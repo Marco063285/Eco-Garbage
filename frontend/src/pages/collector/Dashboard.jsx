@@ -109,7 +109,7 @@ export default function CollectorDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard icon={Truck}       label={t('collector.dashboard.totalCollections')} value={stats?.completed ?? 0} color="green" />
         <StatCard icon={CheckCircle} label={t('common.active')}                        value={tasks.filter(tk => tk.status === 'completed').length} color="blue" />
         <StatCard icon={Star}        label={t('collector.dashboard.rating')}            value={stats?.profile?.rating_avg ? parseFloat(stats.profile.rating_avg).toFixed(1) : '—'} color="yellow" />

@@ -202,7 +202,7 @@ export default function TaskDetail() {
       {/* Task details */}
       <div className="card p-6 mb-5">
         <h3 className="font-display font-bold mb-4">{isEn ? 'Collection details' : 'Détails de la collecte'}</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {details.map(([k, v]) => (
             <div key={k}>
               <p className="text-xs text-gray-400 mb-0.5">{k}</p>

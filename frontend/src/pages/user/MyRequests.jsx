@@ -90,7 +90,7 @@ export default function MyRequests() {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
-        <div className="relative flex-1 min-w-[200px]">
+        <div className="relative w-full sm:flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input className="input pl-10" placeholder={`${t('common.search')}...`} value={search} onChange={e => setSearch(e.target.value)} />
         </div>

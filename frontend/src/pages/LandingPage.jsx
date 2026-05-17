@@ -54,32 +54,32 @@ export default function LandingPage() {
             style={{ backgroundImage: 'radial-gradient(circle, #C8EDDA 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
         </div>
 
-        <div className="max-w-6xl mx-auto px-6 relative z-10 grid md:grid-cols-2 gap-16 items-center w-full">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10 grid md:grid-cols-2 gap-8 md:gap-16 items-center w-full">
           <div>
             <div className="inline-flex items-center gap-2 bg-white border border-[#C8EDDA] px-4 py-2 rounded-full text-sm font-semibold text-[#1A8A3C] shadow-green-sm mb-6">
               <Leaf size={14} /> {t('landing.hero.badge')}
             </div>
-            <h1 className="text-5xl md:text-6xl font-display font-black leading-tight mb-5 text-gray-900">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-display font-black leading-tight mb-5 text-gray-900">
               {t('landing.hero.title')}<br />
               <span style={{ background: 'linear-gradient(135deg,#1A8A3C,#27AE60)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 {t('landing.hero.titleHighlight')}
               </span>
             </h1>
-            <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
+            <p className="text-base sm:text-lg text-gray-500 mb-8 leading-relaxed max-w-lg">
               {t('landing.hero.desc')}
             </p>
-            <div className="flex flex-wrap gap-4 mb-10">
-              <Link to="/register" className="btn-primary text-base px-8 py-4 shadow-green-md">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 mb-8 sm:mb-10">
+              <Link to="/register" className="btn-primary text-base px-6 sm:px-8 py-3.5 sm:py-4 shadow-green-md justify-center sm:justify-start">
                 <ArrowRight size={18} /> {t('landing.hero.cta')}
               </Link>
-              <button className="btn-ghost text-base px-6 py-4 border border-gray-200">
+              <button className="btn-ghost text-base px-5 sm:px-6 py-3.5 sm:py-4 border border-gray-200 justify-center sm:justify-start">
                 <PlayCircle size={18} /> {t('landing.hero.learnMore')}
               </button>
             </div>
-            <div className="flex items-center gap-8">
+            <div className="flex items-center gap-5 sm:gap-8">
               {stats.map(([v, l]) => (
                 <div key={l}>
-                  <p className="text-2xl font-display font-bold text-gray-900">{v}</p>
+                  <p className="text-xl sm:text-2xl font-display font-bold text-gray-900">{v}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{l}</p>
                 </div>
               ))}
@@ -138,11 +138,11 @@ export default function LandingPage() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
+      <section className="py-16 sm:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-14">
             <div className="section-badge">{isEn ? 'How it works' : 'Comment ça marche'}</div>
-            <h2 className="text-4xl font-display font-bold">{isEn ? 'Simple, fast, effective' : 'Simple, rapide, efficace'}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold">{isEn ? 'Simple, fast, effective' : 'Simple, rapide, efficace'}</h2>
             <p className="text-gray-400 mt-3">{isEn ? 'In 3 steps, your waste is collected cleanly' : 'En 3 étapes seulement, vos déchets sont collectés proprement'}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-8">
@@ -159,13 +159,13 @@ export default function LandingPage() {
       </section>
 
       {/* SERVICES */}
-      <section id="services" className="py-24 bg-[#f7faf8]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
+      <section id="services" className="py-16 sm:py-24 bg-[#f7faf8]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-14">
             <div className="section-badge">{isEn ? 'Our services' : 'Nos services'}</div>
-            <h2 className="text-4xl font-display font-bold">{isEn ? 'A solution for every need' : 'Une solution pour chaque besoin'}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold">{isEn ? 'A solution for every need' : 'Une solution pour chaque besoin'}</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
             {SERVICES.map((s, i) => (
               <div key={i} className={`rounded-2xl p-7 transition-all hover:-translate-y-1 ${s.featured ? 'bg-[#1A8A3C] text-white' : 'card hover:border-[#1A8A3C]/30'}`}>
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-5 ${s.featured ? 'bg-white/20' : 'bg-[#E8F5EE]'}`}>
@@ -180,10 +180,10 @@ export default function LandingPage() {
       </section>
 
       {/* CATEGORIES */}
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-6 text-center">
+      <section className="py-14 sm:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <div className="section-badge">{isEn ? 'Categories' : 'Catégories'}</div>
-          <h2 className="text-4xl font-display font-bold mb-10">{isEn ? 'We collect all types of waste' : 'Nous collectons tout type de déchets'}</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-6 sm:mb-10">{isEn ? 'We collect all types of waste' : 'Nous collectons tout type de déchets'}</h2>
           <div className="flex flex-wrap gap-3 justify-center">
             {CATS.map(c => (
               <span key={c} className="bg-[#f7faf8] border border-gray-200 hover:border-[#1A8A3C] hover:bg-[#E8F5EE] hover:text-[#1A8A3C] transition-all px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer">
@@ -195,15 +195,15 @@ export default function LandingPage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section className="py-24 bg-[#f7faf8]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
+      <section className="py-16 sm:py-24 bg-[#f7faf8]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-14">
             <div className="section-badge">{isEn ? 'Testimonials' : 'Témoignages'}</div>
-            <h2 className="text-4xl font-display font-bold">{isEn ? 'They trust us' : 'Ils nous font confiance'}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold">{isEn ? 'They trust us' : 'Ils nous font confiance'}</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 items-center">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6 items-center">
             {TESTIMONIALS.map((tm, i) => (
-              <div key={i} className={`rounded-2xl p-7 transition-all ${tm.featured ? 'bg-[#1A8A3C] scale-105 shadow-green-lg' : 'card'}`}>
+              <div key={i} className={`rounded-2xl p-5 sm:p-7 transition-all ${tm.featured ? 'bg-[#1A8A3C] sm:scale-105 shadow-green-lg' : 'card'}`}>
                 <div className={`flex gap-0.5 mb-4 ${tm.featured ? 'text-yellow-300' : 'text-yellow-400'}`}>
                   {'⭐'.repeat(tm.score)}{'☆'.repeat(5 - tm.score)}
                 </div>
@@ -222,15 +222,15 @@ export default function LandingPage() {
       </section>
 
       {/* PRICING */}
-      <section id="pricing" className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-14">
+      <section id="pricing" className="py-16 sm:py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-14">
             <div className="section-badge">{isEn ? 'Pricing' : 'Tarifs'}</div>
-            <h2 className="text-4xl font-display font-bold">{isEn ? 'Choose your plan' : 'Choisissez votre forfait'}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold">{isEn ? 'Choose your plan' : 'Choisissez votre forfait'}</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto items-start">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-5 sm:gap-6 max-w-4xl mx-auto items-start">
             {PLANS.map(p => (
-              <div key={p.name} className={`rounded-2xl p-8 relative ${p.popular ? 'bg-[#1A8A3C] shadow-green-lg scale-105' : 'card border-2'}`}>
+              <div key={p.name} className={`rounded-2xl p-6 sm:p-8 relative ${p.popular ? 'bg-[#1A8A3C] shadow-green-lg sm:scale-105' : 'card border-2'}`}>
                 {p.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-gray-900 text-xs font-black px-4 py-1 rounded-full">
                     🔥 {isEn ? 'POPULAR' : 'POPULAIRE'}
@@ -257,16 +257,16 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section id="about" className="py-24 bg-[#f7faf8]">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="bg-[#1A8A3C] rounded-3xl p-16 text-center relative overflow-hidden">
+      <section id="about" className="py-16 sm:py-24 bg-[#f7faf8]">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="bg-[#1A8A3C] rounded-2xl sm:rounded-3xl p-8 sm:p-12 md:p-16 text-center relative overflow-hidden">
             <div className="absolute inset-0 opacity-10"
               style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
             <div className="relative z-10">
-              <h2 className="text-4xl font-display font-bold text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white mb-4">
                 {isEn ? 'Ready to join the green revolution?' : 'Prêt à rejoindre la révolution verte ?'}
               </h2>
-              <p className="text-white/70 text-lg mb-8">
+              <p className="text-white/70 text-base sm:text-lg mb-6 sm:mb-8">
                 {isEn ? 'Sign up for free and make your first collection today.' : "Inscrivez-vous gratuitement et effectuez votre première collecte dès aujourd'hui."}
               </p>
               <div className="flex flex-wrap gap-4 justify-center">

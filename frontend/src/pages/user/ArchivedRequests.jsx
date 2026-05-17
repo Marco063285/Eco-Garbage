@@ -66,14 +66,14 @@ export default function ArchivedRequests() {
         <div className="flex flex-col gap-4">
           {requests.map(req => (
             <div key={req.uuid} className="card p-5 hover:shadow-md transition-all">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-3 gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <h3 className="font-semibold text-gray-800">{req.category_name}</h3>
                     <StatusBadge status={req.status} />
                   </div>
                   <p className="text-sm text-gray-600 mb-2">{req.address}</p>
-                  <div className="flex gap-4 text-xs text-gray-500">
+                  <div className="flex flex-col sm:flex-row sm:gap-3 gap-0.5 text-xs text-gray-500">
                     <span>Créée: {format(new Date(req.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}</span>
                     {req.collected_at && (
                       <span>Collectée: {format(new Date(req.collected_at), 'dd MMM yyyy HH:mm', { locale: fr })}</span>
@@ -83,8 +83,8 @@ export default function ArchivedRequests() {
                     )}
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-[#1A8A3C]">{parseFloat(req.estimated_price).toLocaleString()} FCFA</p>
+                <div className="sm:text-right flex-shrink-0">
+                  <p className="text-base sm:text-lg font-bold text-[#1A8A3C]">{parseFloat(req.estimated_price).toLocaleString()} FCFA</p>
                   {req.collector_name && (
                     <p className="text-xs text-gray-500 mt-1">par {req.collector_name}</p>
                   )}

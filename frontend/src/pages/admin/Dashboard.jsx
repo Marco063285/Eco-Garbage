@@ -54,7 +54,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPIs row 1 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
         <StatCard icon={Users}       label={ad.users}            value={stats.users}         color="green" />
         <StatCard icon={Truck}       label={ad.collectors}       value={stats.collectors}    color="blue" />
         <StatCard icon={CheckCircle} label={ad.totalCollections} value={stats.totalRequests} color="purple" />
@@ -62,7 +62,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* KPIs row 2 */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
         <StatCard icon={CheckCircle} label={ad.completed}       value={stats.completedRequests} color="green" />
         <StatCard icon={Clock}       label={ad.pending}         value={stats.pendingRequests}   color="yellow" />
         <StatCard icon={DollarSign}  label={ad.collected}       value={`${(stats.paidRevenue || 0).toLocaleString()} FCFA`} color="green" />
