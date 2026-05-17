@@ -44,7 +44,9 @@ export default api;
 
 // ── Auth ──────────────────────────────────────────
 export const authApi = {
-  register: (data) => api.post('/auth/register', data),
+  register: (data) => api.post('/auth/register', data, {
+    timeout: data instanceof FormData ? 120000 : 15000,
+  }),
   login: (data) => api.post('/auth/login', data),
   verifyEmail: (token) => api.get('/auth/verify-email', { params: { token } }),
   resendVerification: (email) => api.post('/auth/resend-verification', { email }),

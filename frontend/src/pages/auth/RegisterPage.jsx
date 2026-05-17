@@ -56,7 +56,9 @@ export default function RegisterPage() {
         formData.append('id_back', idBack)
         formData.append('selfie_photo', selfiePhoto)
         if (selfieVideo) formData.append('selfie_video', selfieVideo)
+        toast.loading(isEn ? 'Uploading documents…' : 'Envoi des documents en cours…', { id: 'register-upload' })
         res = await authApi.register(formData)
+        toast.dismiss('register-upload')
       } else {
         res = await authApi.register({ name: form.name, email: form.email, phone: normalizeCmPhone(form.phone), password: form.password, role: form.role })
       }
@@ -67,6 +69,7 @@ export default function RegisterPage() {
       }
       setRegistered(true)
     } catch (err) {
+      toast.dismiss('register-upload')
       toast.error(err.response?.data?.message || err.message || t('common.serverError'))
       setLoading(false)
     }
