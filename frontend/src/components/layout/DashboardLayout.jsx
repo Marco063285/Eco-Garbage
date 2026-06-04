@@ -52,7 +52,7 @@ const SidebarContent = memo(function SidebarContent({
     }>
       {mobile && <div className="absolute inset-0 bg-black/40" onClick={onClose} />}
       <div className={`${mobile ? 'relative w-[240px]' : 'w-full'} h-full bg-white border-r border-gray-100 flex flex-col shadow-green-sm`}>
-        {/* Brand */}
+
         <div className="h-[70px] flex items-center border-b border-gray-50 px-4 gap-3 flex-shrink-0">
           <div className="w-9 h-9 bg-[#1A8A3C] rounded-xl flex items-center justify-center flex-shrink-0">
             <Leaf size={18} className="text-white" />
@@ -64,7 +64,7 @@ const SidebarContent = memo(function SidebarContent({
           )}
         </div>
 
-        {/* User info */}
+
         {(!collapsed || mobile) && (
           <div className="px-4 py-3 border-b border-gray-50">
             <div className="flex items-center gap-3">
@@ -79,7 +79,7 @@ const SidebarContent = memo(function SidebarContent({
           </div>
         )}
 
-        {/* Nav */}
+
         <nav className="flex-1 overflow-y-auto py-4 px-3 flex flex-col gap-1">
           {navItems.map(item => (
             <NavLink
@@ -104,7 +104,7 @@ const SidebarContent = memo(function SidebarContent({
           ))}
         </nav>
 
-        {/* Logout */}
+
         <div className="px-3 pb-4 border-t border-gray-50 pt-3">
           <button
             onClick={onLogout}
@@ -115,7 +115,7 @@ const SidebarContent = memo(function SidebarContent({
           </button>
         </div>
 
-        {/* Collapse button desktop */}
+
         {!mobile && (
           <button
             onClick={onToggleCollapsed}
@@ -217,7 +217,7 @@ export default function DashboardLayout({ role }) {
 
   return (
     <div className="min-h-screen bg-[#f7faf8] flex">
-      {/* Desktop sidebar */}
+
       <div className="hidden md:block">
         <SidebarContent
           {...sharedProps}
@@ -228,7 +228,7 @@ export default function DashboardLayout({ role }) {
         />
       </div>
 
-      {/* Mobile sidebar */}
+
       {mobileOpen && (
         <SidebarContent
           {...sharedProps}
@@ -239,19 +239,19 @@ export default function DashboardLayout({ role }) {
         />
       )}
 
-      {/* Main */}
+
       <main className={`flex-1 min-w-0 transition-all duration-300 ${collapsed ? 'md:ml-[72px]' : 'md:ml-[240px]'}`}>
-        {/* Top bar */}
+
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-xl border-b border-gray-100 h-[70px] flex items-center px-6 gap-3">
           <button className="md:hidden p-2 rounded-xl hover:bg-gray-100" onClick={() => setMobileOpen(true)}>
             <Menu size={20} />
           </button>
           <div className="flex-1" />
 
-          {/* Language switcher */}
+
           <LangToggle />
 
-          {/* Notification bell */}
+
           <NavLink
             to={notifPath}
             className="relative p-2 rounded-xl hover:bg-[#E8F5EE] text-gray-500 hover:text-[#1A8A3C] transition-all"
@@ -264,7 +264,7 @@ export default function DashboardLayout({ role }) {
             )}
           </NavLink>
 
-          {/* User chip */}
+
           <div className="flex items-center gap-2.5 pl-3 border-l border-gray-100">
             <div className="w-8 h-8 bg-[#E8F5EE] rounded-full flex items-center justify-center text-[#1A8A3C] font-bold text-xs">
               {initials}

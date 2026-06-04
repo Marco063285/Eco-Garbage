@@ -9,12 +9,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-/**
- * Send an email verification link to the newly registered user.
- * @param {string} toEmail
- * @param {string} userName
- * @param {string} token
- */
+
 const sendVerificationEmail = async (toEmail, userName, token) => {
   const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const link = `${baseUrl}/verify-email?token=${token}`;
@@ -50,9 +45,7 @@ const sendVerificationEmail = async (toEmail, userName, token) => {
   });
 };
 
-/**
- * Send a password reset link.
- */
+
 const sendResetPasswordEmail = async (toEmail, userName, token) => {
   const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
   const link = `${baseUrl}/reset-password?token=${token}`;

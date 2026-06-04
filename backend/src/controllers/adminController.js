@@ -10,7 +10,7 @@ const WasteCategory = require('../models/WasteCategory');
 
 const CM_PHONE_REGEX = /^(\+?237)?[62]\d{8}$/;
 
-// GET /api/admin/dashboard
+
 const getDashboard = async (req, res) => {
   try {
     const [users, collectors, totalReq, completedReq, pendingReq, openComplaints] = await Promise.all([
@@ -71,7 +71,7 @@ const getDashboard = async (req, res) => {
   }
 };
 
-// GET /api/admin/users
+
 const getUsers = async (req, res) => {
   try {
     const { role, page = 1, limit = 15, search } = req.query;
@@ -93,7 +93,7 @@ const getUsers = async (req, res) => {
   }
 };
 
-// PUT /api/admin/users/:id/status
+
 const toggleUserStatus = async (req, res) => {
   try {
     const { is_active } = req.body;
@@ -111,7 +111,7 @@ const toggleUserStatus = async (req, res) => {
   }
 };
 
-// GET /api/admin/complaints
+
 const getComplaints = async (req, res) => {
   try {
     const { status, page = 1, limit = 20 } = req.query;
@@ -140,7 +140,7 @@ const getComplaints = async (req, res) => {
   }
 };
 
-// PUT /api/admin/complaints/:uuid
+
 const respondComplaint = async (req, res) => {
   try {
     const { status, admin_response } = req.body;
@@ -156,7 +156,7 @@ const respondComplaint = async (req, res) => {
   }
 };
 
-// GET /api/admin/reports
+
 const getReports = async (req, res) => {
   try {
     const { period = 'month' } = req.query;
@@ -190,7 +190,7 @@ const getReports = async (req, res) => {
   }
 };
 
-// GET /api/admin/categories
+
 const getCategories = async (req, res) => {
   try {
     const rows = await WasteCategory.find().sort({ name: 1 }).lean();
@@ -201,7 +201,7 @@ const getCategories = async (req, res) => {
   }
 };
 
-// POST /api/admin/categories
+
 const createCategory = async (req, res) => {
   try {
     const { name, description, icon, base_price, is_hazardous, is_recyclable } = req.body;
@@ -212,7 +212,7 @@ const createCategory = async (req, res) => {
   }
 };
 
-// PUT /api/admin/categories/:id
+
 const updateCategory = async (req, res) => {
   try {
     const { name, description, icon, base_price, is_hazardous, is_recyclable, is_active } = req.body;
@@ -223,7 +223,7 @@ const updateCategory = async (req, res) => {
   }
 };
 
-// POST /api/admin/users
+
 const createUser = async (req, res) => {
   try {
     const { name, email, phone, role, password, national_id_number } = req.body;
@@ -262,7 +262,7 @@ const createUser = async (req, res) => {
   }
 };
 
-// DELETE /api/admin/users/:id
+
 const deleteUser = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id))
@@ -272,7 +272,7 @@ const deleteUser = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     if (user.role === 'admin')
       return res.status(403).json({ success: false, message: 'Impossible de supprimer un administrateur' });
-    // Check for active requests
+
     const activeReqs = await PickupRequest.countDocuments({
       $or: [{ user_id: user._id }, { collector_id: user._id }],
       status: { $in: ['assigned', 'on_way', 'in_progress'] },
@@ -287,7 +287,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// GET /api/admin/collectors/:id
+
 const getCollectorDetails = async (req, res) => {
   try {
     if (!mongoose.isValidObjectId(req.params.id))
@@ -299,7 +299,7 @@ const getCollectorDetails = async (req, res) => {
     if (user.role !== 'collector')
       return res.status(400).json({ success: false, message: 'Cet utilisateur n\'est pas un collecteur' });
     
-    // Run all three stats queries in parallel
+
     const [totalRequests, completedRequests, ratings] = await Promise.all([
       PickupRequest.countDocuments({ collector_id: user._id }),
       PickupRequest.countDocuments({ collector_id: user._id, status: 'completed' }),

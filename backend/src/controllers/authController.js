@@ -27,7 +27,7 @@ const generateToken = (user) =>
     { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
   );
 
-// POST /api/auth/register
+
 const register = async (req, res) => {
   try {
     const { name, email, phone, password, role = 'user', national_id_number } = req.body;
@@ -42,12 +42,12 @@ const register = async (req, res) => {
     if (!['user', 'collector'].includes(role))
       return res.status(400).json({ success: false, message: 'Role invalide' });
 
-    // Validate national ID number for collectors
+
     if (role === 'collector') {
       if (!national_id_number || national_id_number.length < 8 || national_id_number.length > 20) {
         return res.status(400).json({ success: false, message: 'Numéro de carte d\'identité national requis (8-20 caractères)' });
       }
-      // Basic validation for Cameroonian ID format (can be enhanced)
+
       const idRegex = /^[A-Z0-9]+$/;
       if (!idRegex.test(national_id_number.toUpperCase())) {
         return res.status(400).json({ success: false, message: 'Format de numéro de carte d\'identité invalide' });
@@ -121,7 +121,7 @@ const register = async (req, res) => {
   }
 };
 
-// POST /api/auth/login
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -150,7 +150,7 @@ const login = async (req, res) => {
   }
 };
 
-// GET /api/auth/me
+
 const getMe = async (req, res) => {
   try {
     const userDoc = await User.findById(req.user.id).select('-password_hash').lean({ virtuals: true });
@@ -161,7 +161,7 @@ const getMe = async (req, res) => {
   }
 };
 
-// PUT /api/auth/profile
+
 const updateProfile = async (req, res) => {
   try {
     const { name, phone, address } = req.body;
@@ -177,7 +177,7 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// PUT /api/auth/password
+
 const changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -194,7 +194,7 @@ const changePassword = async (req, res) => {
   }
 };
 
-// GET /api/auth/verify-email?token=...
+
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
@@ -220,7 +220,7 @@ const verifyEmail = async (req, res) => {
   }
 };
 
-// POST /api/auth/resend-verification
+
 const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
@@ -253,14 +253,14 @@ const resendVerification = async (req, res) => {
   }
 };
 
-// POST /api/auth/forgot-password
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Email requis' });
 
     const userDoc = await User.findOne({ email: email.toLowerCase() });
-    // Always return success to prevent email enumeration
+
     if (!userDoc) return res.json({ success: true, message: 'Si un compte existe avec cet email, un lien de reinitialisation a ete envoye.' });
 
     const resetToken = crypto.randomBytes(32).toString('hex');
@@ -283,7 +283,7 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-// POST /api/auth/reset-password
+
 const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;

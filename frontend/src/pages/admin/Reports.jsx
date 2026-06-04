@@ -48,7 +48,7 @@ export default function AdminReports() {
 
       {loading ? <PageLoader /> : !data ? null : (
         <div className="flex flex-col gap-6">
-          {/* Revenue line chart */}
+
           {data.dailyRevenue?.length > 0 && (
             <div className="card p-6">
               <h3 className="font-display font-bold mb-6">{t('admin.reports.revenue')} (FCFA)</h3>
@@ -68,7 +68,7 @@ export default function AdminReports() {
           )}
 
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* By category bar chart */}
+
             {data.byCategory?.length > 0 && (
               <div className="card p-6">
                 <h3 className="font-display font-bold mb-6">{t('admin.reports.byCategory')}</h3>
@@ -86,7 +86,7 @@ export default function AdminReports() {
               </div>
             )}
 
-            {/* By status pie chart */}
+
             {data.byStatus?.length > 0 && (
               <div className="card p-6">
                 <h3 className="font-display font-bold mb-6">{t('admin.reports.byStatus')}</h3>
@@ -106,7 +106,7 @@ export default function AdminReports() {
             )}
           </div>
 
-          {/* Revenue by category table */}
+
           {data.byCategory?.length > 0 && (
             <div className="card p-6">
               <h3 className="font-display font-bold mb-4">{t('admin.reports.revenueLabel')} {isEn ? 'by category' : 'par catégorie'}</h3>

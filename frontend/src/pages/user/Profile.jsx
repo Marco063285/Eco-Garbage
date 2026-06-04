@@ -56,7 +56,7 @@ export default function Profile() {
     <div className="fade-up max-w-xl mx-auto">
       <PageHeader title={t('user.profile.title')} subtitle={t('user.profile.subtitle')} />
 
-      {/* Avatar */}
+
       <div className="card p-6 mb-6 flex items-center gap-4">
         <div className="w-16 h-16 bg-[#1A8A3C] rounded-2xl flex items-center justify-center text-white font-display font-bold text-2xl">
           {initials}
@@ -68,7 +68,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Tabs */}
+
       <div className="flex gap-2 mb-6 bg-gray-100 p-1 rounded-xl">
         {[
           ['info',     User, t('user.profile.title').split(' ')[1] || 'Info'],

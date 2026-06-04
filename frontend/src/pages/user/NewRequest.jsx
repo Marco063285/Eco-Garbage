@@ -164,7 +164,6 @@ export default function NewRequest() {
       <PageHeader title={t('user.newRequest.title')} subtitle={t('user.newRequest.subtitle')} />
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-6">
-        {/* Service type */}
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.serviceType')}</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -178,7 +177,6 @@ export default function NewRequest() {
           </div>
         </div>
 
-        {/* Category */}
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.category')} <span className="text-red-500">*</span></h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -193,7 +191,6 @@ export default function NewRequest() {
           </div>
         </div>
 
-        {/* Quantity picker */}
         <div className="card p-6">
           <h3 className="font-display font-bold mb-4">{t('user.newRequest.quantity')}</h3>
           <div className="flex items-center justify-center gap-5">
@@ -214,7 +211,6 @@ export default function NewRequest() {
           </div>
         </div>
 
-        {/* Details */}
         <div className="card p-6 flex flex-col gap-5">
           <h3 className="font-display font-bold">{isEn ? 'Collection details' : 'Détails de la collecte'}</h3>
 
@@ -260,7 +256,6 @@ export default function NewRequest() {
           </div>
         </div>
 
-        {/* Live Estimate Summary */}
         {(estimate || form.category_id) && (
           <div className="bg-[#E8F5EE] border border-[#C8EDDA] rounded-2xl p-5">
             <h3 className="font-display font-bold text-[#1A8A3C] mb-3 flex items-center gap-2">

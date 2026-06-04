@@ -1,14 +1,10 @@
-/**
- * Geolocation & pricing utilities for Yango-like auto-assignment
- */
+
 
 const PRICE_PER_KM = 200; // 200 FCFA per kilometer
 const MAX_SEARCH_RADIUS_KM = 20; // max 20km radius to find collectors
 const MIN_PRICE = 500; // minimum fare
 
-/**
- * Haversine formula — distance between two lat/lng points in km
- */
+
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371; // Earth radius in km
   const dLat = toRad(lat2 - lat1);
@@ -23,11 +19,7 @@ function toRad(deg) {
   return (deg * Math.PI) / 180;
 }
 
-/**
- * Calculate estimated price:
- *   (base_price × quantity) + (distance_km × PRICE_PER_KM)
- *   Minimum fare = category base_price
- */
+
 function calculateEstimatedPrice(basePricePerUnit, quantity, distanceKm) {
   const qty = Math.max(1, quantity || 1);
   const dist = Math.max(0, distanceKm || 0);

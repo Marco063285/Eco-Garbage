@@ -86,7 +86,7 @@ export default function CollectorDashboard() {
 
   return (
     <div className="fade-up">
-      {/* Header */}
+
       <div className="flex items-start justify-between mb-8 flex-wrap gap-4">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 bg-[#E8F5EE] rounded-2xl flex items-center justify-center text-[#1A8A3C] font-bold text-xl font-display">
@@ -108,7 +108,7 @@ export default function CollectorDashboard() {
         </button>
       </div>
 
-      {/* Stats */}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard icon={Truck}       label={t('collector.dashboard.totalCollections')} value={stats?.completed ?? 0} color="green" />
         <StatCard icon={CheckCircle} label={t('common.active')}                        value={tasks.filter(tk => tk.status === 'completed').length} color="blue" />
@@ -116,7 +116,7 @@ export default function CollectorDashboard() {
         <StatCard icon={Truck}       label={t('collector.dashboard.earnings')}          value={`${(stats?.earnings || 0).toLocaleString()} FCFA`} color="purple" />
       </div>
 
-      {/* Status banner */}
+
       <div className={`rounded-2xl p-4 mb-6 flex items-center gap-3 ${
         available
           ? 'bg-[#E8F5EE] border border-[#C8EDDA]'
@@ -136,7 +136,7 @@ export default function CollectorDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Tasks */}
+
         <div className="lg:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-display font-bold">{t('collector.dashboard.myTasks')}</h2>
@@ -168,7 +168,7 @@ export default function CollectorDashboard() {
           )}
         </div>
 
-        {/* Performance */}
+
         <div className="flex flex-col gap-5">
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">Actions rapides</h3>

@@ -52,7 +52,6 @@ export default function UserDashboard() {
 
   return (
     <div className="fade-up">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 md:mb-8">
         <div className="flex items-center gap-3 md:gap-4">
           <div className="w-12 md:w-14 h-12 md:h-14 bg-[#E8F5EE] rounded-2xl flex items-center justify-center text-[#1A8A3C] font-bold text-lg md:text-xl font-display">
@@ -70,7 +69,6 @@ export default function UserDashboard() {
         </Link>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard icon={Truck}       label={t('user.dashboard.totalRequests')} value={requests.length} color="green" />
         <StatCard icon={Clock}       label={t('user.dashboard.inProgress')}    value={pending}         color="yellow" />
@@ -79,7 +77,6 @@ export default function UserDashboard() {
       </div>
 
       <div className="grid md:grid-cols-3 gap-4 md:gap-6">
-        {/* Recent Requests */}
         <div className="md:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-display font-bold">{t('user.dashboard.recentRequests')}</h2>
@@ -115,7 +112,6 @@ export default function UserDashboard() {
           )}
         </div>
 
-        {/* Quick actions + Plan */}
         <div className="flex flex-col gap-5">
           <div className="card p-6">
             <h2 className="text-lg font-display font-bold mb-4">{t('user.dashboard.quickActions')}</h2>

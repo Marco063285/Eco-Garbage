@@ -8,7 +8,7 @@ const Payment = require('../models/Payment');
 const WasteCategory = require('../models/WasteCategory');
 const User = require('../models/User');
 
-// ========== NOTIFICATIONS ==========
+
 
 const getNotifications = async (req, res) => {
   try {
@@ -31,7 +31,7 @@ const markAllRead = async (req, res) => {
   }
 };
 
-// ========== RATINGS ==========
+
 
 const createRating = async (req, res) => {
   try {
@@ -49,7 +49,7 @@ const createRating = async (req, res) => {
       { upsert: true }
     );
 
-    // Compute average in DB instead of loading all ratings into memory
+
     const [avgResult] = await Rating.aggregate([
       { $match: { collector_id: pickupReq.collector_id } },
       { $group: { _id: null, avg: { $avg: '$score' } } },
@@ -65,7 +65,7 @@ const createRating = async (req, res) => {
   }
 };
 
-// ========== COMPLAINTS ==========
+
 
 const createComplaint = async (req, res) => {
   try {
@@ -95,7 +95,7 @@ const getMyComplaints = async (req, res) => {
   }
 };
 
-// ========== PAYMENTS ==========
+
 
 const getPayments = async (req, res) => {
   try {
@@ -131,9 +131,9 @@ const payRequest = async (req, res) => {
   }
 };
 
-// ========== CATEGORIES (public) ==========
 
-// Simple in-process TTL cache — categories change rarely
+
+
 let _categoriesCache = null;
 let _categoriesCachedAt = 0;
 const CATEGORIES_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -152,7 +152,7 @@ const getCategories = async (req, res) => {
   }
 };
 
-// ========== COLLECTOR ==========
+
 
 const getCollectorTasks = async (req, res) => {
   try {
@@ -242,8 +242,8 @@ const updateCollectorLocation = async (req, res) => {
 const getCollectorStats = async (req, res) => {
   try {
     const collectorOid = new mongoose.Types.ObjectId(req.user.id);
-    // Run all three queries in parallel; sum final_price directly on PickupRequest
-    // to avoid an expensive Payment→PickupRequest join across the full payments collection
+
+
     const [user, completed, earningsResult] = await Promise.all([
       User.findById(req.user.id).select('collector_profile').lean(),
       PickupRequest.countDocuments({ collector_id: req.user.id, status: 'completed' }),

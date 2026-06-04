@@ -55,7 +55,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
-      {/* Visual side */}
+
       <div className="hidden md:flex flex-col items-center justify-center bg-[#1A8A3C] relative overflow-hidden p-12">
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -79,10 +79,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Form side */}
+
       <div className="flex items-center justify-center p-6 bg-[#f7faf8] min-h-screen">
         <div className="w-full max-w-[420px]">
-          {/* Mobile brand */}
+
           <Link to="/" className="flex md:hidden items-center gap-2 font-display font-bold text-xl mb-8">
             <div className="w-9 h-9 bg-[#1A8A3C] rounded-xl flex items-center justify-center">
               <Leaf size={18} className="text-white" />
@@ -97,7 +97,7 @@ export default function LoginPage() {
               <Link to="/register" className="text-[#1A8A3C] font-semibold hover:underline">{t('auth.login.register')}</Link>
             </p>
 
-            {/* Email not verified banner */}
+
             {unverified && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm">
                 <p className="font-semibold text-amber-800 mb-1">{t('auth.login.unverifiedTitle')}</p>

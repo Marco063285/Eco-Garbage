@@ -88,7 +88,6 @@ export default function MyRequests() {
         }
       />
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-6">
         <div className="relative w-full sm:flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />

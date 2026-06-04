@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-// In dev: Vite proxies /api to http://localhost:5000 (see vite.config.js)
-// In production (Vercel): set VITE_API_URL to your Render backend URL.
-// Both of these work — /api is auto-appended if missing:
-//   VITE_API_URL=https://eco-garbage-backend.onrender.com
-//   VITE_API_URL=https://eco-garbage-backend.onrender.com/api
+
+
+
+
+
 const rawBase = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
 const API_BASE = rawBase.endsWith('/api') ? rawBase : `${rawBase}/api`;
 
@@ -14,7 +14,7 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach token automatically
+
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('eco_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
@@ -25,8 +25,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally — only redirect when a stored token was rejected by a
-// protected route, not when the login endpoint itself returns 401 (wrong password).
+
+
 api.interceptors.response.use(
   (res) => res,
   (err) => {
@@ -42,7 +42,7 @@ api.interceptors.response.use(
 
 export default api;
 
-// ── Auth ──────────────────────────────────────────
+
 export const authApi = {
   register: (data) => api.post('/auth/register', data, {
     timeout: data instanceof FormData ? 120000 : 15000,
@@ -57,7 +57,7 @@ export const authApi = {
   changePassword: (data) => api.put('/auth/password', data),
 };
 
-// ── Requests ──────────────────────────────────────
+
 export const requestApi = {
   list: (params) => api.get('/requests', { params }),
   get: (uuid) => api.get(`/requests/${uuid}`),
@@ -71,35 +71,35 @@ export const requestApi = {
   cancel: (uuid) => api.delete(`/requests/${uuid}`),
 };
 
-// ── Categories ────────────────────────────────────
+
 export const categoryApi = {
   list: () => api.get('/categories'),
 };
 
-// ── Notifications ─────────────────────────────────
+
 export const notifApi = {
   list: () => api.get('/notifications'),
   readAll: () => api.put('/notifications/read-all'),
 };
 
-// ── Payments ──────────────────────────────────────
+
 export const paymentApi = {
   list: () => api.get('/payments'),
   pay: (data) => api.post('/payments/pay', data),
 };
 
-// ── Complaints ────────────────────────────────────
+
 export const complaintApi = {
   mine: () => api.get('/complaints/mine'),
   create: (data) => api.post('/complaints', data),
 };
 
-// ── Ratings ───────────────────────────────────────
+
 export const ratingApi = {
   create: (data) => api.post('/ratings', data),
 };
 
-// ── Collector ─────────────────────────────────────
+
 export const collectorApi = {
   tasks: (params) => api.get('/collector/tasks', { params }),
   availableRequests: (params) => api.get('/collector/available-requests', { params }),
@@ -108,7 +108,7 @@ export const collectorApi = {
   updateLocation: (data) => api.put('/collector/location', data),
 };
 
-// ── Admin ─────────────────────────────────────────
+
 export const adminApi = {
   dashboard: () => api.get('/admin/dashboard'),
   users: (params) => api.get('/admin/users', { params }),

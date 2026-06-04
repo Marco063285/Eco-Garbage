@@ -71,7 +71,6 @@ export default function CollectorDetail() {
         <ArrowLeft size={18} /> {isEn ? 'Back to users' : 'Retour aux utilisateurs'}
       </button>
 
-      {/* Header */}
       <div className="card p-6 mb-5">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
           <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden bg-[#E8F5EE] flex-shrink-0 flex items-center justify-center border-4 border-[#1A8A3C] cursor-pointer"
@@ -100,7 +99,6 @@ export default function CollectorDetail() {
         </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
         <StatCard icon={Truck}       label={isEn ? 'Total collections' : 'Total collectes'} value={collector.stats?.totalRequests ?? 0}   color="green" />
         <StatCard icon={CheckCircle} label={isEn ? 'Completed'         : 'Terminées'}        value={collector.stats?.completedRequests ?? 0} color="blue"  />
@@ -108,9 +106,7 @@ export default function CollectorDetail() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
-        {/* Left: info cards */}
         <div className="lg:col-span-2 flex flex-col gap-5">
-          {/* Vehicle & zone */}
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">{isEn ? 'Vehicle & zone' : 'Véhicule & zone'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -135,7 +131,6 @@ export default function CollectorDetail() {
             )}
           </div>
 
-          {/* Account info */}
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">{isEn ? 'Account info' : 'Informations du compte'}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -169,7 +164,6 @@ export default function CollectorDetail() {
           </div>
         </div>
 
-        {/* Right: documents */}
         <div className="flex flex-col gap-4">
           <h3 className="font-display font-bold flex items-center gap-2">
             <ShieldCheck size={16} className="text-[#1A8A3C]" />

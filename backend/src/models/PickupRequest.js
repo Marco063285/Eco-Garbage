@@ -43,7 +43,7 @@ const pickupRequestSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
-// Compound indexes for the most common query patterns
+
 pickupRequestSchema.index({ user_id: 1, is_archived: 1, status: 1, created_at: -1 });
 pickupRequestSchema.index({ collector_id: 1, status: 1, created_at: -1 });
 pickupRequestSchema.index({ status: 1, collector_id: 1 }); // available requests for collectors

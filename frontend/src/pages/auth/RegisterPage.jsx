@@ -89,7 +89,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">
-      {/* Visual */}
       <div className="hidden md:flex flex-col items-center justify-center bg-[#1A8A3C] relative overflow-hidden p-12">
         <div className="absolute inset-0 opacity-10"
           style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -114,7 +113,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Form / Success */}
       <div className="flex items-center justify-center p-6 bg-[#f7faf8] overflow-y-auto">
         <div className="w-full max-w-[440px] py-8">
           <Link to="/" className="flex md:hidden items-center gap-2 font-display font-bold text-xl mb-8">

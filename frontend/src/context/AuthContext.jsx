@@ -37,7 +37,6 @@ export function AuthProvider({ children }) {
     setUser(userData);
   }, []);
 
-  // Functional update avoids closing over stale `user` reference
   const updateUser = useCallback((updates) => {
     setUser(prev => {
       const updated = { ...prev, ...updates };

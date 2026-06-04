@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true },
 });
 
-// Create 2dsphere index for geolocation queries
+
 userSchema.index({ 'collector_profile.location': '2dsphere' });
 
 module.exports = mongoose.model('User', userSchema);

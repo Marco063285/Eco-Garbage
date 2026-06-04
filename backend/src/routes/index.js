@@ -36,7 +36,7 @@ const upload = multer({
   limits: { fileSize: 60 * 1024 * 1024 },
 });
 
-// Rate limiters
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 15,
@@ -45,7 +45,7 @@ const authLimiter = rateLimit({
   message: { success: false, message: 'Trop de tentatives. Réessayez dans 15 minutes.' },
 });
 
-// ── AUTH ──────────────────────────────────────────
+
 router.post('/auth/register', authLimiter, upload.fields([
   { name: 'id_front', maxCount: 1 },
   { name: 'id_back', maxCount: 1 },
@@ -61,10 +61,10 @@ router.get('/auth/me', authMiddleware, auth.getMe);
 router.put('/auth/profile', authMiddleware, auth.updateProfile);
 router.put('/auth/password', authMiddleware, auth.changePassword);
 
-// ── CATEGORIES (public) ───────────────────────────
+
 router.get('/categories', misc.getCategories);
 
-// ── PICKUP REQUESTS ───────────────────────────────
+
 router.get('/requests', authMiddleware, req_.getRequests);
 router.post('/requests', authMiddleware, requireRole('user'), req_.createRequest);
 router.post('/requests/estimate', authMiddleware, requireRole('user'), req_.estimatePrice);
@@ -76,29 +76,29 @@ router.put('/requests/:uuid/archive', authMiddleware, requireRole('user', 'colle
 router.put('/requests/:uuid/restore', authMiddleware, requireRole('user', 'collector'), req_.restoreRequest);
 router.delete('/requests/:uuid', authMiddleware, requireRole('user'), req_.cancelRequest);
 
-// ── NOTIFICATIONS ─────────────────────────────────
+
 router.get('/notifications', authMiddleware, misc.getNotifications);
 router.put('/notifications/read-all', authMiddleware, misc.markAllRead);
 
-// ── RATINGS ───────────────────────────────────────
+
 router.post('/ratings', authMiddleware, requireRole('user'), misc.createRating);
 
-// ── COMPLAINTS ────────────────────────────────────
+
 router.get('/complaints/mine', authMiddleware, misc.getMyComplaints);
 router.post('/complaints', authMiddleware, misc.createComplaint);
 
-// ── PAYMENTS ──────────────────────────────────────
+
 router.get('/payments', authMiddleware, misc.getPayments);
 router.post('/payments/pay', authMiddleware, misc.payRequest);
 
-// ── COLLECTOR ─────────────────────────────────────
+
 router.get('/collector/tasks', authMiddleware, requireRole('collector'), misc.getCollectorTasks);
 router.get('/collector/available-requests', authMiddleware, requireRole('collector'), misc.getAvailableCollectorRequests);
 router.put('/collector/availability', authMiddleware, requireRole('collector'), misc.updateCollectorAvailability);
 router.put('/collector/location', authMiddleware, requireRole('collector'), misc.updateCollectorLocation);
 router.get('/collector/stats', authMiddleware, requireRole('collector'), misc.getCollectorStats);
 
-// ── ADMIN ─────────────────────────────────────────
+
 router.get('/admin/dashboard', authMiddleware, requireRole('admin'), admin.getDashboard);
 router.get('/admin/users', authMiddleware, requireRole('admin'), admin.getUsers);
 router.get('/admin/collectors/:id', authMiddleware, requireRole('admin'), admin.getCollectorDetails);

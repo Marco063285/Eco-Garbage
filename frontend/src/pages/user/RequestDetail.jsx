@@ -46,7 +46,6 @@ export default function RequestDetail() {
 
   useEffect(() => { fetchReq() }, [uuid])
 
-  // Auto-refresh every 10s when collector is on the way
   useEffect(() => {
     if (!req) return
     if (!['on_way', 'in_progress'].includes(req.status)) return
@@ -122,7 +121,6 @@ export default function RequestDetail() {
         <div className="ml-auto"><StatusBadge status={req.status} /></div>
       </div>
 
-      {/* Timeline */}
       {!['cancelled','failed'].includes(req.status) && (
         <div className="card p-6 mb-5">
           <h3 className="font-display font-bold mb-5">{isEn ? 'Progress' : 'Progression'}</h3>
@@ -146,7 +144,6 @@ export default function RequestDetail() {
         </div>
       )}
 
-      {/* Live route map — shown when collector is on the way */}
       {['assigned','on_way','in_progress'].includes(req.status) && (
         <div className="card p-6 mb-5">
           <h3 className="font-display font-bold mb-4">
@@ -166,7 +163,6 @@ export default function RequestDetail() {
         </div>
       )}
 
-      {/* Collector security card */}
       {req.collector_name && ['assigned','on_way','in_progress','completed'].includes(req.status) && (
         <div className="card p-5 mb-5 border-2 border-[#C8EDDA] bg-gradient-to-br from-[#F0FBF7] to-white">
           <div className="flex items-center gap-2 mb-4">
@@ -199,7 +195,6 @@ export default function RequestDetail() {
         </div>
       )}
 
-      {/* Details */}
       <div className="card p-6 mb-5">
         <h3 className="font-display font-bold mb-4">{isEn ? 'Information' : 'Informations'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -218,7 +213,6 @@ export default function RequestDetail() {
         )}
       </div>
 
-      {/* Payment */}
       {req.status === 'completed' && (
         <div className={`rounded-2xl p-4 mb-5 flex items-center justify-between ${req.payment_status === 'completed' ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'}`}>
           <div>
@@ -241,7 +235,6 @@ export default function RequestDetail() {
         </div>
       )}
 
-      {/* Rating */}
       {req.rating_score && (
         <div className="card p-4 mb-5">
           <p className="text-sm font-semibold mb-1">{isEn ? 'Your rating' : 'Votre évaluation'}</p>
@@ -250,7 +243,6 @@ export default function RequestDetail() {
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex gap-3 flex-wrap">
         {canRate && (
           <button onClick={() => setRatingModal(true)} className="btn-primary flex-1 justify-center">

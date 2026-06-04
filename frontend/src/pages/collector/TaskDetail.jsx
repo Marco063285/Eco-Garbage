@@ -44,7 +44,7 @@ export default function TaskDetail() {
   }
   useEffect(() => { fetchTask() }, [uuid])
 
-  // Check geolocation support on mount
+
   useEffect(() => {
     const geoStatus = getGeolocationStatus()
     if (!geoStatus.supported) {
@@ -52,7 +52,7 @@ export default function TaskDetail() {
     }
   }, [])
 
-  // Polling for live updates when task is active
+
   useEffect(() => {
     if (task && ['assigned', 'on_way', 'in_progress'].includes(task.status)) {
       const interval = setInterval(fetchTask, 10000) // Update every 10 seconds
@@ -60,7 +60,7 @@ export default function TaskDetail() {
     }
   }, [task?.status])
 
-  // Location tracking when en route
+
   useEffect(() => {
     if (task && ['on_way', 'in_progress'].includes(task.status)) {
       startLocationTracking()
@@ -171,7 +171,7 @@ export default function TaskDetail() {
         <div className="ml-auto"><StatusBadge status={task.status} /></div>
       </div>
 
-      {/* Client card */}
+
       <div className="card p-6 mb-5">
         <h3 className="font-display font-bold mb-4">{isEn ? 'Client information' : 'Informations client'}</h3>
         <div className="flex items-center gap-4 mb-4">
@@ -199,7 +199,7 @@ export default function TaskDetail() {
         </a>
       </div>
 
-      {/* Task details */}
+
       <div className="card p-6 mb-5">
         <h3 className="font-display font-bold mb-4">{isEn ? 'Collection details' : 'Détails de la collecte'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -218,7 +218,7 @@ export default function TaskDetail() {
         )}
       </div>
 
-      {/* Live Route Map */}
+
       {['assigned', 'on_way', 'in_progress'].includes(task.status) && (
         <div className="card p-6 mb-5">
           <h3 className="font-display font-bold mb-5">Trajet en temps réel</h3>
@@ -243,7 +243,7 @@ export default function TaskDetail() {
         </div>
       )}
 
-      {/* Actions */}
+
       {nextAction && (
         <div className="flex flex-col gap-3 mb-4">
           <button
@@ -273,7 +273,7 @@ export default function TaskDetail() {
         </div>
       )}
 
-      {/* Archive button for completed tasks */}
+
       {['completed', 'cancelled', 'failed'].includes(task.status) && (
         <button onClick={handleArchive} disabled={archiving} className="btn-primary w-full justify-center mb-4">
           <Archive size={16} />

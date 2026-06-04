@@ -53,7 +53,7 @@ export default function AdminDashboard() {
         <p className="text-gray-400 text-sm mt-0.5">{ad.subtitle}</p>
       </div>
 
-      {/* KPIs row 1 */}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
         <StatCard icon={Users}       label={ad.users}            value={stats.users}         color="green" />
         <StatCard icon={Truck}       label={ad.collectors}       value={stats.collectors}    color="blue" />
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
         <StatCard icon={DollarSign}  label={ad.totalRevenue}     value={`${stats.revenue.toLocaleString()} FCFA`} color="yellow" />
       </div>
 
-      {/* KPIs row 2 */}
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4">
         <StatCard icon={CheckCircle} label={ad.completed}       value={stats.completedRequests} color="green" />
         <StatCard icon={Clock}       label={ad.pending}         value={stats.pendingRequests}   color="yellow" />
@@ -69,14 +69,14 @@ export default function AdminDashboard() {
         <StatCard icon={Clock}       label={ad.pendingPayment}  value={`${(stats.pendingRevenue || 0).toLocaleString()} FCFA`} color="yellow" />
       </div>
 
-      {/* KPIs row 3 */}
+
       <div className="grid grid-cols-2 lg:grid-cols-2 gap-4 mb-8">
         <StatCard icon={MessageSquare} label={ad.openComplaints}  value={stats.openComplaints} color="red" />
         <StatCard icon={BarChart3}     label={ad.completionRate}  value={stats.totalRequests > 0 ? `${Math.round((stats.completedRequests / stats.totalRequests) * 100)}%` : '0%'} color="blue" />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Recent requests */}
+
         <div className="lg:col-span-2 card p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-lg font-display font-bold">{ad.recentRequests}</h2>
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Top collectors + Quick nav */}
+
         <div className="flex flex-col gap-5">
           <div className="card p-6">
             <h3 className="font-display font-bold mb-4">{ad.topCollectors}</h3>

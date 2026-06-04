@@ -47,7 +47,7 @@ export default function PublicLayout() {
 
   return (
     <div className="min-h-screen bg-[#f7faf8]">
-      {/* Navbar */}
+
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${baseNav}`}>
         <div className="max-w-6xl mx-auto px-6 h-[72px] flex items-center gap-8">
           <Link to="/" className="flex items-center gap-2.5 font-display font-bold text-xl text-gray-900">
@@ -57,7 +57,7 @@ export default function PublicLayout() {
             Eco<span className="text-[#1A8A3C]">Garbage</span>
           </Link>
 
-          {/* Desktop nav */}
+
           <ul className="hidden md:flex items-center gap-1 ml-auto">
             {navLinks.map(l => (
               <li key={l.label}>
@@ -69,9 +69,9 @@ export default function PublicLayout() {
             ))}
           </ul>
 
-          {/* Controls */}
+
           <div className="hidden md:flex items-center gap-2">
-            {/* Lang switcher */}
+
             <div className="relative">
               <button onClick={() => setLangOpen(o => !o)}
                 className="flex items-center gap-1.5 p-2 rounded-xl text-gray-500 hover:bg-[#E8F5EE] hover:text-[#1A8A3C] transition-all text-xs font-bold">
@@ -110,7 +110,7 @@ export default function PublicLayout() {
           </button>
         </div>
 
-        {/* Mobile menu */}
+
         {mobileOpen && (
           <div className="md:hidden bg-white border-t border-gray-100 px-6 py-4 flex flex-col gap-2">
             {navLinks.map(l => (
@@ -139,7 +139,7 @@ export default function PublicLayout() {
 
       <Outlet />
 
-      {/* Footer */}
+
       <footer className="bg-gray-900 text-white pt-16 pb-6">
         <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-white/10">

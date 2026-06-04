@@ -1,16 +1,9 @@
-/**
- * ✅ OPTIMIZED: Geolocation & Collector Assignment
- * Replaces inefficient findNearestCollector() with MongoDB $geoNear aggregation
- * Performance: 5000ms → 50ms (100x faster)
- */
+
 
 const User = require('../models/User');
 const { MAX_SEARCH_RADIUS_KM } = require('./geo');
 
-/**
- * Find nearest available collector using MongoDB geospatial query
- * Uses $geoNear aggregation stage for O(log N) performance
- */
+
 const findNearestCollectorOptimized = async (latitude, longitude) => {
   if (!latitude || !longitude) return null;
 

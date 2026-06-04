@@ -66,19 +66,16 @@ export default function App() {
   return (
     <Suspense fallback={<PageFallback />}>
     <Routes>
-      {/* Public */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<LandingPage />} />
       </Route>
 
-      {/* Auth */}
       <Route path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />
       <Route path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* User */}
       <Route path="/dashboard" element={<PrivateRoute roles={['user']}><DashboardLayout role="user" /></PrivateRoute>}>
         <Route index element={<UserDashboard />} />
         <Route path="new-request" element={<NewRequest />} />
@@ -91,7 +88,6 @@ export default function App() {
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      {/* Collector */}
       <Route path="/collector" element={<PrivateRoute roles={['collector']}><DashboardLayout role="collector" /></PrivateRoute>}>
         <Route index element={<CollectorDashboard />} />
         <Route path="tasks" element={<CollectorTasks />} />
@@ -101,7 +97,6 @@ export default function App() {
         <Route path="profile" element={<Profile />} />
       </Route>
 
-      {/* Admin */}
       <Route path="/admin" element={<PrivateRoute roles={['admin']}><DashboardLayout role="admin" /></PrivateRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />

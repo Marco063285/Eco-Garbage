@@ -1,4 +1,4 @@
-// Utility functions for geolocation handling
+
 export const isGeolocationSupported = () => {
   return 'geolocation' in navigator
 }

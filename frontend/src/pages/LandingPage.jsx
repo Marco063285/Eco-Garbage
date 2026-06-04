@@ -43,7 +43,7 @@ export default function LandingPage() {
 
   return (
     <div>
-      {/* HERO */}
+
       <section className="relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden bg-[#f7faf8]">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute w-[600px] h-[600px] rounded-full -top-48 -right-24 opacity-25"
@@ -86,7 +86,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Phone mockup */}
+
           <div className="hidden md:flex justify-center items-center relative">
             <div className="relative">
               <div className="w-[260px] h-[520px] bg-gray-900 rounded-[44px] p-4 shadow-[0_40px_80px_rgba(0,0,0,0.3)]">
@@ -137,7 +137,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+
       <section className="py-16 sm:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
@@ -158,7 +158,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SERVICES */}
+
       <section id="services" className="py-16 sm:py-24 bg-[#f7faf8]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
@@ -179,7 +179,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CATEGORIES */}
+
       <section className="py-14 sm:py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center">
           <div className="section-badge">{isEn ? 'Categories' : 'Catégories'}</div>
@@ -194,7 +194,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+
       <section className="py-16 sm:py-24 bg-[#f7faf8]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
@@ -221,7 +221,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* PRICING */}
+
       <section id="pricing" className="py-16 sm:py-24 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
@@ -256,7 +256,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
+
       <section id="about" className="py-16 sm:py-24 bg-[#f7faf8]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="bg-[#1A8A3C] rounded-2xl sm:rounded-3xl p-8 sm:p-12 md:p-16 text-center relative overflow-hidden">

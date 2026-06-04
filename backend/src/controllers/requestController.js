@@ -32,7 +32,7 @@ const flattenRequest = (r, payment) => ({
   rating_comment: r.rating_comment,
 });
 
-// GET /api/requests
+
 const getRequests = async (req, res) => {
   try {
     const { status, page = 1, limit = 10, archived = 'false' } = req.query;
@@ -68,7 +68,7 @@ const getRequests = async (req, res) => {
   }
 };
 
-// GET /api/requests/:uuid
+
 const getRequestById = async (req, res) => {
   try {
     const r = await PickupRequest.findOne({ uuid: req.params.uuid })
@@ -87,7 +87,7 @@ const getRequestById = async (req, res) => {
   }
 };
 
-// Helper: find nearest available collector (optimized with MongoDB $geoNear)
+
 const findNearestCollector = async (latitude, longitude) => {
   if (!latitude || !longitude) return null;
 
@@ -137,7 +137,7 @@ const findNearestCollector = async (latitude, longitude) => {
   }
 };
 
-// POST /api/requests
+
 const createRequest = async (req, res) => {
   try {
     const {
@@ -155,7 +155,7 @@ const createRequest = async (req, res) => {
     const uuid = uuidv4();
     const qty = Math.max(1, parseInt(quantity_number) || 1);
 
-    // Auto-assign nearest collector if coordinates provided
+
     let collector_id = null;
     let distance_km = null;
     let assignedStatus = 'pending';
@@ -169,7 +169,7 @@ const createRequest = async (req, res) => {
       assignedStatus = 'assigned';
       estimated_price = calculateEstimatedPrice(cat.base_price, qty, distance_km);
     } else {
-      // No collector found, still calculate price with 0 distance
+
       estimated_price = calculateEstimatedPrice(cat.base_price, qty, 0);
     }
 
@@ -182,7 +182,7 @@ const createRequest = async (req, res) => {
       collector_id, status: assignedStatus,
     });
 
-    // Fire both notifications concurrently
+
     await Promise.all([
       Notification.create({
         user_id: req.user.id,
@@ -220,7 +220,7 @@ const createRequest = async (req, res) => {
   }
 };
 
-// PUT /api/requests/:uuid/status
+
 const updateStatus = async (req, res) => {
   try {
     const { status, proof_url } = req.body;
@@ -296,7 +296,7 @@ const updateStatus = async (req, res) => {
   }
 };
 
-// PUT /api/requests/:uuid/assign
+
 const assignCollector = async (req, res) => {
   try {
     const { collector_id } = req.body;
@@ -320,7 +320,7 @@ const assignCollector = async (req, res) => {
   }
 };
 
-// DELETE /api/requests/:uuid
+
 const cancelRequest = async (req, res) => {
   try {
     const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid, user_id: req.user.id });
@@ -334,7 +334,7 @@ const cancelRequest = async (req, res) => {
   }
 };
 
-// POST /api/requests/estimate — get price estimate before creating request
+
 const estimatePrice = async (req, res) => {
   try {
     const { category_id, latitude, longitude, quantity_number = 1 } = req.body;
@@ -395,13 +395,13 @@ const updateLocation = async (req, res) => {
   }
 };
 
-// PUT /api/requests/:uuid/archive
+
 const archiveRequest = async (req, res) => {
   try {
     const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid });
     if (!pickupReq) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
 
-    // Vérifier les permissions
+
     if (req.user.role === 'user' && pickupReq.user_id.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Acces interdit' });
     }
@@ -424,13 +424,13 @@ const archiveRequest = async (req, res) => {
   }
 };
 
-// PUT /api/requests/:uuid/restore
+
 const restoreRequest = async (req, res) => {
   try {
     const pickupReq = await PickupRequest.findOne({ uuid: req.params.uuid });
     if (!pickupReq) return res.status(404).json({ success: false, message: 'Demande non trouvee' });
 
-    // Vérifier les permissions
+
     if (req.user.role === 'user' && pickupReq.user_id.toString() !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Acces interdit' });
     }

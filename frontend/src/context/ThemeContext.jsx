@@ -13,7 +13,6 @@ function applyTheme(theme) {
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('eco_theme') || 'light';
-    // Apply immediately (synchronous) to avoid flash of wrong theme
     applyTheme(saved);
     return saved;
   });
