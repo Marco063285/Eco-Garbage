@@ -146,12 +146,10 @@ const register = async (req, res) => {
     });
 
     if (smtpConfigured) {
-      try {
-        await sendVerificationEmail(email, name, verificationToken);
-      } catch (mailErr) {
-        console.error('Email verification send error:', mailErr);
-      }
       res.status(201).json({ success: true, message: 'Compte cree. Verifiez votre email pour activer votre compte.' });
+      sendVerificationEmail(email, name, verificationToken).catch((mailErr) => {
+        console.error('Email verification send error:', mailErr.message);
+      });
     } else {
       res.status(201).json({ success: true, message: 'Compte cree avec succes ! Vous pouvez vous connecter.', autoVerified: true });
     }
@@ -338,14 +336,10 @@ const resendVerification = async (req, res) => {
     userDoc.email_verification_expires = verificationExpires;
     await userDoc.save();
 
-    try {
-      await sendVerificationEmail(userDoc.email, userDoc.name, verificationToken);
-    } catch (mailErr) {
-      console.error('Resend verification email error:', mailErr);
-      return res.status(500).json({ success: false, message: 'Erreur lors de l\'envoi de l\'email' });
-    }
-
     res.json({ success: true, message: 'Email de verification renvoye. Verifiez votre boite mail.' });
+    sendVerificationEmail(userDoc.email, userDoc.name, verificationToken).catch((mailErr) => {
+      console.error('Resend verification email error:', mailErr.message);
+    });
   } catch (err) {
     console.error('resendVerification error:', err);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
