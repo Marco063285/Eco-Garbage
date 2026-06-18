@@ -5,9 +5,7 @@ require('dotenv').config();
 const User = require('../models/User');
 const WasteCategory = require('../models/WasteCategory');
 
-async function initDatabase() {
-  await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eco_garbage_db');
-  console.log('Connexion MongoDB etablie...');
+async function seedDatabase() {
 
   const categories = [
     { name: 'Dechets menagers', description: 'Ordures menageres classiques', icon: 'trash', base_price: 500, is_hazardous: false, is_recyclable: false },
@@ -88,9 +86,16 @@ async function initDatabase() {
 
   console.log('Base de donnees MongoDB initialisee avec succes !');
   console.log('Admin     : admin@eco-garbage.com / Admin1234!');
-  console.log('User      : user@eco-garbage.com / Admin1234!');
-  console.log('Collector : collector@eco-garbage.com / Admin1234!');
+}
+
+async function initDatabase() {
+  await mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/eco_garbage_db');
+  await seedDatabase();
   await mongoose.connection.close();
 }
 
-initDatabase().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); });
+if (require.main === module) {
+  initDatabase().then(() => process.exit(0)).catch(err => { console.error(err); process.exit(1); });
+}
+
+module.exports = { seedDatabase };

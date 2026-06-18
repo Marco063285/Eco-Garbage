@@ -20,6 +20,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.PAYMENT_WEBHOOK_SECRET
 }
 
 const connectDB = require('./config/db');
+const { seedDatabase } = require('./config/initDb');
 const routes = require('./routes');
 const { startRecurringScheduler } = require('./services/recurringService');
 const { initializeRealtime } = require('./services/realtimeService');
@@ -119,6 +120,7 @@ initializeRealtime(httpServer, allowedOrigins);
 const startServer = async (port = PORT) => {
   if (serverStarted) return httpServer;
   await connectDB();
+  await seedDatabase();
   await new Promise((resolve, reject) => {
     httpServer.once('error', reject);
     httpServer.listen(port, () => {
