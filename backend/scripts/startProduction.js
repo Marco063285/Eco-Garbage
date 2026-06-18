@@ -10,5 +10,6 @@ const start = async () => {
 
 start().catch((error) => {
   console.error(`Demarrage production impossible: ${error.message}`);
+  console.error(error.stack);
   process.exitCode = 1;
 });
