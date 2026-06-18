@@ -4,16 +4,21 @@ const Notification = require('../models/Notification');
 const PickupRequest = require('../models/PickupRequest');
 const Rating = require('../models/Rating');
 const Complaint = require('../models/Complaint');
-const Payment = require('../models/Payment');
 const WasteCategory = require('../models/WasteCategory');
 const User = require('../models/User');
+const { isVehicleCompatible } = require('../services/assignmentService');
+const { hasValidHazardousCertification } = require('../utils/collectorCertification');
 
 
 
 const getNotifications = async (req, res) => {
   try {
     const [rows, unreadCount] = await Promise.all([
-      Notification.find({ user_id: req.user.id }).sort({ created_at: -1 }).limit(50).lean({ virtuals: true }),
+      Notification.find({ user_id: req.user.id })
+        .select('title message type is_read created_at')
+        .sort({ created_at: -1 })
+        .limit(50)
+        .lean({ virtuals: true }),
       Notification.countDocuments({ user_id: req.user.id, is_read: false }),
     ]);
     res.json({ success: true, data: rows, unreadCount });
@@ -46,8 +51,14 @@ const createRating = async (req, res) => {
     await Rating.findOneAndUpdate(
       { request_id: pickupReq._id },
       { $set: { user_id: req.user.id, collector_id: pickupReq.collector_id, score, comment } },
-      { upsert: true }
+      { upsert: true, runValidators: true }
     );
+    await PickupRequest.findByIdAndUpdate(pickupReq._id, {
+      $set: {
+        rating_score: score,
+        rating_comment: String(comment || '').trim().slice(0, 500),
+      },
+    });
 
 
     const [avgResult] = await Rating.aggregate([
@@ -74,8 +85,11 @@ const createComplaint = async (req, res) => {
 
     let request_id;
     if (request_uuid) {
-      const r = await PickupRequest.findOne({ uuid: request_uuid });
-      if (r) request_id = r._id;
+      const r = await PickupRequest.findOne({ uuid: request_uuid, user_id: req.user.id });
+      if (!r) {
+        return res.status(404).json({ success: false, message: 'Collecte associee introuvable' });
+      }
+      request_id = r._id;
     }
 
     const uuid = uuidv4();
@@ -97,46 +111,13 @@ const getMyComplaints = async (req, res) => {
 
 
 
-const getPayments = async (req, res) => {
-  try {
-    const raw = await Payment.find({ user_id: req.user.id })
-      .populate({ path: 'request_id', select: 'uuid category_id', populate: { path: 'category_id', select: 'name' } })
-      .sort({ created_at: -1 }).lean();
-    const rows = raw.map(p => ({
-      ...p, id: p._id.toString(),
-      request_uuid: p.request_id?.uuid,
-      category_name: p.request_id?.category_id?.name,
-      request_id: p.request_id?._id?.toString(),
-    }));
-    res.json({ success: true, data: rows });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-};
-
-const payRequest = async (req, res) => {
-  try {
-    const { payment_uuid, method } = req.body;
-    if (!payment_uuid || !method)
-      return res.status(400).json({ success: false, message: 'UUID et méthode de paiement requis' });
-    const updated = await Payment.findOneAndUpdate(
-      { uuid: payment_uuid, user_id: req.user.id },
-      { $set: { status: 'completed', method, paid_at: new Date(), transaction_ref: `TXN-${Date.now()}` } }
-    );
-    if (!updated)
-      return res.status(404).json({ success: false, message: 'Paiement non trouvé' });
-    res.json({ success: true, message: 'Paiement enregistre' });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
-  }
-};
-
-
-
-
 let _categoriesCache = null;
 let _categoriesCachedAt = 0;
 const CATEGORIES_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const invalidateCategoriesCache = () => {
+  _categoriesCache = null;
+  _categoriesCachedAt = 0;
+};
 
 const getCategories = async (req, res) => {
   try {
@@ -159,10 +140,10 @@ const getCollectorTasks = async (req, res) => {
     const { status, page = 1, limit = 10, archived = 'false' } = req.query;
     const filter = { collector_id: req.user.id, is_archived: archived === 'true' };
     if (status) filter.status = status;
-    const [raw, total] = await Promise.all([
+    const [raw, total, collector] = await Promise.all([
       PickupRequest.find(filter)
         .populate('user_id', 'name phone')
-        .populate('category_id', 'name icon')
+        .populate('category_id', 'name icon is_hazardous')
         .sort({ created_at: -1 })
         .skip((parseInt(page) - 1) * parseInt(limit))
         .limit(parseInt(limit))
@@ -171,7 +152,7 @@ const getCollectorTasks = async (req, res) => {
     ]);
     const rows = raw.map(r => ({
       ...r, id: r._id.toString(),
-      user_name: r.user_id?.name, user_phone: r.user_id?.phone,
+      user_name: r.user_id?.name,
       category_name: r.category_id?.name, category_icon: r.category_id?.icon,
       user_id: r.user_id?._id?.toString(), category_id: r.category_id?._id?.toString(),
     }));
@@ -194,13 +175,35 @@ const getAvailableCollectorRequests = async (req, res) => {
         .limit(parseInt(limit))
         .lean(),
       PickupRequest.countDocuments(filter),
+      User.findById(req.user.id)
+        .select('collector_profile.vehicle_type collector_profile.hazardous_certification')
+        .lean(),
     ]);
 
+    const vehicleType = collector?.collector_profile?.vehicle_type || 'foot';
     const rows = raw.map(r => ({
-      ...r, id: r._id.toString(),
-      user_name: r.user_id?.name, user_phone: r.user_id?.phone,
+      id: r._id.toString(),
+      uuid: r.uuid,
+      status: r.status,
+      user_name: 'Client EcoGarbage',
+      address: Number.isFinite(r.latitude) && Number.isFinite(r.longitude)
+        ? `Zone approximative (${r.latitude.toFixed(2)}, ${r.longitude.toFixed(2)})`
+        : 'Zone masquee jusqu a acceptation',
       category_name: r.category_id?.name, category_icon: r.category_id?.icon,
-      user_id: r.user_id?._id?.toString(), category_id: r.category_id?._id?.toString(),
+      category_id: r.category_id?._id?.toString(),
+      quantity_number: r.quantity_number,
+      quantity_estimate: r.quantity_estimate,
+      estimated_price: r.estimated_price,
+      service_type: r.service_type,
+      vehicle_compatible: isVehicleCompatible({
+        vehicleType,
+        quantity: r.quantity_number,
+        serviceType: r.service_type,
+        isHazardous: Boolean(r.category_id?.is_hazardous),
+        hazardousCertified: hasValidHazardousCertification(collector),
+      }),
+      scheduled_at: r.scheduled_at,
+      created_at: r.created_at,
     }));
 
     res.json({ success: true, data: rows, pagination: { total, page: parseInt(page), limit: parseInt(limit) } });
@@ -212,10 +215,37 @@ const getAvailableCollectorRequests = async (req, res) => {
 const updateCollectorAvailability = async (req, res) => {
   try {
     const { is_available } = req.body;
-    await User.findByIdAndUpdate(req.user.id, { $set: { 'collector_profile.is_available': is_available } });
+    if (typeof is_available !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'Disponibilite invalide' });
+    }
+    if (is_available) {
+      const collector = await User.findById(req.user.id)
+        .select('collector_profile.verification_status collector_profile.verification_expires_at')
+        .lean();
+      const verificationExpired = collector?.collector_profile?.verification_expires_at
+        && collector.collector_profile.verification_expires_at <= new Date();
+      if (
+        collector?.collector_profile?.verification_status !== 'verified'
+        || verificationExpired
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: 'Renouvelez votre verification avant de vous rendre disponible.',
+        });
+      }
+    }
+    const result = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { 'collector_profile.is_available': is_available } },
+      { new: true }
+    );
+    if (!result) {
+      return res.status(404).json({ success: false, message: 'Collecteur non trouve' });
+    }
     res.json({ success: true, message: is_available ? 'Vous etes maintenant disponible' : 'Vous etes maintenant indisponible' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Erreur serveur' });
+    console.error('Erreur updateCollectorAvailability:', err);
+    res.status(500).json({ success: false, message: 'Erreur serveur: ' + (err.message || 'Impossible de mettre a jour votre disponibilite') });
   }
 };
 
@@ -263,6 +293,6 @@ const getCollectorStats = async (req, res) => {
 module.exports = {
   getNotifications, markAllRead,
   createRating, createComplaint, getMyComplaints,
-  getPayments, payRequest, getCategories,
+  getCategories, invalidateCategoriesCache,
   getCollectorTasks, getAvailableCollectorRequests, updateCollectorAvailability, updateCollectorLocation, getCollectorStats,
 };
