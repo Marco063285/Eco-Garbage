@@ -186,27 +186,15 @@ const login = async (req, res) => {
     if (!valid)
       return res.status(401).json({ success: false, message: 'Email ou mot de passe incorrect' });
 
-    if (userDoc.role === 'admin') {
-      if (userDoc.admin_security?.two_factor_enabled) {
-        return res.status(202).json({
-          success: true,
-          code: 'ADMIN_2FA_REQUIRED',
-          message: 'Code de double authentification requis',
-          data: {
-            challenge_token: generateChallengeToken(userDoc, 'login'),
-          },
-        });
-      }
-      if (isAdminTwoFactorRequired()) {
-        return res.status(202).json({
-          success: true,
-          code: 'ADMIN_2FA_SETUP_REQUIRED',
-          message: 'Activez la double authentification pour continuer',
-          data: {
-            challenge_token: generateChallengeToken(userDoc, 'setup'),
-          },
-        });
-      }
+    if (userDoc.role === 'admin' && userDoc.admin_security?.two_factor_enabled) {
+      return res.status(202).json({
+        success: true,
+        code: 'ADMIN_2FA_REQUIRED',
+        message: 'Code de double authentification requis',
+        data: {
+          challenge_token: generateChallengeToken(userDoc, 'login'),
+        },
+      });
     }
 
     return respondWithSession({ userDoc, req, res });

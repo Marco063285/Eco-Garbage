@@ -20,7 +20,7 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: ADMIN_2FA_REQUIRED
-        value: "true"
+        value: "false"
       - key: UPLOAD_DIR
         value: uploads
       - key: MAX_FILE_SIZE
